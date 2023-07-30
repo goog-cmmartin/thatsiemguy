@@ -12,6 +12,38 @@ This repo provides an integration between the MISP Threat Intelligence Platform 
     * YARA-L Detection Rules
     * Dashboard
 
+Each Attribute within a MISP Event will be created as a Entity Graph IOC context record:
+
+```
+metadata.product_entity_id"6f030595-65a3-4ec1-9a8d-fafe54ebe89b"
+metadata.collected_timestamp"2023-07-30T13:00:29.270910Z"
+metadata.vendor_name"misp-project.org"
+metadata.product_name"MISP Threat Sharing"
+metadata.entity_type"FILE"
+metadata.description"Test Event 40"
+metadata.interval.start_time"2022-07-30T12:43:26Z"
+metadata.interval.end_time"2024-07-29T12:43:26Z"
+metadata.threat[0].severity"HIGH"
+metadata.threat[0].severity_details"1"
+metadata.threat[0].url_back_to_product"https://misp.demo.altostrat.com/events/view/3728505"
+metadata.threat[0].threat_feed_name"ORGNAME"
+metadata.threat[1].category_details[0]"Payload delivery"
+metadata.threat[1].description"filename:foobar.exe"
+metadata.threat[1].threat_id"cc7632a0-ab61-4e55-993f-969d51128872"
+metadata.threat[2].category_details[0]"Other"
+metadata.threat[2].description"text:FooBar Installer"
+metadata.threat[2].threat_id"982516be-edaf-451b-bb91-77ff89ed7c15"
+metadata.threat[3].category_details[0]"Payload delivery"
+metadata.threat[3].description"md5:a8f5f167f44f4964e6c998dee827110c"
+metadata.threat[3].threat_id"6f030595-65a3-4ec1-9a8d-fafe54ebe89b"
+metadata.event_metadata.base_labels.log_types[0]"MISP_IOC"
+metadata.event_metadata.base_labels.namespaces[0]""
+entity.file.md5"a8f5f167f44f4964e6c998dee827110c"
+entity.file.full_path"foobar.exe"
+additional.fields["attribute_count"]"3"
+additional.fields["distribution_string"]"5 - Inherit Event"
+```
+
 </br>
 
 ## Pre-requisites
