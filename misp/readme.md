@@ -18,6 +18,32 @@ To utilize this integration requires the following pre-requisites:
 
 ## Integration Notes
 
+### Supported MISP Attribute Types
+
+The Cloud Function will export all MISP Attributes within an Event; however, the Chronicle Parser only supports specific Attribute types as follows:
+
+* MISP Attribyte Type > Chronicle UDM Entity Metadata Type
+* ip-src -> IP_ADDRESS
+* ip-dst -> IP_ADDRESS
+* ip-dst|port -> IP_ADDRESS
+* ip-src|port -> IP_ADDRESS
+* domain|ip -> DOMAIN_NAME 
+* domain -> DOMAIN_NAME
+* hostname -> DOMAIN_NAME
+* url -> URL
+* filename|md5 -> FILE
+* filename|sha1 -> FILE
+* filename|sha256 -> FILE
+* md5 -> FILE
+* sha1 -> FILE
+* sha256 -> FILE
+* filename -> FILE
+* email -> USER
+* email-src -> USER
+* email-dst -> USER
+* whois-registrant-email -> USER
+
+
 ### Indicator Start and End Dates
 
 Chronicle SIEM's Entity Graph supports a start and end date for when an IOC is considered valid. During this time, the IOC will be actively matched against UDM Event Data. However, the start and end range of when an IOC should be considered valid is subjective. Therefore, this integration attempts to make that a user configurable option.
