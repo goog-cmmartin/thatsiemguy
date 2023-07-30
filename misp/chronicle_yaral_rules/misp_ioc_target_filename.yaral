@@ -1,34 +1,44 @@
-rule misp_ioc_target_domain_observed_network_connection {
+rule misp_ioc_target_filename {
 
   meta:
     // Mandatory meta fields
     author = "thatsiemguy@"
     owner = "secops-t3@" 
-    description = "Matches Network event data against MISP Domain IOCs, specifically looking for observed connections.  This Detection does not look for DNS activity, that is a different Detection rule."
+    description = "Matches Filenames in the Target process file full_path UDM field against MISP IOCs."
     response = "Evaluate the IOC match in MISP to determine the Feed source, MISP Tags, and Severity "
     severity = "MEDIUM"
     priority = "MEDIUM"
     // Optional, but desired meta fields
     mitre_mitigation = "M1019"
-    misp_types = "domain, domain|ip, hostname"
+    misp_type = "filename"
 
   events:
     (
-        $event.metadata.event_type = "NETWORK_CONNECTION" or
-        $event.metadata.event_type = "NETWORK_HTTP" or
-        $event.metadata.event_type = "NETWORK_FTP" or
-        $event.metadata.event_type = "NETWORK_SMTP" or
-        $event.metadata.event_type = "NETWORK_FLOW" or        
-        $event.metadata.event_type = "NETWORK_UNCATEGORIZED"
+        $event.metadata.event_type = "PROCESS_INJECTION" or
+        $event.metadata.event_type = "PROCESS_LAUNCH" or
+        $event.metadata.event_type = "PROCESS_MODULE_LOAD" or
+        $event.metadata.event_type = "PROCESS_OPEN" or
+        $event.metadata.event_type = "PROCESS_PRIVILEGE_ESCALATION" or        
+        $event.metadata.event_type = "PROCESS_TERMINATION" or
+        $event.metadata.event_type = "PROCESS_UNCATEGORIZED" or    
+        $event.metadata.event_type = "FILE_COPY" or    
+        $event.metadata.event_type = "FILE_CREATION" or
+        $event.metadata.event_type = "FILE_DELETION" or
+        $event.metadata.event_type = "FILE_MODIFICATION" or
+        $event.metadata.event_type = "FILE_MOVE" or
+        $event.metadata.event_type = "FILE_OPEN" or
+        $event.metadata.event_type = "FILE_READ" or
+        $event.metadata.event_type = "FILE_SYNC" or
+        $event.metadata.event_type = "FILE_UNCATEGORIZED"                                                                                                 
     )
-    $event.target.hostname != ""
-    $event.target.hostname = $domain
+    $event.target.process.file.full_path != ""
+    $event.target.process.file.full_path = $file
     $asset = strings.coalesce($event.principal.hostname, $event.principal.ip)
 
     $misp.graph.metadata.vendor_name = "misp-project.org"
     $misp.graph.metadata.product_name = "MISP Threat Sharing"
-    $misp.graph.metadata.entity_type = "DOMAIN_NAME"
-    $misp.graph.entity.hostname = $domain
+    $misp.graph.metadata.entity_type = "FILE"
+    $misp.graph.entity.file.full_path = $file
 
   match:
     $asset over 1m
@@ -67,7 +77,7 @@ rule misp_ioc_target_domain_observed_network_connection {
         if($misp.graph.metadata.threat.threat_feed_name = "CIRCL", 30) +
         if($misp.graph.metadata.threat.category_details = "CUDESO", 15) +
         if($misp.graph.metadata.threat.category_details = "abuse.ch", 5) +
-        // Did the log source report a successful connection? MAX - 10
+        // Did the log source report a successful launch? MAX - 10
         if($event.security_result.action = "ALLOW", 10) -
         if($event.security_result.action = "BLOCK", 10)        
     )

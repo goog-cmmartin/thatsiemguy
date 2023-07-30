@@ -1,0 +1,613 @@
+lookml:
+- dashboard: ioc_misp_threat_sharing
+  description: ""
+  elements:
+  - col: 0
+    color_application: undefined
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.count
+    - entity_graph.metadata__vendor_name
+    - entity_graph.metadata__entity_type_enum_name
+    filters:
+      entity_graph.metadata__vendor_name: misp-project.org
+      entity_graph.time_filter: 4 weeks
+    header_font_size: 12
+    header_text_alignment: left
+    height: 6
+    hidden_fields:
+    - entity_graph.metadata__vendor_name
+    hide_row_totals: false
+    hide_totals: false
+    inner_radius: 75
+    interpolation: linear
+    label_density: 25
+    label_type: labPer
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: MISP Events, by Entity Type
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 5
+    rows_font_size: 12
+    series_types: {}
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_null_points: true
+    show_row_numbers: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - entity_graph.count desc 0
+    stacking: ""
+    table_theme: white
+    title: MISP Events, by Entity Type
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_text: true
+    type: looker_pie
+    value_labels: legend
+    width: 12
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  - col: 0
+    column_limit: 50
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: ingestion_metrics
+    fields:
+    - ingestion_metrics.timestamp_hour
+    - ingestion_metrics.total_normalized_events
+    fill_fields:
+    - ingestion_metrics.timestamp_hour
+    filters:
+      ingestion_metrics.log_type: '"MISP_IOC"'
+      ingestion_metrics.timestamp_date: 7 days
+    header_font_size: 12
+    header_text_alignment: left
+    height: 5
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: MISP_IOC Normalized Event Count
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 23
+    rows_font_size: 12
+    series_types: {}
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - ingestion_metrics.timestamp_hour desc
+    stacking: ""
+    table_theme: white
+    title: MISP_IOC Normalized Event Count
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_text: true
+    type: looker_column
+    width: 24
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  - col: 0
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    dynamic_fields:
+    - _kind_hint: dimension
+      _type_hint: "null"
+      category: table_calculation
+      expression: coalesce(${entity_graph__entity__user__email_addresses.entity_graph__entity__user__email_addresses},${entity_graph.entity__url},${entity_graph__entity__ip.entity_graph__entity__ip},${entity_graph.entity__hostname},${entity_graph.entity__file__sha1},${entity_graph.entity__file__sha256},${entity_graph.entity__file__md5})
+      label: entity_value
+      table_calculation: entity_value
+      value_format: null
+      value_format_name: null
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.metadata__vendor_name
+    - entity_graph.metadata__entity_type_enum_name
+    - entity_graph__entity__ip.entity_graph__entity__ip
+    - entity_graph.entity__url
+    - entity_graph.entity__hostname
+    - entity_graph.entity__file__md5
+    - entity_graph.entity__file__sha1
+    - entity_graph.entity__file__sha256
+    - entity_graph__entity__user__email_addresses.entity_graph__entity__user__email_addresses
+    filters:
+      entity_graph.metadata__vendor_name: misp-project.org
+      entity_graph.time_filter: 4 weeks
+    header_font_size: 12
+    header_text_alignment: left
+    height: 7
+    hidden_fields:
+    - entity_graph__entity__ip.entity_graph__entity__ip
+    - entity_graph.entity__url
+    - entity_graph.entity__hostname
+    - entity_graph.entity__file__md5
+    - entity_graph.entity__file__sha1
+    - entity_graph.entity__file__sha256
+    - entity_graph__entity__user__email_addresses.entity_graph__entity__user__email_addresses
+    hide_row_totals: false
+    hide_totals: false
+    limit: 500
+    limit_displayed_rows: false
+    model: cn
+    name: MISP IOC Entity Values
+    row: 28
+    rows_font_size: 12
+    series_types: {}
+    show_comparison: false
+    show_comparison_label: true
+    show_row_numbers: true
+    show_single_value_title: true
+    show_view_names: false
+    size_to_fit: true
+    sorts:
+    - entity_graph.metadata__vendor_name
+    table_theme: white
+    title: MISP IOC Entity Values
+    transpose: false
+    truncate_text: true
+    type: looker_grid
+    width: 24
+  - body_text: '![MISP](https://upload.wikimedia.org/wikipedia/commons/9/91/Misp-logo.png)'
+    col: 0
+    height: 5
+    name: ""
+    row: 0
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 8
+  - body_text: |-
+      The [MISP Threat Sharing project](https://www.misp-project.org/) consists of multiple initiatives, from software to facilitate threat analysis and sharing to freely usable structured Cyber Threat Information and Taxonomies.
+
+      This Chronicle SIEM Dashboard shows all ingested MISP IOC into the Chronicle Entity Graph.
+    col: 9
+    height: 5
+    name: ' (2)'
+    row: 0
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 15
+  - col: 0
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.count
+    - entity_graph.metadata__vendor_name
+    - entity_graph.metadata__entity_type_enum_name
+    - entity_graph__metadata__threat.threat_feed_name
+    filters:
+      entity_graph.metadata__vendor_name: misp-project.org
+      entity_graph.time_filter: 4 weeks
+    header_font_size: "12"
+    header_text_alignment: left
+    height: 6
+    hidden_fields:
+    - entity_graph.metadata__vendor_name
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    limit: 500
+    limit_displayed_rows: false
+    model: cn
+    name: MISP Entity Type, by MISP Feed
+    pivots:
+    - entity_graph__metadata__threat.threat_feed_name
+    row: 11
+    rows_font_size: "12"
+    series_cell_visualizations:
+      entity_graph.count:
+        is_active: true
+    series_labels:
+      entity_graph.metadata__entity_type_enum_name: Entity Type
+      entity_graph__metadata__threat.threat_feed_name: MISP Feed
+    series_types: {}
+    show_comparison: false
+    show_comparison_label: true
+    show_row_numbers: true
+    show_row_totals: true
+    show_single_value_title: true
+    show_sql_query_menu_options: false
+    show_totals: true
+    show_view_names: false
+    size_to_fit: true
+    sorts:
+    - entity_graph__metadata__threat.threat_feed_name
+    - entity_graph.count desc 0
+    table_theme: white
+    title: MISP Entity Type, by MISP Feed
+    transpose: false
+    truncate_header: false
+    truncate_text: true
+    type: looker_grid
+    width: 24
+  - col: 0
+    color_application: undefined
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.count
+    - entity_graph.metadata__vendor_name
+    - entity_graph__metadata__threat__category_details.entity_graph__metadata__threat__category_details
+    filters:
+      entity_graph.metadata__vendor_name: misp-project.org
+      entity_graph.time_filter: 4 weeks
+    header_font_size: "12"
+    header_text_alignment: left
+    height: 6
+    hidden_fields:
+    - entity_graph.metadata__vendor_name
+    hide_row_totals: false
+    hide_totals: false
+    inner_radius: 75
+    interpolation: linear
+    label_density: 25
+    label_type: labPer
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    model: cn
+    name: MISP Event Tags
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 17
+    rows_font_size: "12"
+    series_cell_visualizations:
+      entity_graph.count:
+        is_active: true
+    series_column_widths:
+      entity_graph__metadata__threat__category_details.entity_graph__metadata__threat__category_details: 359
+    series_labels:
+      entity_graph.count: Count
+      entity_graph__metadata__threat__category_details.entity_graph__metadata__threat__category_details: Tags
+    series_types: {}
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_null_points: true
+    show_row_numbers: true
+    show_row_totals: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_sql_query_menu_options: false
+    show_totals: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - entity_graph.count desc 0
+    stacking: ""
+    table_theme: white
+    title: MISP Event Tags
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_header: false
+    truncate_text: true
+    type: looker_grid
+    value_labels: legend
+    width: 12
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  - col: 12
+    color_application: undefined
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.count
+    - entity_graph.metadata__vendor_name
+    - entity_graph__metadata__threat.description
+    filters:
+      entity_graph.metadata__vendor_name: misp-project.org
+      entity_graph.time_filter: 4 weeks
+    header_font_size: "12"
+    header_text_alignment: left
+    height: 6
+    hidden_fields:
+    - entity_graph.metadata__vendor_name
+    hide_row_totals: false
+    hide_totals: false
+    inner_radius: 75
+    interpolation: linear
+    label_density: 25
+    label_type: labPer
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    model: cn
+    name: MISP Event Type
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 17
+    rows_font_size: "12"
+    series_cell_visualizations:
+      entity_graph.count:
+        is_active: true
+    series_column_widths:
+      entity_graph__metadata__threat__category_details.entity_graph__metadata__threat__category_details: 359
+    series_labels:
+      entity_graph.count: Count
+      entity_graph__metadata__threat.description: MISP Type
+      entity_graph__metadata__threat__category_details.entity_graph__metadata__threat__category_details: Tags
+    series_types: {}
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_null_points: true
+    show_row_numbers: true
+    show_row_totals: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_sql_query_menu_options: false
+    show_totals: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - entity_graph.count desc 0
+    stacking: ""
+    table_theme: white
+    title: MISP Event Type
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_header: false
+    truncate_text: true
+    type: looker_grid
+    value_labels: legend
+    width: 12
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  - col: 12
+    color_application: undefined
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.count
+    - entity_graph.metadata__vendor_name
+    - entity_graph__metadata__threat.severity_enum_name
+    filters:
+      entity_graph.metadata__vendor_name: misp-project.org
+      entity_graph.time_filter: 4 weeks
+    header_font_size: 12
+    header_text_alignment: left
+    height: 6
+    hidden_fields:
+    - entity_graph.metadata__vendor_name
+    hide_row_totals: false
+    hide_totals: false
+    inner_radius: 75
+    interpolation: linear
+    label_density: 25
+    label_type: labPer
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    model: cn
+    name: MISP Events, by Severity
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 5
+    rows_font_size: 12
+    series_types: {}
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_null_points: true
+    show_row_numbers: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - entity_graph.count desc 0
+    stacking: ""
+    table_theme: white
+    title: MISP Events, by Severity
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_text: true
+    type: looker_pie
+    value_labels: legend
+    width: 12
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  - col: 0
+    column_limit: 50
+    column_order:
+    - $$$_row_numbers_$$$
+    - rule_detections.detection__detection_timestamp_date
+    - rule_detections.rule_name
+    - rule_detections.count
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: rule_detections
+    fields:
+    - rule_detections.rule_name
+    - rule_detections.detection__detection_timestamp_date
+    - rule_detections.count
+    filters:
+      rule_detections.rule_name: '%misp%'
+    header_font_size: "12"
+    header_text_alignment: left
+    height: 6
+    hide_row_totals: false
+    hide_totals: false
+    limit: 500
+    limit_displayed_rows: false
+    model: cn
+    name: MISP YARA-L Detections
+    row: 35
+    rows_font_size: "12"
+    series_cell_visualizations:
+      rule_detections.count:
+        is_active: true
+    series_column_widths:
+      rule_detections.detection__detection_timestamp_date: 144
+    series_labels:
+      rule_detections.count: Detection Count
+      rule_detections.detection__detection_timestamp_date: Detection Date
+      rule_detections.rule_name: Rule Name
+    series_types: {}
+    show_comparison: false
+    show_comparison_label: true
+    show_row_numbers: true
+    show_row_totals: true
+    show_single_value_title: true
+    show_sql_query_menu_options: false
+    show_totals: true
+    show_view_names: false
+    size_to_fit: true
+    sorts:
+    - rule_detections.detection__detection_timestamp_date desc
+    table_theme: white
+    title: MISP YARA-L Detections
+    transpose: false
+    truncate_header: false
+    truncate_text: true
+    type: looker_grid
+    width: 24
+  layout: newspaper
+  title: '[ioc] MISP Threat Sharing'
+metadata:
+  exported_at: "2023-07-20T03:27:53-07:00"
+  file_fingerprint: "1070713924315013052317196519166104718796"
+  looker_version: 23.6.93
+  version: "1"

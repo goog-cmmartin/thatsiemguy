@@ -1,0 +1,80 @@
+rule misp_ioc_target_domain_name {
+
+  meta:
+    // Mandatory meta fields
+    author = "thatsiemguy@"
+    owner = "secops-t3@" 
+    description = "Matches Network event data against MISP Domain IOCs, specifically looking for observed connections.  This Detection does not look for DNS activity, that is a different Detection rule."
+    response = "Evaluate the IOC match in MISP to determine the Feed source, MISP Tags, and Severity "
+    severity = "MEDIUM"
+    priority = "MEDIUM"
+    // Optional, but desired meta fields
+    mitre_mitigation = "M1019"
+    misp_types = "domain, domain|ip, hostname"
+
+  events:
+    (
+        $event.metadata.event_type = "NETWORK_CONNECTION" or
+        $event.metadata.event_type = "NETWORK_HTTP" or
+        $event.metadata.event_type = "NETWORK_FTP" or
+        $event.metadata.event_type = "NETWORK_SMTP" or
+        $event.metadata.event_type = "NETWORK_FLOW" or        
+        $event.metadata.event_type = "NETWORK_UNCATEGORIZED"
+    )
+    $event.target.hostname != ""
+    $event.target.hostname = $domain
+    $asset = strings.coalesce($event.principal.hostname, $event.principal.ip)
+
+    $misp.graph.metadata.vendor_name = "misp-project.org"
+    $misp.graph.metadata.product_name = "MISP Threat Sharing"
+    $misp.graph.metadata.entity_type = "DOMAIN_NAME"
+    $misp.graph.entity.hostname = $domain
+
+  match:
+    $asset over 1m
+
+  outcome:
+    $risk_score = max(
+        // MISP Event Severity - MAX 30
+        // - 1 = High, 2 = Medium, 3 = Low, 4 = Undefined
+        if($misp.graph.metadata.threat.severity = "LOW", 10) +
+        if($misp.graph.metadata.threat.severity = "MEDIUM", 20) +
+        if($misp.graph.metadata.threat.severity = "HIGH", 30) +
+        // MISP Category - MAX 30
+        if($misp.graph.metadata.threat.category_details = "Antivirus detection", 25) + 
+        if($misp.graph.metadata.threat.category_details = "Artifacts dropped", 30) + 
+        if($misp.graph.metadata.threat.category_details = "Attribution", 10) + 
+        if($misp.graph.metadata.threat.category_details = "External analysis", 0) + 
+        if($misp.graph.metadata.threat.category_details = "Financial fraud", 5) + 
+        if($misp.graph.metadata.threat.category_details = "Internal reference", 0) + 
+        if($misp.graph.metadata.threat.category_details = "Network activity", 15) + 
+        if($misp.graph.metadata.threat.category_details = "Other", 5) + 
+        if($misp.graph.metadata.threat.category_details = "Payload delivery", 30) + 
+        if($misp.graph.metadata.threat.category_details = "Payload installation", 30) + 
+        if($misp.graph.metadata.threat.category_details = "Payload type", 20) + 
+        if($misp.graph.metadata.threat.category_details = "Persistence mechanism", 25) + 
+        if($misp.graph.metadata.threat.category_details = "Person", 5) + 
+        if($misp.graph.metadata.threat.category_details = "Social network", 5) + 
+        if($misp.graph.metadata.threat.category_details = "Support Tool", 5) + 
+        if($misp.graph.metadata.threat.category_details = "Targeting data", 15) +
+        // or MISP Estimative Probability - MAX 30 
+        if($misp.graph.metadata.threat.category_details = "estimative-language:likelihood-probability=\"almost-certain\"", 30) +
+        if($misp.graph.metadata.threat.category_details = "estimative-language:likelihood-probability=\"likely\"", 20) +
+        if($misp.graph.metadata.threat.category_details = "estimative-language:likelihood-probability=\"roughly-even-chance\"", 0) -
+        if($misp.graph.metadata.threat.category_details = "estimative-language:likelihood-probability=\"unlikely\"", 15) -
+        if($misp.graph.metadata.threat.category_details = "estimative-language:likelihood-probability=\"very-unlikely\"", 30) +                
+        // MISP Feed Name - MAX 30
+        if($misp.graph.metadata.threat.threat_feed_name = "CIRCL", 30) +
+        if($misp.graph.metadata.threat.category_details = "CUDESO", 15) +
+        if($misp.graph.metadata.threat.category_details = "abuse.ch", 5) +
+        // Did the log source report a successful connection? MAX - 10
+        if($event.security_result.action = "ALLOW", 10) -
+        if($event.security_result.action = "BLOCK", 10)        
+    )
+    $oc_misp_link = array_distinct($misp.graph.metadata.threat.url_back_to_product)
+    $oc_misp_description = array_distinct($misp.graph.metadata.description)
+
+  condition:
+    $event and $misp
+
+}
