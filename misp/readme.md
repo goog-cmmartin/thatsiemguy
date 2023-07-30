@@ -32,26 +32,27 @@ To utilize this integration requires the following pre-requisites:
 
 The Cloud Function will export all MISP Attributes within an Event; however, the Chronicle Parser only supports specific Attribute types as follows:
 
-* MISP Attribyte Type > Chronicle UDM Entity Metadata Type
-* ip-src -> IP_ADDRESS
-* ip-dst -> IP_ADDRESS
-* ip-dst|port -> IP_ADDRESS
-* ip-src|port -> IP_ADDRESS
-* domain|ip -> DOMAIN_NAME 
-* domain -> DOMAIN_NAME
-* hostname -> DOMAIN_NAME
-* url -> URL
-* filename|md5 -> FILE
-* filename|sha1 -> FILE
-* filename|sha256 -> FILE
-* md5 -> FILE
-* sha1 -> FILE
-* sha256 -> FILE
-* filename -> FILE
-* email -> USER
-* email-src -> USER
-* email-dst -> USER
-* whois-registrant-email -> USER
+| MISP Attribyte Type    | Chronicle UDM Entity Metadata Type |
+|------------------------|------------------------------------|
+| ip-src                 | IP_ADDRESS                         |
+| ip-dst                 | IP_ADDRESS                         |
+| ip-dst\|port           | IP_ADDRESS                         |
+| ip-src\|port           | IP_ADDRESS                         |
+| domain\|ip             | DOMAIN_NAME                        |
+| domain                 | DOMAIN_NAME                        |
+| hostname               | DOMAIN_NAME                        |
+| url                    | URL                                |
+| filename\|md5          | FILE                               |
+| filename\|sha1         | FILE                               |
+| filename\|sha256       | FILE                               |
+| md5                    | FILE                               |
+| sha1                   | FILE                               |
+| sha256                 | FILE                               |
+| filename               | FILE                               |
+| email                  | USER                               |
+| email-src              | USER                               |
+| email-dst              | USER                               |
+| whois-registrant-email | USER                               |
 
 ### Indicator Start and End Dates
 
@@ -71,6 +72,16 @@ FILE_EXPIRATION=365
 USER_EXPIRATION=365
 CATCH_ALL_EXPIRATION=365
 ```
+
+Optionally, you can overwrite these with static values if you require different start and end dates by chaning the <type>_EXPIRATION value for interval_start or interval_end:
+
+```
+     # IP_ADDRESS
+     if attr['type'] in ("ip-src","ip-dst","ip-dst|port","ip-src|port"): 
+         attr['interval_start'] = subtract_epoch(attribute_timestamp,-IP_ADDRESS_EXPIRATION)
+         attr['interval_end'] = subtract_epoch(attribute_timestamp,IP_ADDRESS_EXPIRATION)
+```
+
 
 ### Chronicle SIEM's Ingestion API Limits 
 The Chronicle SIEM Ingestion API Limits has a limit of 1 Megabyte per log message.  A single MISP Event in JSON format can exceed this, and a batch of MISP Events will nearly always exceed the 1 Megabyte limit.  The Cloud Function used in this integration takes each individual Attribute within a MISP Event and creates a unique UDM Entity Event to ensure staying within the 1MB limit. 
@@ -173,6 +184,7 @@ If successful you will see a log message as follows:
 textPayload: "1 log(s) pushed successfully to Chronicle."
 ```
 
-if there is a error, review the log accordingly.
+if there is are errors, review the logs accordingly, e.g., permission errors, missing environment variables, networking access issues.
+
 
 
