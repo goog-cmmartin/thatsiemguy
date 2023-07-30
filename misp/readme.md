@@ -1,6 +1,16 @@
 # MISP (JSON) to Chronicle SIEM Integration
 
+</br>
+
 ## Overview
+
+This repo provides an integration between the MISP Threat Intelligence Platform and Chronicle SIEM to automate IOC matching using Chronicle SIEM's Entity Graph and YARA-L Detection Engine.  The integration is a fork of the [Chronicle SIEM 3rd Party Ingestion script](https://github.com/chronicle/ingestion-scripts) for MISP, with updates to improve the ingestion of the JSON MISP format.
+
+* Cloud Function
+* Chronicle SIEM
+    * Parser
+    * YARA-L Detection Rules
+    * Dashboard
 
 </br>
 
@@ -42,7 +52,6 @@ The Cloud Function will export all MISP Attributes within an Event; however, the
 * email-src -> USER
 * email-dst -> USER
 * whois-registrant-email -> USER
-
 
 ### Indicator Start and End Dates
 
@@ -90,13 +99,80 @@ Tips:
 
 2. Create a MISP API key
 
-Under `Administration > List Auth Keys` within your MISP UI.
+You can create an API key within the MISP UI under `Administration > List Auth Keys`.
 
 3. Create Secrets in GCP Secret Manager
 
-The Cloud Function uses GCP's Secret Manager to securely store API credentials.  For both a) Chronicle Ingestion API Credentials and b) MISP API Key create a GCP Secret.  You can use GCP Cloud Shell within the same project as the 
+The Cloud Function uses GCP's Secret Manager to securely store API credentials for both a) Chronicle Ingestion API Credentials and b) MISP API Key.
 
 ```
-gcloud secrets create MISP-API --data-file=/home/admin_/ingestion-scripts/misp/misp.deleteme 
-gcloud secrets create CHRONICLE-INGESTION-API --data-file=/home/admin_/ingestion-scripts/misp/chronicle-ingestion-key.json
+gcloud secrets create MISP-API --data-file=/home/user/misp.key 
+gcloud secrets create CHRONICLE-INGESTION-API --data-file=/home/user/chronicle-ingestion-key.json
 ```
+
+Remember to grant Secret Manager Secret Accessor to the GCP Secret your Cloud Function service account.  Make sure there are no trailing line feed or carriage returns in the MISP API secret.
+
+4) Create a serverless VPC
+
+A [Serverless VPC](https://cloud.google.com/functions/docs/networking/connecting-vpc) is required for the Cloud Function to be able to access your MISP instance, e.g., within Cloud Shell:
+
+```
+CONNECTOR_NAME="eu4-vpcaccess" 
+REGION="europe-west4"
+SUBNET="prod-security-vpcaccess"
+HOST_PROJECT_ID="prod-shared-vpc"
+
+gcloud compute networks vpc-access connectors create $CONNECTOR_NAME \
+--region $REGION \
+--subnet $SUBNET \
+--subnet-project HOST_PROJECT_ID
+```
+
+5) Deploy the Cloud Function
+
+Before dpeloying the Cloud Function edit the `.env.yml` file:
+
+```
+CHRONICLE_CUSTOMER_ID: <guid found under settings in the Chronicle UI>
+CHRONICLE_REGION: <region, us for North America or the region in the URL minus the hypen>
+CHRONICLE_SERVICE_ACCOUNT: projects/<gcp-project>/secrets/<secret-name>/versions/<version>
+CHRONICLE_NAMESPACE: <optional>
+API_KEY: projects/<gcp-project>/secrets/<secret-name>/versions/<version>
+TARGET_SERVER: <MISP IP or FQDN>
+# Keeping the default value as 5 minutes considering the frequency of data.
+POLL_INTERVAL: "5"
+ORG_NAME: <your MISP Organization, e.g.,ORGNAME>
+```
+
+Deploy the Cloud Function using gcloud:
+
+```
+REGION="europe-west4"
+VPCCONNECTOR="eu4-vpcaccess"
+MEMORY="4096MB"
+MIN_INSTANCES="1"
+
+gcloud functions deploy misp-to-chronicle --gen2 --entry-point main --trigger-http --runtime python39 --env-vars-file .env.yml --region $REGION  --vpc-connector $VPCCONNECTOR --memory $MEMORY --min-instances $MIN_INSTANCES
+```
+
+6) Create and Publish a Test Event in MISP
+
+Before you can submit the custom MISP Parser into Chronicle SIEM there must be at least one event ingested.  Create and publish a test MISP Event to verify te Cloud Function is working as expected.
+
+In MISP create a manual test event as follows:
+```
+Category: Payload Delivery
+Type: url
+value: www.example.com
+```
+
+Test the MISP Cloud Function using the Testing tab in the Cloud Functions GCP Console.  
+
+If successful you will see a log message as follows:
+```
+textPayload: "1 log(s) pushed successfully to Chronicle."
+```
+
+if there is a error, review the log accordingly.
+
+
