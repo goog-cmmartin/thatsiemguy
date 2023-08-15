@@ -1,0 +1,369 @@
+lookml:
+- dashboard: ioc_mandiant_advanced_threat_intelligence
+  description: ""
+  elements:
+  - col: 0
+    color_application: undefined
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.metadata__entity_type_enum_name
+    - entity_graph.count
+    filters:
+      entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
+      entity_graph.time_filter: 30 days
+    height: 6
+    hide_row_totals: false
+    hide_totals: false
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: IOC by Entity Type
+    rotation: false
+    row: 13
+    series_types: {}
+    show_comparison: false
+    show_comparison_label: true
+    show_row_numbers: true
+    show_single_value_title: true
+    show_view_names: false
+    sorts:
+    - entity_graph.count desc 0
+    table_theme: editable
+    title: IOC by Entity Type
+    truncate_column_names: false
+    type: looker_wordcloud
+    width: 14
+  - col: 14
+    column_limit: 50
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.count
+    - entity_graph__metadata__threat__category_details.entity_graph__metadata__threat__category_details
+    filters:
+      entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
+      entity_graph.time_filter: 30 days
+    height: 16
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: IOC by Category Details
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 13
+    series_types: {}
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    sorts:
+    - entity_graph.count desc 0
+    stacking: ""
+    table_theme: editable
+    title: IOC by Category Details
+    totals_color: '#808080'
+    trellis: ""
+    truncate_column_names: false
+    type: looker_bar
+    width: 10
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  - cluster_points: true
+    col: 0
+    color_application: undefined
+    column_limit: 50
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_quadrant_point_x: 5
+    custom_quadrant_point_y: 5
+    custom_value_label_column: ""
+    custom_x_column: ""
+    custom_y_column: ""
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.count
+    - entity_graph__additional__fields.value__number_value
+    filters:
+      entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
+      entity_graph.time_filter: 30 days
+      entity_graph__additional__fields.key: mscore
+    header_font_size: 12
+    header_text_alignment: left
+    height: 10
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    labelColor: '#FFF'
+    labelColorEnabled: false
+    labelPosition: left
+    leftAxisLabel: ""
+    leftAxisLabelVisible: false
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: Confidence Score
+    note_display: above
+    note_state: collapsed
+    note_text: Shows a SUM of Confidence Score values between 0 and 100
+    ordering: none
+    orientation: automatic
+    percentPosition: inline
+    percentType: total
+    plot_size_by_field: false
+    point_style: circle
+    quadrant_properties:
+      "0":
+        color: ""
+        label: Quadrant 1
+      "1":
+        color: ""
+        label: Quadrant 2
+      "2":
+        color: ""
+        label: Quadrant 3
+      "3":
+        color: ""
+        label: Quadrant 4
+    quadrants_enabled: true
+    rightAxisLabel: ""
+    rightAxisLabelVisible: false
+    row: 19
+    rows_font_size: 12
+    series_types: {}
+    show_null_labels: false
+    show_null_points: true
+    show_row_numbers: true
+    show_silhouette: false
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    smoothedBars: false
+    sorts:
+    - entity_graph__additional__fields.value__number_value desc
+    stacking: ""
+    swap_axes: false
+    table_theme: editable
+    title: Confidence Score
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_column_names: false
+    truncate_text: true
+    type: looker_scatter
+    valuePosition: right
+    width: 14
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: linear
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - col: 0
+    color_application: undefined
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph
+    fields:
+    - entity_graph.count
+    - entity_graph.metadata__collected_timestamp_date
+    - entity_graph.metadata__entity_type_enum_name
+    fill_fields:
+    - entity_graph.metadata__collected_timestamp_date
+    filters:
+      entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
+      entity_graph.time_filter: 30 days
+    height: 5
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: IOC by Entity Type, by Collected Date
+    note_display: above
+    note_state: collapsed
+    note_text: Shows volume of IOC indexed into the Entity Graph
+    ordering: none
+    pivots:
+    - entity_graph.metadata__entity_type_enum_name
+    plot_size_by_field: false
+    point_style: none
+    row: 8
+    series_types: {}
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    sorts:
+    - entity_graph.metadata__entity_type_enum_name
+    - entity_graph.count desc 0
+    stacking: ""
+    table_theme: editable
+    title: IOC by Entity Type, by Collected Date
+    totals_color: '#808080'
+    trellis: ""
+    truncate_column_names: false
+    type: looker_column
+    width: 24
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  - body_text: "<p style=\"text-align: center;\"><img src=\"https://upload.wikimedia.org/wikipedia/commons/archive/0/00/20211029204154%21New_Mandiant_Logo-FULL_COLOR.png\"
+      alt=\"drawing\" width=\"600\"/></p>\n\nMandiant Threat Intelligence provides
+      organizations of all sizes with threat intelligence directly from the frontlines,
+      enriched with Mandiant expertise. This allows security decision makers to focus
+      on threats that matter now, reduce threats from fast-changing actors, detect
+      emerging attacks and reduce existing organizational threat risk surface. \n\nDelivered
+      through an easy-to-use comprehensive SaaS management platform, Mandiant Threat
+      Intelligence derives from:\n\n* More than 100,000 hours in incident response
+      annually\n* Machine intelligence telemetry from millions of endpoints and network
+      sensors\n* Permanent adversarial research run by more than 300 Mandiant threat
+      analysts"
+    col: 0
+    height: 8
+    name: ""
+    row: 0
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 24
+  - col: 0
+    column_limit: 50
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: rule_detections
+    fields:
+    - rule_detections.rule_name
+    - rule_detections.detection__detection_timestamp_date
+    - rule_detections.count
+    filters:
+      rule_detections.rule_name: '%mati%'
+    header_font_size: 12
+    header_text_alignment: left
+    height: 7
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    model: cn
+    name: MATI YARA-L Rule Detections
+    note_display: above
+    note_state: collapsed
+    note_text: Shows matched YARA-L Detections using MATI IOCs via Entity Graph.
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 29
+    rows_font_size: 12
+    series_types: {}
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - rule_detections.detection__detection_timestamp_date desc
+    stacking: ""
+    table_theme: white
+    title: MATI YARA-L Rule Detections
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_text: true
+    type: looker_grid
+    width: 24
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  layout: newspaper
+  title: '[IOC] Mandiant Advanced Threat Intelligence'
+metadata:
+  exported_at: "2023-08-15T03:55:46-07:00"
+  file_fingerprint: "1243066288216182669812230112679382406291"
+  looker_version: 23.6.124
+  version: "1"
