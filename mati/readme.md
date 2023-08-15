@@ -10,6 +10,8 @@ This repo provides an example integration between MATI and Chronicle SIEM to aut
 
 The key point of this example is that you can use other programming or scripting languages to create UDM Events or UDM Entities, for example the main body of Python code that converts a MATI API response into a UDM Entity IOC Event is as follows.  An advantage of using a programming or scripting language, such as Python, is the power and flexibility mean you can format data into Chronicle SIEM's schema with a small amount of code, but also perform functions that are not possible in Parsing via CBN, e.g., date addition, or perform functions in an easier manner, e.g., parsing nested JSON.
 
+<img src="https://github.com/goog-cmmartin/thatsiemguy/blob/main/mati/chronicle_dashboards/mati_ioc_dashboard_example.png" />
+
 <pre>
   for indicator in iocs['indicators']:
     # temporary Dictionaries and Lists to build UDM Nouns
