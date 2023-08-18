@@ -167,5 +167,5 @@ REGION="europe-west4"
 MEMORY="4096MB"
 MIN_INSTANCES="1"
 
-gcloud functions deploy mati-to-chronicle --entry-point main --trigger-http --runtime python311 --env-vars-file .env.yml --region $REGION  --memory $MEMORY --min-instances $MIN_INSTANCES
+gcloud functions deploy mati-to-chronicle --entry-point main --trigger-http --runtime python311 --env-vars-file .env.yml --region $REGION  --memory $MEMORY --min-instances $MIN_INSTANCES --service-account $SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com
 </pre>
