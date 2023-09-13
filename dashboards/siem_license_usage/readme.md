@@ -6,6 +6,6 @@ This Chronicle SIEM Embedded Looker Dashboard is designed to aide evaluating you
 
 The Dashboard uses the Chronicle Datalake (BigQuery dataset) Ingestion Metrics table to display, by default, the last 12 months of Ingested Bytes for all Log Sources.  If you have a different retention period, i.e., greater or lower, you can change the 12 month value in the YAML file before importing the Dashboard.
 
-![Chronicle SIEM License USage](siem_license_usage.png?raw=true "SIEM License Usage")
+![Chronicle SIEM License USage](https://github.com/goog-cmmartin/thatsiemguy/blob/main/dashboards/siem_license_usage/siem_license_usage.png "SIEM License Usage")
 
 Note, this is not an official Google Cloud Chronicle Dashboard.
