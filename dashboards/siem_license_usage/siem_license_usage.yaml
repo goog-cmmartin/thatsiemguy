@@ -1,0 +1,560 @@
+lookml:
+- crossfilter_enabled: true
+  dashboard: _siem_license_usage
+  description: ""
+  elements:
+  - col: 0
+    column_limit: 50
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: ingestion_metrics
+    fields:
+    - ingestion_metrics.timestamp_date
+    - ingestion_metrics.total_size_bytes
+    fill_fields:
+    - ingestion_metrics.timestamp_date
+    filters:
+      ingestion_metrics.timestamp_date: 12 months
+    header_font_size: 12
+    header_text_alignment: left
+    height: 7
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    interpolation: linear
+    label_density: 25
+    label_value_format: ""
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: Bytes (SUM) by Day, per Month
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 17
+    rows_font_size: 12
+    show_null_labels: false
+    show_null_points: true
+    show_row_numbers: true
+    show_silhouette: false
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - ingestion_metrics.timestamp_date desc
+    - ingestion_metrics.total_size_bytes desc
+    stacking: ""
+    table_theme: white
+    title: Bytes (SUM) by Day, per Month
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    trend_lines:
+    - color: '#EA4335'
+      label_position: center
+      label_type: string
+      order: 3
+      period: 7
+      regression_type: exponential
+      series_index: 1
+      show_label: true
+    truncate_text: true
+    type: looker_area
+    width: 24
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axes:
+    - label: ""
+      orientation: left
+      series:
+      - axisId: ingestion_metrics.total_size_bytes
+        id: ingestion_metrics.total_size_bytes
+        name: Total Size Bytes
+      showLabels: true
+      showValues: true
+      tickDensity: default
+      tickDensityCustom: 5
+      type: linear
+      unpinAxis: false
+      valueFormat: ""
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - col: 0
+    column_limit: 50
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: ingestion_metrics
+    fields:
+    - ingestion_metrics.log_type
+    - ingestion_metrics.timestamp_date
+    - ingestion_metrics.total_size_bytes
+    fill_fields:
+    - ingestion_metrics.timestamp_date
+    filters:
+      ingestion_metrics.timestamp_date: 12 months
+    header_font_size: 12
+    header_text_alignment: left
+    height: 7
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: Bytes (SUM) by Log Source, by Day, per Month
+    ordering: none
+    pivots:
+    - ingestion_metrics.log_type
+    plot_size_by_field: false
+    point_style: none
+    row: 27
+    rows_font_size: 12
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - ingestion_metrics.log_type
+    - ingestion_metrics.timestamp_date desc
+    stacking: normal
+    table_theme: white
+    title: Bytes (SUM) by Log Source, by Day, per Month
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    trend_lines: []
+    truncate_text: true
+    type: looker_column
+    width: 24
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - col: 0
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: ingestion_metrics
+    fields:
+    - ingestion_metrics.total_size_bytes_GB
+    filters:
+      ingestion_metrics.timestamp_date: 7 days
+    header_font_size: 12
+    header_text_alignment: left
+    height: 4
+    hidden_fields: null
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: Total Bytes (GB)
+    note_display: above
+    note_state: collapsed
+    note_text: Total (SUM) Bytes for the selected filtered date range
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 5
+    rows_font_size: 12
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    stacking: normal
+    table_theme: white
+    title: Total Bytes (GB)
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    trend_lines: []
+    truncate_text: true
+    type: single_value
+    value_format: '#.## \G\B'
+    width: 12
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - col: 12
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: ingestion_metrics
+    fields:
+    - ingestion_metrics.total_events
+    filters:
+      ingestion_metrics.timestamp_date: 7 days
+    header_font_size: 12
+    header_text_alignment: left
+    height: 4
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen: {}
+    model: cn
+    name: Total Events (#)
+    note_display: above
+    note_state: collapsed
+    note_text: Total (COUNT) Events for the selected filtered date range
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 5
+    rows_font_size: 12
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    stacking: normal
+    table_theme: white
+    title: Total Events (#)
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    trend_lines: []
+    truncate_text: true
+    type: single_value
+    value_format: '"0.000,,\" M\""'
+    width: 12
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - body_text: '---'
+    col: 0
+    height: 1
+    name: ""
+    row: 13
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 24
+  - body_text: |-
+      ### Volume Utilization Summary
+
+      This Dashboard can be used to ascertain your Chronicle SIEM utilization to be compared against your consumption license, i.e., per TB licensing.  The dashboard uses the `ingestion_metrics` table to provide a summary of Bytes ingested from all log sources for the given time range, for which the default is 12 months.
+
+      *Note, if you have a custom retention period smaller or larger than 12 months, you will need to change each widget accordingly.*
+    col: 8
+    height: 5
+    name: ' (2)'
+    row: 0
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 15
+  - col: 12
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    dynamic_fields:
+    - _kind_hint: measure
+      _type_hint: number
+      category: table_calculation
+      expression: sum(${ingestion_metrics.total_events}/365)
+      label: avg_total_events_per_day
+      table_calculation: avg_total_events_per_day
+      value_format: '#,##0'
+      value_format_name: __custom
+    enable_conditional_formatting: false
+    explore: ingestion_metrics
+    fields:
+    - ingestion_metrics.total_events
+    filters:
+      ingestion_metrics.timestamp_date: 7 days
+    header_font_size: 12
+    header_text_alignment: left
+    height: 4
+    hidden_fields:
+    - ingestion_metrics.total_events
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    model: cn
+    name: Avg Total Events (#) per Day
+    note_display: above
+    note_state: collapsed
+    note_text: Total (COUNT) Events for the selected filtered date range
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 9
+    rows_font_size: 12
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    stacking: normal
+    table_theme: white
+    title: Avg Total Events (#) per Day
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    trend_lines: []
+    truncate_text: true
+    type: single_value
+    value_format: ""
+    width: 12
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - col: 0
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    dynamic_fields:
+    - _kind_hint: measure
+      _type_hint: number
+      category: table_calculation
+      expression: sum(${ingestion_metrics.total_size_bytes_GB}/365)
+      label: avg_total_size_bytes_GB_per_day
+      table_calculation: avg_total_size_bytes_gb_per_day
+      value_format: null
+      value_format_name: null
+    enable_conditional_formatting: false
+    explore: ingestion_metrics
+    fields:
+    - ingestion_metrics.total_size_bytes_GB
+    filters:
+      ingestion_metrics.timestamp_date: 7 days
+    header_font_size: 12
+    header_text_alignment: left
+    height: 4
+    hidden_fields:
+    - ingestion_metrics.total_size_bytes_GB
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    model: cn
+    name: Avg Total Bytes (GB) per Day
+    note_display: above
+    note_state: collapsed
+    note_text: Total (SUM) Bytes for the selected filtered date range
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 9
+    rows_font_size: 12
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    stacking: normal
+    table_theme: white
+    title: Avg Total Bytes (GB) per Day
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    trend_lines: []
+    truncate_text: true
+    type: single_value
+    value_format: '#.## \G\B'
+    width: 12
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - body_text: |-
+      This Area chart can be used to determine the i) daily SUM of bytes ingested across all log sources, and ii) infer a Trend of increasing, decreasing, or steady state usage of your license.
+
+      *Note, you can optionally edit the chart to add a static threshold that matches your annual Chronicle SIEM license, e.g., divide the license by the duration, convert to Bytes, and then set as the static threshold maximum value.*
+    col: 0
+    height: 3
+    name: ' (3)'
+    row: 14
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 24
+  - body_text: This stacked bar graph chart can be used to determine most active log
+      sources, in Bytes, counting toward your Chronicle SIEM consumption license.
+    col: 0
+    height: 2
+    name: ' (4)'
+    row: 25
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 24
+  - body_text: '![Google Cloud](https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Google_Cloud_logo.svg/512px-Google_Cloud_logo.svg.png)'
+    col: 0
+    height: 5
+    name: ' (5)'
+    row: 0
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 8
+  - body_text: '---'
+    col: 0
+    height: 1
+    name: ' (6)'
+    row: 24
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 24
+  - body_text: Last updated by @cmmartin on Sep 13th 2023.
+    col: 0
+    height: 2
+    name: ' (7)'
+    row: 35
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 24
+  - body_text: '---'
+    col: 0
+    height: 1
+    name: ' (8)'
+    row: 34
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 24
+  layout: newspaper
+  title: "\U0001FAAA SIEM License Usage"
+metadata:
+  exported_at: "2023-09-13T07:25:04-07:00"
+  file_fingerprint: "3412343819426646811824627932925121664"
+  looker_version: 23.12.52
+  version: "1"
