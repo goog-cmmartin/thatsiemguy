@@ -243,7 +243,7 @@ lookml:
       options: []
       type: relative_timeframes
   layout: newspaper
-  title: Chronicle Release Notes
+  title: Chronicle SIEM Release Notes
 metadata:
   exported_at: "2023-09-18T03:30:06-07:00"
   file_fingerprint: "39941595178547116422898411053730408157"
