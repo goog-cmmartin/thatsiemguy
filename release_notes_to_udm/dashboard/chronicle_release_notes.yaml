@@ -1,0 +1,251 @@
+lookml:
+- crossfilter_enabled: true
+  dashboard: chronicle_release_notes
+  description: ""
+  elements:
+  - col: 0
+    column_limit: 50
+    column_order:
+    - $$$_row_numbers_$$$
+    - events.metadata__event_timestamp_date
+    - events.metadata__product_event_type
+    - events.metadata__description
+    conditional_formatting: []
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    dynamic_fields:
+    - _kind_hint: dimension
+      _type_hint: string
+      category: table_calculation
+      expression: replace(substring(${events__about__labels.key},4,100),"]","")
+      is_disabled: true
+      label: Release Date
+      table_calculation: release_date
+      value_format: null
+      value_format_name: null
+    - _kind_hint: dimension
+      _type_hint: string
+      category: table_calculation
+      expression: case(when(contains(${events__about__labels.value},"Feature"),"Feature"),when(contains(${events__about__labels.value},"Changed"),"Changed"),when(contains(${events__about__labels.value},"Announcement"),"Announcement"),"Other")
+      is_disabled: true
+      label: Release Type
+      table_calculation: release_type
+      value_format: null
+      value_format_name: null
+    enable_conditional_formatting: true
+    explore: events
+    fields:
+    - events.metadata__description
+    - events.metadata__product_event_type
+    - events.metadata__event_timestamp_date
+    filters:
+      events.metadata__product_name: Chronicle SIEM Release Notes
+      events.time_filter: NOT NULL
+    header_font_size: "12"
+    header_text_alignment: left
+    height: 32
+    hidden_fields: []
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    label_type: labPer
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen:
+      Event Date: events.metadata__event_timestamp_date
+    model: cn
+    name: Release Notes Table
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 7
+    rows_font_size: "12"
+    series_column_widths:
+      events.metadata__event_timestamp_date: 141
+      events.metadata__product_event_type: 127
+    series_labels:
+      events.metadata__description: Feature Description
+      events.metadata__event_timestamp_date: Date
+      events.metadata__product_event_type: Feature Type
+    show_null_labels: false
+    show_row_numbers: true
+    show_row_totals: true
+    show_silhouette: false
+    show_sql_query_menu_options: false
+    show_totals: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - events.metadata__event_timestamp_date desc
+    stacking: normal
+    table_theme: white
+    title: Release Notes Table
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_header: false
+    truncate_text: false
+    type: looker_grid
+    value_labels: legend
+    width: 24
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - body_text: '![Google Cloud](https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Google_Cloud_logo.svg/768px-Google_Cloud_logo.svg.png?20210208232155)'
+    col: 0
+    height: 3
+    name: ""
+    row: 0
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 9
+  - body_text: '[{"type":"p","id":1679060567975,"children":[{"text":""}]},{"type":"p","id":1688727675770,"children":[{"text":""}]},{"type":"p","id":1688727682711,"children":[{"text":"Shows
+      the latest updates from the public "},{"type":"a","url":"ttps://cloud.google.com/feeds/chronicle-release-notes.xml","children":[{"text":"Chronicle
+      Release notes"}],"id":1679060494002},{"text":"."}]}]'
+    col: 9
+    height: 3
+    name: ' (2)'
+    rich_content_json: '{"format":"slate"}'
+    row: 0
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 15
+  - col: 0
+    column_limit: 50
+    column_order:
+    - $$$_row_numbers_$$$
+    - events.metadata__event_timestamp_date
+    - events__about__labels.key
+    - events__about__labels.value
+    conditional_formatting: []
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    dynamic_fields:
+    - _kind_hint: measure
+      _type_hint: number
+      based_on: events.metadata__description
+      category: measure
+      expression: null
+      label: count_distinct
+      measure: count_distinct
+      type: count_distinct
+      value_format: null
+      value_format_name: null
+    enable_conditional_formatting: true
+    explore: events
+    fields:
+    - events.metadata__event_timestamp_date
+    - count_distinct
+    fill_fields:
+    - events.metadata__event_timestamp_date
+    filters:
+      events.metadata__product_name: Chronicle SIEM Release Notes
+      events.time_filter: NOT NULL
+    header_font_size: "12"
+    header_text_alignment: left
+    height: 4
+    hidden_fields: []
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    label_type: labPer
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen:
+      Event Date: events.metadata__event_timestamp_date
+    model: cn
+    name: Release Notes Timeline
+    ordering: none
+    plot_size_by_field: false
+    point_style: circle
+    row: 3
+    rows_font_size: "12"
+    series_column_widths:
+      events.metadata__event_timestamp_date: 141
+    series_labels:
+      events.metadata__event_timestamp_date: Date
+    series_types:
+      count_distinct: line
+    show_null_labels: false
+    show_row_numbers: true
+    show_row_totals: true
+    show_silhouette: false
+    show_sql_query_menu_options: false
+    show_totals: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - events.metadata__event_timestamp_date desc
+    stacking: normal
+    table_theme: white
+    title: Release Notes Timeline
+    title_hidden: true
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_header: false
+    truncate_text: false
+    type: looker_column
+    value_labels: legend
+    width: 24
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  filters:
+  - allow_multiple_values: true
+    default_value: 14 day
+    explore: events
+    field: events.metadata__event_timestamp_date
+    listens_to_filters: []
+    model: cn
+    name: Event Date
+    required: false
+    title: Event Date
+    type: field_filter
+    ui_config:
+      display: inline
+      options: []
+      type: relative_timeframes
+  layout: newspaper
+  title: Chronicle Release Notes
+metadata:
+  exported_at: "2023-09-18T03:30:06-07:00"
+  file_fingerprint: "39941595178547116422898411053730408157"
+  looker_version: 23.12.52
+  version: "1"

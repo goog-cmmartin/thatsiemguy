@@ -1,0 +1,30 @@
+rule coe_chronicle_release_notes_update {
+
+    meta:
+        author = "cmmartin@"
+        owner = "infosec@"
+        description = "Alerts when there's an updated Chronicle RSS Release Notes.  This is a bespoke integration."
+        response = "Optional.  Review the release notes."
+        severity = "INFORMATIONAL"
+        priority = "INFORMATIONAL"
+
+    events:
+        $e.metadata.event_type = "GENERIC_EVENT"
+        $e.metadata.vendor_name = "Google Cloud"
+        $e.metadata.product_name = "Chronicle SIEM Release Notes"    
+
+        // Placeholders
+        $release_note_description = $e.metadata.description 
+    
+    match:
+        // this is to attempt group duplicate entries
+        $release_note_description over 1d
+
+    outcome:
+        $release_notes_type = array_distinct($e.metadata.product_event_type)
+        $release_notes_url = array_distinct($e.metadata.url_back_to_product)
+
+    condition:
+        $e
+        
+}
