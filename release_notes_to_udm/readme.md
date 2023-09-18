@@ -11,12 +11,12 @@ The integration consists of:
 
 ![Chronicle SIEM Release Notes](https://github.com/goog-cmmartin/thatsiemguy/blob/main/release_notes_to_udm/chronicle_release_notes.png "Chronicle SIEM Release Notes")
 
+You can import the YARA-L dashboard and apply inline or via a Reference List a regex list of your log source types *if* you wish to get alert notification upon parser updates.
+
+You can import the Dashboard to see release notes natively in the Chronicle SIEM UI, and optionally add additional widgets to only see updates to Log Sources you are interested in.
+
 
 ## Setup Notes
-
-Configure the .yanl file as required:
-
-
 
 ### Create a service account for the Cloud Function
 
@@ -57,6 +57,7 @@ gcloud projects add-iam-policy-binding $GCP_PROJECT --member="serviceAccount:$SA
 
 Configure `.env.yml` by replacing the values that match your environment.
 
+<pre>
 CHRONICLE_REGION: # e.g., europe.  Check the Cloud Function for support regions, and add if region is not listed
 SERVICE_ACCOUNT_FILE: # the path to your Ingestion API secret, e.g., projects/12345678910/secrets/chronicle_service_account_ingestion/versions/1
 CHRONICLE_CUSTOMER_ID: # your guid, can be found under UI in Settings
@@ -64,7 +65,7 @@ CHRONICLE_CUSTOMER_ID: # your guid, can be found under UI in Settings
 VALID_EVENTS_RANGE: 172800 # set as two days as Release Notes as it appears release notes can be back dated
 DEBUG: False
 GCP_PROJECT: # gcp project ID, not GCP project name
-
+</pre>
 
 ### Deploy the Cloud Function
 
