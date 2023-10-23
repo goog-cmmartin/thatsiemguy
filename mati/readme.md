@@ -150,6 +150,8 @@ Grant the SA access to all secrets above, e.g.,
 
 <pre>
 gcloud secrets add-iam-policy-binding MATI-KEY-ID --member="serviceAccount:$SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com" --project=$GCP_PROJECT --role='roles/secretmanager.secretAccessor'
+gcloud secrets add-iam-policy-binding MATI-SECRET --member="serviceAccount:$SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com" --project=$GCP_PROJECT --role='roles/secretmanager.secretAccessor'
+gcloud secrets add-iam-policy-binding CHRONICLE-INGESTION-API --member="serviceAccount:$SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com" --project=$GCP_PROJECT --role='roles/secretmanager.secretAccessor'
 </pre>
 
 ### Grant service account access to run a Cloud Function
@@ -165,7 +167,7 @@ Configure `.env.yml` by replacing the values that match your environment.
 ### Deploy the Cloud Function
 
 <pre>
-REGION="europe-west4"
+REGION="us-central1"
 MEMORY="4096MB"
 MIN_INSTANCES="1"
 
@@ -179,7 +181,6 @@ SA_NAME="sa-mati-to-chronicle"
 GCP_PROJECT="<your GCP Project>"
 JOB_NAME='MATI_Chronicle_SIEM_Test'
 JOB_URI='https://<region>-<project>.cloudfunctions.net/mati-to-chronicle'
-GCP_PROJECT='<Your GCP Project>'
 JOB_LOCATION='us-central1'
 
 gcloud scheduler jobs create http "$JOB_NAME" --schedule="0 * * * *" --uri="$JOB_URI" --http-method=POST --oidc-service-account-email="$SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com" --oidc-token-audience="$JOB_URI" --location=$JOB_LOCATION  
