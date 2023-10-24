@@ -271,6 +271,14 @@ def send_iocs_to_chronicle(iocs):
     threat['confidence_details'] = str(indicator['mscore'])
     for source in indicator['sources']:
       threat['category_details'] = source['source_name']
+    # attributed_associations
+    try:
+      for threats in indicator['attributed_associations']:
+        threat['threat_id'] = threats['id']
+        threat['threat_name'] = threats['name']
+        threat['threat_feed_name'] = threats['type']
+    except KeyError:
+      pass
     # >>> ENTITY
     # - entity.type
     match indicator['type']:
