@@ -19,6 +19,7 @@ from typing import Optional
 import datetime
 import requests
 import json
+import urllib.parse
 
 from common import env_constants
 from common import status
@@ -32,7 +33,7 @@ ENV_MATI_KEY_ID = "MATI_KEY_ID"
 ENV_MATI_SECRET = "MATI_SECRET"
 ENV_APP_NAME = "APP_NAME"
 ENV_GTE_SCORE = "GTE_SCORE"
-ENV_EXPIRY = "EXPIRY"
+ENV_COLLECTION_INTERVAL_MINUTES = "COLLECTION_INTERVAL_MINUTES"
 
 customer_id = utils.get_env_var(ENV_CHRONICLE_CUSTOMER_ID)
 region = utils.get_env_var(ENV_CHRONICLE_REGION)
@@ -47,7 +48,7 @@ secret_key = utils.get_env_var(ENV_MATI_SECRET, is_secret=True)
 secret_key = secret_key.replace("\n", "").replace("\r", "")
 app_name = utils.get_env_var(ENV_APP_NAME)
 gte_score = utils.get_env_var(ENV_GTE_SCORE)
-expiry = utils.get_env_var(ENV_EXPIRY)
+collection_interval_minutes = utils.get_env_var(ENV_COLLECTION_INTERVAL_MINUTES)
 
 
 # Generate Access Token
@@ -83,11 +84,10 @@ def generate_epoch_timestamp(offset_minutes):
     A float representing the number of seconds since the Unix epoch.
   """
   from time import time
-  return int(time() - offset_minutes * 6)
+  return int(time() - offset_minutes * 60)
 
 def instance_region(region):
   # note, new regions will need to be added here
-  print(f"the region passed to the region function was {region}")
   REGIONS = {
       "europe": "https://europe-malachiteingestion-pa.googleapis.com",
       "asia": "https://asia-southeast1-malachiteingestion-pa.googleapis.com",
@@ -111,6 +111,7 @@ def get_indicators_first_page(access_token: str, start_epoch: int, gte_score: in
       "start_epoch": start_epoch,
       "gte_mscore": gte_score,
       "source": "mandiant",
+      "exclude_osint": "True",
       "limit": 1000
   }
 
@@ -169,8 +170,6 @@ def create_entity_v2(entity_json,log_type):
   data['entities'].append(json.loads(entity_json))
 
   json_data = json.dumps(data)
-
-  #print ('\nLog to send:\n' + json_data)
 
   http_endpoint = '{}/v2/entities:batchCreate'.format(instance_region(region))
   headers = {'content-type': 'application/json'}
@@ -237,48 +236,62 @@ def send_iocs_to_chronicle(iocs):
   events = []
 
   for indicator in iocs['indicators']:
+
     # temporary Dictionaries and Lists to build UDM Nouns
     metadata = {}
     file = {}
     threat = {}
     interval = {}
     entity = {}
-    labels = []
+    associations = []
     additionals = []
 
-    # Extract top level fields
     # >>> ADDITIONAL
     additionals = {}
     additionals['mscore'] = indicator['mscore']
     # Chronicle Detection Engine does not support Bool types, so we convert to String
     additionals['is_publishable'] = str(indicator['is_publishable'])
-    # - entity.labels
     for misp_key, misp_value in indicator['misp'].items():
       # only print MISP sources where the value is True
       # - usually for Mandiant sources this is always False
       if misp_value is True:
         additionals[misp_key] =  str(misp_value)
+
     # >>> METADATA
     metadata['vendor_name'] = "MANDIANT_IOC"
     metadata['product_name'] = "MANDIANT_IOC"
     metadata['collected_timestamp'] = str(now())
     metadata['product_entity_id'] = indicator['id']
     # metadata.interval
-    interval['start_time'] = subtract_offset(indicator['first_seen'],-30)
-    # - add the Expiry interval to the last_seen time to age out IOCs
-    interval['end_time'] = subtract_offset(indicator['last_seen'],30)
+    # - these are hardcoded as we rely on the confidence score value to show when an IOC has decayed
+    interval['start_time'] = "2000-01-01T00:00:00Z"
+    interval['end_time'] = "2100-01-01T00:00:00Z"
     # metadata.threat
     threat['confidence_details'] = str(indicator['mscore'])
-    for source in indicator['sources']:
-      threat['category_details'] = source['source_name']
-    # attributed_associations
+
+    tmp_source_category = []
+    for source in indicator['sources']: 
+      for category in source['category']:
+        tmp_source_category.append(category)
+
+    threat['first_discovered_time'] = indicator['first_seen']
+    threat['last_updated_time'] = indicator['last_updated']
+
+    if tmp_source_category:
+      threat['category_details'] = tmp_source_category
+
     try:
-      for threats in indicator['attributed_associations']:
-        threat['threat_id'] = threats['id']
-        threat['threat_name'] = threats['name']
-        threat['threat_feed_name'] = threats['type']
+      for association in indicator['attributed_associations']:
+        tmp_association = {}
+        tmp_association['id'] = association['id']
+        tmp_association['name'] = association['name']
+        tmp_association['type'] = association['type'] 
+        associations.append(tmp_association)
+
+      threat['associations'] = associations
     except KeyError:
       pass
+
     # >>> ENTITY
     # - entity.type
     match indicator['type']:
@@ -293,8 +306,9 @@ def send_iocs_to_chronicle(iocs):
       case "url":
         # remove the http or https protovol from the URL as our log sources don't log this
         sanitized_url = fix_url(indicator['value'],"^http(s)?://")
-        entity['url'] = sanitized_url
-        #entity['url'] = indicator['value']
+        #entity['url'] = sanitized_url
+        entity['url'] = indicator['value']
+        threat['url_back_to_product'] = "https://advantage.mandiant.com/indicator/url/{}".format(urllib.parse.quote(indicator['value']))
         metadata['entity_type'] = 'URL'
       case "md5":
         file['md5'] = indicator['value']
@@ -331,11 +345,12 @@ def send_iocs_to_chronicle(iocs):
     event = {}
     event['metadata'] = metadata
     event['entity'] = entity
-    event['additional'] = additionals
+    event['additional'] = additionals    
     events.append(event)
 
   if events:
     create_entity_v2(json.dumps(events),'MANDIANT_IOC')
+    print("IOCs were returned during this iteration.")
   else:
     print("No IOCs were returned during the given interval and filter criteria.")
 
@@ -355,7 +370,7 @@ def main(req):  # pylint: disable=unused-argument
 
   access_token = bearer_token.json()
 
-  epoch = generate_epoch_timestamp(1440) # in minutes
+  epoch = generate_epoch_timestamp(int(collection_interval_minutes)) 
 
   # get Indicators from MATI API
   # - this is hard coded to retrieve Mandiant sources indicators only
@@ -376,11 +391,10 @@ def main(req):  # pylint: disable=unused-argument
         time.sleep(1)
         try:
           if next_page['next'] is None:
-            print("no more results") # this will never actuall get here
             break
         except KeyError:
           print('No more pages.')
   except KeyError:
     print('No more pages.')
 
-  return "Ingestion completed."
+  return "Execution complete."
