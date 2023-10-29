@@ -1,0 +1,37 @@
+rule mandiant_mati_url {
+
+  meta:
+    author = "thatsiemguy@"
+    description = "Detects UDM Network Connections against MATI URL IOCs"
+    severity = "LOW"
+    priority = "LOW"
+
+  events:
+    ( 
+      $e.metadata.event_type = "NETWORK_CONNECTION"
+      or $e.metadata.event_type = "NETWORK_HTTP"
+    )
+    $e.principal.ip = $asset and  $e.principal.ip != "" 
+    $e.target.url = $url and $e.target.url != ""
+
+    $g.graph.metadata.vendor_name = "MANDIANT_IOC" 
+    $g.graph.metadata.entity_type = "URL"
+    $g.graph.entity.url = $url and $g.graph.entity.url != ""
+
+  match:
+    $asset over 1m
+
+  outcome:
+    $risk_score = max(
+        50 +
+        if($e.security_result.action = "ALLOW", 10) -
+        if($e.security_result.action = "BLOCK", 10)   
+    )
+    $oc_confidence_score = array_distinct($g.graph.metadata.threat.confidence_details)
+    $oc_threat_id = array_distinct($g.graph.metadata.threat.threat_id)
+    $oc_category_details = array_distinct($g.graph.metadata.threat.category_details)
+    $oc_association_names = array_distinct($g.graph.metadata.threat.associations.name)
+
+  condition:
+    $e and $g
+}

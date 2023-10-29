@@ -1,0 +1,42 @@
+rule mandiant_mati_ip {
+
+  meta:
+    author = "thatsiemguy@"
+    description = "Detects UDM Network Connections against MATI IP IOCs"
+    severity = "LOW"
+    priority = "LOW"
+    known_limitations = "Detection Engine does not support Additionals in Outcomes at the time of publishing."
+
+  events:
+    (
+        $e.metadata.event_type = "NETWORK_CONNECTION" or
+        $e.metadata.event_type = "NETWORK_HTTP" or
+        $e.metadata.event_type = "NETWORK_FTP" or
+        $e.metadata.event_type = "NETWORK_SMTP" or
+        $e.metadata.event_type = "NETWORK_FLOW" or        
+        $e.metadata.event_type = "NETWORK_UNCATEGORIZED"
+    )
+    $e.principal.ip = $asset and $e.principal.ip != ""    
+    $e.target.ip = $ip and $e.target.ip != ""    
+
+    $g.graph.metadata.vendor_name = "MANDIANT_IOC" 
+    $g.graph.metadata.entity_type = "IP_ADDRESS"
+    $g.graph.entity.ip = $ip and $g.graph.entity.ip != ""    
+
+  match:
+    $asset over 1m
+
+  outcome:
+    $risk_score = max(
+        50 +
+        if($e.security_result.action = "ALLOW", 10) -
+        if($e.security_result.action = "BLOCK", 10)   
+    )
+    $oc_confidence_score = array_distinct($g.graph.metadata.threat.confidence_details)
+    $oc_threat_id = array_distinct($g.graph.metadata.threat.threat_id)
+    $oc_category_details = array_distinct($g.graph.metadata.threat.category_details)
+    $oc_association_names = array_distinct($g.graph.metadata.threat.associations.name)
+
+  condition:
+    $e and $g
+}
