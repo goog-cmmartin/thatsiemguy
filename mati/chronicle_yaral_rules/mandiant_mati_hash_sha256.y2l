@@ -21,7 +21,7 @@ rule mandiant_mati_hash_sha256 {
 
     $g.graph.metadata.vendor_name = "MANDIANT_IOC" 
     $g.graph.metadata.entity_type = "FILE"
-    $g.graph.entity.process.file.sha256 = $hash and $g.graph.entity.process.file.sha256 != ""    
+    $g.graph.entity.file.sha256 = $hash and $g.graph.entity.file.sha256 != ""
 
   match:
     $asset over 1m
