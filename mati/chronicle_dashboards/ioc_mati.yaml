@@ -12,24 +12,23 @@ lookml:
     custom_color_enabled: true
     defaults_version: 1
     enable_conditional_formatting: false
-    explore: entity_graph
+    explore: entity_graph_connector
     fields:
     - entity_graph.metadata__entity_type_enum_name
     - entity_graph.count
     filters:
       entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
-      entity_graph.time_filter: 30 days
     height: 6
     hide_row_totals: false
     hide_totals: false
     limit: 500
     limit_displayed_rows: false
-    listen: {}
-    model: cn
+    listen:
+      metadata.collected_timestamp: entity_graph.time_filter
+    model: scn
     name: IOC by Entity Type
     rotation: false
     row: 13
-    series_types: {}
     show_comparison: false
     show_comparison_label: true
     show_row_numbers: true
@@ -48,13 +47,12 @@ lookml:
     conditional_formatting_include_totals: false
     defaults_version: 1
     enable_conditional_formatting: false
-    explore: entity_graph
+    explore: entity_graph_connector
     fields:
     - entity_graph.count
     - entity_graph__metadata__threat__category_details.entity_graph__metadata__threat__category_details
     filters:
       entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
-      entity_graph.time_filter: 30 days
     height: 16
     hide_row_totals: false
     hide_totals: false
@@ -62,14 +60,14 @@ lookml:
     legend_position: center
     limit: 500
     limit_displayed_rows: false
-    listen: {}
-    model: cn
+    listen:
+      metadata.collected_timestamp: entity_graph.time_filter
+    model: scn
     name: IOC by Category Details
     ordering: none
     plot_size_by_field: false
     point_style: none
     row: 13
-    series_types: {}
     show_null_labels: false
     show_row_numbers: true
     show_silhouette: false
@@ -112,13 +110,12 @@ lookml:
     custom_y_column: ""
     defaults_version: 1
     enable_conditional_formatting: false
-    explore: entity_graph
+    explore: entity_graph_connector
     fields:
     - entity_graph.count
     - entity_graph__additional__fields.value__number_value
     filters:
       entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
-      entity_graph.time_filter: 30 days
       entity_graph__additional__fields.key: mscore
     header_font_size: 12
     header_text_alignment: left
@@ -134,8 +131,9 @@ lookml:
     legend_position: center
     limit: 500
     limit_displayed_rows: false
-    listen: {}
-    model: cn
+    listen:
+      metadata.collected_timestamp: entity_graph.time_filter
+    model: scn
     name: Confidence Score
     note_display: above
     note_state: collapsed
@@ -164,7 +162,6 @@ lookml:
     rightAxisLabelVisible: false
     row: 19
     rows_font_size: 12
-    series_types: {}
     show_null_labels: false
     show_null_points: true
     show_row_numbers: true
@@ -213,7 +210,7 @@ lookml:
     custom_color_enabled: true
     defaults_version: 1
     enable_conditional_formatting: false
-    explore: entity_graph
+    explore: entity_graph_connector
     fields:
     - entity_graph.count
     - entity_graph.metadata__collected_timestamp_date
@@ -222,7 +219,6 @@ lookml:
     - entity_graph.metadata__collected_timestamp_date
     filters:
       entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
-      entity_graph.time_filter: 30 days
     height: 5
     hidden_pivots: {}
     hide_row_totals: false
@@ -231,8 +227,9 @@ lookml:
     legend_position: center
     limit: 500
     limit_displayed_rows: false
-    listen: {}
-    model: cn
+    listen:
+      metadata.collected_timestamp: entity_graph.time_filter
+    model: scn
     name: IOC by Entity Type, by Collected Date
     note_display: above
     note_state: collapsed
@@ -243,7 +240,6 @@ lookml:
     plot_size_by_field: false
     point_style: none
     row: 8
-    series_types: {}
     show_comparison: false
     show_comparison_label: true
     show_null_labels: false
@@ -318,6 +314,7 @@ lookml:
     legend_position: center
     limit: 500
     limit_displayed_rows: false
+    listen: {}
     model: cn
     name: MATI YARA-L Rule Detections
     note_display: above
@@ -328,7 +325,6 @@ lookml:
     point_style: none
     row: 29
     rows_font_size: 12
-    series_types: {}
     show_null_labels: false
     show_row_numbers: true
     show_silhouette: false
@@ -360,10 +356,172 @@ lookml:
     y_axis_scale_mode: linear
     y_axis_tick_density: default
     y_axis_tick_density_custom: 5
+  - col: 0
+    column_limit: 50
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph_connector
+    fields:
+    - entity_graph.count
+    - entity_graph__metadata__threat__associations.name
+    filters:
+      entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
+      entity_graph__metadata__threat__associations.name: -NULL
+    header_font_size: 12
+    header_text_alignment: left
+    height: 6
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen:
+      metadata.collected_timestamp: entity_graph.time_filter
+    model: scn
+    name: IOC by Associated Actor
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 38
+    rows_font_size: 12
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - entity_graph.count desc 0
+    stacking: ""
+    table_theme: editable
+    title: IOC by Associated Actor
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_column_names: false
+    truncate_text: true
+    type: looker_grid
+    width: 24
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  - col: 0
+    column_limit: 50
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: entity_graph_connector
+    fields:
+    - entity_graph.count
+    - entity_graph.metadata__collected_timestamp_date
+    - entity_graph__metadata__threat__associations.name
+    fill_fields:
+    - entity_graph.metadata__collected_timestamp_date
+    filters:
+      entity_graph.metadata__vendor_name: '"MANDIANT_IOC"'
+      entity_graph__metadata__threat__associations.name: -NULL
+    header_font_size: 12
+    header_text_alignment: left
+    height: 6
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    interpolation: linear
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen:
+      metadata.collected_timestamp: entity_graph.time_filter
+    model: scn
+    name: IOC by Associated Actor (2)
+    ordering: none
+    pivots:
+    - entity_graph__metadata__threat__associations.name
+    plot_size_by_field: false
+    point_style: none
+    row: 44
+    rows_font_size: 12
+    show_null_labels: false
+    show_null_points: true
+    show_row_numbers: true
+    show_silhouette: false
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - entity_graph__metadata__threat__associations.name
+    - entity_graph.metadata__collected_timestamp_date
+    - entity_graph.count desc 0
+    stacking: ""
+    table_theme: editable
+    title: IOC by Associated Actor
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_column_names: false
+    truncate_text: true
+    type: looker_column
+    width: 24
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - body_text: '---'
+    col: 0
+    height: 2
+    name: ' (2)'
+    row: 36
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 24
+  filters:
+  - allow_multiple_values: true
+    default_value: 1 day
+    explore: entity_graph_connector
+    field: entity_graph.time_filter
+    listens_to_filters: []
+    model: scn
+    name: metadata.collected_timestamp
+    required: false
+    title: metadata.collected_timestamp
+    type: field_filter
+    ui_config:
+      display: popover
+      options: []
+      type: advanced
   layout: newspaper
   title: '[IOC] Mandiant Advanced Threat Intelligence'
 metadata:
-  exported_at: "2023-08-15T03:55:46-07:00"
-  file_fingerprint: "1243066288216182669812230112679382406291"
-  looker_version: 23.6.124
+  exported_at: "2023-11-01T01:02:46-07:00"
+  file_fingerprint: "33134793651347004706734148934196439626"
+  looker_version: 23.16.63
   version: "1"
