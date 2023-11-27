@@ -22,6 +22,33 @@ To utilize this integration requires the following pre-requisites:
 
 ## Integration Notes
 
+### MATI API Parameters
+
+The integration uses the following MATI parameters:
+
+```
+  params = {
+      "start_epoch": start_epoch,
+      "gte_mscore": gte_score,
+      "source": "mandiant",
+      "limit": 1000,
+      "include_threat_rating": "true",
+      "include_category": "true",
+      "include_attribution": "true",
+      "include_verdict":"true",
+      "include_misp": "false"
+  }
+```
+
+and are mapped to UDM as follows:
+* gte_score = `metadata.threat.confidence_details`
+* threat_rating = `additionals`
+* category = `metadata.threat.category_details` [repeated field]
+* attribution = additionals
+* verdict = `metadata.threat.verdict_info`
+
+Note, additionals are used as there are no more specific fields in UDM available at the time of authoring.
+
 ### Create a service account for the Cloud Function
 
 <pre>
