@@ -19,7 +19,10 @@ from typing import Optional
 import datetime
 import requests
 import json
+import time
 import urllib.parse
+import logging
+import google.cloud.logging
 
 from common import env_constants
 from common import status
@@ -51,7 +54,6 @@ gte_score = utils.get_env_var(ENV_GTE_SCORE)
 collection_interval_minutes = utils.get_env_var(ENV_COLLECTION_INTERVAL_MINUTES)
 
 # IOC Expiration
-# - 
 
 # - Match to your online SIEM retention 
 SIEM_DATA_RETENTION=-365
@@ -63,16 +65,26 @@ DOMAIN_NAME_VALID_FROM=SIEM_DATA_RETENTION
 DOMAIN_NAME_EXPIRES_AFTER=30
 
 #TODO(): URLs could be made more fine grained depending on the category, e.g, Phishing is 14 but Malware is 90
-URL_VALID_FROM=-SIEM_DATA_RETENTION
+URL_VALID_FROM=SIEM_DATA_RETENTION
 URL_EXPIRES_AFTER=30
 
 # Hash
 # - Always malicious, and hence are not aged out
 FILE_VALID_FROM=SIEM_DATA_RETENTION
-FILE_EXPIRES_AFTER=36500 #10 Years
+#FILE_EXPIRES_AFTER=1825 
 
-# Generate Access Token
+
 def generate_bearer_token(secret_id,secret_key,app_name):
+  """Generates a bearer token for Mandiant Intelligence APIs.
+
+  Args:
+      secret_id (str): The Mandiant Intelligence API secret ID.
+      secret_key (str): The Mandiant Intelligence API secret key.
+      app_name (str): The name of the application generating the token.
+
+  Returns:
+      requests.Response: The response from the token generation endpoint.
+  """
 
   url = "https://api.intelligence.mandiant.com/token"
   headers = {
@@ -91,6 +103,8 @@ def generate_bearer_token(secret_id,secret_key,app_name):
 
   if response.status_code == 200:
       return response
+  elif response.status_code == 204:
+      return response
   else:
       return response.status_code
 
@@ -107,7 +121,19 @@ def generate_epoch_timestamp(offset_minutes):
   return int(time() - offset_minutes * 60)
 
 def instance_region(region):
-  # note, new regions will need to be added here
+  """
+  Retrieves the URL of the Malachite ingestion endpoint for the specified region.
+
+  Args:
+      region (str): The Malachite region.
+
+  Returns:
+      str: The URL of the Malachite ingestion endpoint for the specified region.
+
+  Raises:
+      ValueError: If the specified region is invalid.
+  """
+
   REGIONS = {
       "europe": "https://europe-malachiteingestion-pa.googleapis.com",
       "singapore": "https://asia-southeast1-malachiteingestion-pa.googleapis.com",
@@ -124,8 +150,20 @@ def instance_region(region):
 
 
 def get_indicators_first_page(access_token: str, start_epoch: int, gte_score: int):
+  """
+  Retrieves the first page of indicators from the Mandiant Intelligence API.
+
+  Args:
+      access_token (str): The Mandiant Intelligence API access token.
+      start_epoch (int): The epoch time from which to start retrieving indicators.
+      gte_score (int): The minimum threat score for indicators to be included.
+
+  Returns:
+      A `requests.Response` object containing the API response.
+  """  
 
   url = "https://api.intelligence.mandiant.com/v4/indicator"
+
   headers = {
       "Authorization": "Bearer {}".format(access_token),
       "Accept": "application/json",
@@ -134,7 +172,7 @@ def get_indicators_first_page(access_token: str, start_epoch: int, gte_score: in
 
   params = {
       "start_epoch": start_epoch,
-      "gte_mscore": gte_score,
+      "gte_threatscore": gte_score,
       "source": "mandiant",
       "limit": 100,
       "include_threat_rating": "true",
@@ -147,12 +185,27 @@ def get_indicators_first_page(access_token: str, start_epoch: int, gte_score: in
   response = requests.get(url, headers=headers, params=params)
 
   if response.status_code == 200:
+      # Successful response, return the response object
       return response
+  elif response.status_code == 204:
+      # No indicators found, return an empty response   
+      return response      
   else:
+      # Error retrieving indicators, return the status code    
       return response.status_code
 
+
 def get_indicators_next_page(access_token: str, next_page: str):
-  import requests
+  """
+  Retrieves the next page of indicators from the Mandiant Intelligence API.
+
+  Args:
+      access_token (str): The Mandiant Intelligence API access token.
+      next_page (str): The next page token.
+
+  Returns:
+      A `requests.Response` object containing the API response.
+  """
 
   url = "https://api.intelligence.mandiant.com/v4/indicator"
   headers = {
@@ -176,6 +229,15 @@ def get_indicators_next_page(access_token: str, next_page: str):
 
 
 def auth(credentials):
+  """
+  Obtains an authorized session using the provided credentials.
+
+  Args:
+      credentials (google.oauth2.service_account.Credentials): The service account credentials.
+
+  Returns:
+      requests.AuthorizedSession: An authorized session for making API calls.
+  """
   from google.auth.transport import requests
   from google.oauth2 import service_account
 
@@ -188,6 +250,16 @@ def auth(credentials):
 
 
 def create_entity_v2(entity_json,log_type):
+  """
+  Creates Entity IOC records using the Chronicle v2 entity endpoint.
+
+  Args:
+      entity_json (str): The JSON representation of the entity to be created.
+      log_type (str): The type of log to which the entity belongs.
+
+  Returns:
+      requests.Response: The response from the Chronicle API.
+  """
 
   authenticated = auth(credentials_file)
 
@@ -209,14 +281,16 @@ def create_entity_v2(entity_json,log_type):
   return r
 
 def now():
+  """
+  Gets the current time in ISO 8601 format with Zulu timezone.
 
-  # Get the current time
+  Returns:
+      str: The current time in ISO 8601 format with Zulu timezone.
+  """
   current_time = datetime.datetime.now()
-
-  # Format the current time
   formatted_time = current_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-
   return formatted_time
+
 
 def subtract_offset(timestamp, offset):
   """
@@ -388,8 +462,8 @@ def send_iocs_to_chronicle(iocs):
       pass
 
     # >>> METADATA
-    metadata['vendor_name'] = "MANDIANT_CUSTOM_IOC "
-    metadata['product_name'] = "MANDIANT_CUSTOM_IOC "
+    metadata['vendor_name'] = "MANDIANT_CUSTOM_IOC"
+    metadata['product_name'] = "MANDIANT_CUSTOM_IOC"
     metadata['collected_timestamp'] = str(now())
     metadata['product_entity_id'] = indicator['id']
 
@@ -543,19 +617,19 @@ def send_iocs_to_chronicle(iocs):
         metadata['entity_type'] = 'FILE'
         entity['file'] = file
         interval['start_time'] = subtract_offset(now(),FILE_VALID_FROM)
-        interval['end_time'] = subtract_offset(now(),FILE_EXPIRES_AFTER)        
+        #interval['end_time'] = subtract_offset(now(),FILE_EXPIRES_AFTER)        
       case "sha1":
         file['sha1'] = indicator['value']
         metadata['entity_type'] = 'FILE'
         entity['file'] = file
         interval['start_time'] = subtract_offset(now(),FILE_VALID_FROM)
-        interval['end_time'] = subtract_offset(now(),FILE_EXPIRES_AFTER)
+        #interval['end_time'] = subtract_offset(now(),FILE_EXPIRES_AFTER)
       case "sha256":
         file['sha256'] = indicator['value']
         metadata['entity_type'] = 'FILE'
         entity['file'] = file
         interval['start_time'] = subtract_offset(now(),FILE_VALID_FROM)
-        interval['end_time'] = subtract_offset(now(),FILE_EXPIRES_AFTER)          
+        #interval['end_time'] = subtract_offset(now(),FILE_EXPIRES_AFTER)          
 
     # entity.file
     try:
@@ -583,13 +657,10 @@ def send_iocs_to_chronicle(iocs):
     event['additional'] = additionals    
     events.append(event)
 
-  print(json.dumps(events))
+  logging.debug(json.dumps(events))
 
   if events:
    create_entity_v2(json.dumps(events),'MANDIANT_CUSTOM_IOC')
-   print("IOCs were returned during this iteration.")
-  else:
-   print("No IOCs were returned during the given interval and filter criteria.")
 
 def main(req):  
   """Entrypoint.
@@ -601,36 +672,48 @@ def main(req):
     string: "Ingestion completed."
   """
 
+  # Set up the logging client
+  client = google.cloud.logging.Client(project="project")
+  client.setup_logging()
+
   bearer_token = generate_bearer_token(secret_id,secret_key,app_name)
 
-  access_token = bearer_token.json()
+  #access_token = bearer_token.json()
+  if 'access_token' in bearer_token.json():
+    logging.info('Access token successfully generated for Mandiant API.')
+    access_token = bearer_token.json()['access_token']
 
   epoch = generate_epoch_timestamp(int(collection_interval_minutes)) 
 
   # get Indicators from MATI API
   # - this is hard coded to retrieve Mandiant sources indicators only
   # - i.e,. the open source indicators are already in Chronicle SIEM
-  mati_api_results = get_indicators_first_page(access_token=access_token['access_token'], start_epoch=epoch, gte_score=gte_score)
+  first_page = get_indicators_first_page(access_token=access_token, start_epoch=epoch, gte_score=gte_score)
 
-  next_page = mati_api_results.json()
+  if 'indicators' in first_page.json():
+    logging.info('{} indicators returned in the first page.'.format(len(first_page.json()['indicators'])))
+    next_page = first_page.json()
+    send_iocs_to_chronicle(next_page)
 
-  send_iocs_to_chronicle(next_page)
+  if 'next' in next_page:
+    logging.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page['next'])))
+    next_page_token = next_page['next']
 
-  try:
-    if next_page['next'] is not None:
-      while True:
-        response = get_indicators_next_page(access_token=access_token['access_token'], next_page=next_page['next'])
-        next_page = response.json()
-        send_iocs_to_chronicle(next_page)
-        import time
+    while next_page_token:
+        logging.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page_token)))
+        next_page = get_indicators_next_page(access_token=access_token, next_page=next_page['next'])
+        logging.info('{} additional indicators successfully returned.'.format(len(next_page.json()['indicators'])))
+        #next_page = get_iocs(access_token=access_token, page_token=next_page_token)
         time.sleep(1)
-        try:
-          if next_page['next'] is None:
-            print("no more results") # this will never actuall get here
-            break
-        except KeyError:
-          print('No more pages.')
-  except KeyError:
-    print('No more pages.')
 
-  return "Ingestion completed."
+        if 'next' in next_page.json():
+          next_page_token = next_page.json()['next']
+          logging.info.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page_token)))
+        else:
+          next_page_token = None
+
+  else:
+    logging.info('No further pages.')    
+    next_page_token = None
+
+  return "Function execution finished."
