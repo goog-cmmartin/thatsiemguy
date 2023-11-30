@@ -629,7 +629,7 @@ def send_iocs_to_chronicle(iocs):
         metadata['entity_type'] = 'FILE'
         entity['file'] = file
         interval['start_time'] = subtract_offset(now(),FILE_VALID_FROM)
-        #interval['end_time'] = subtract_offset(now(),FILE_EXPIRES_AFTER)          
+        #interval['end_time'] = subtract_offset(now(),FILE_EXPIRES_AFTER)
 
     # entity.file
     try:
@@ -672,48 +672,55 @@ def main(req):
     string: "Ingestion completed."
   """
 
-  # Set up the logging client
-  client = google.cloud.logging.Client(project="project")
-  client.setup_logging()
+  try:
 
-  bearer_token = generate_bearer_token(secret_id,secret_key,app_name)
+    # Set up the logging client
+    client = google.cloud.logging.Client(project="project")
+    client.setup_logging()
 
-  #access_token = bearer_token.json()
-  if 'access_token' in bearer_token.json():
-    logging.info('Access token successfully generated for Mandiant API.')
-    access_token = bearer_token.json()['access_token']
+    bearer_token = generate_bearer_token(secret_id,secret_key,app_name)
 
-  epoch = generate_epoch_timestamp(int(collection_interval_minutes)) 
+    #access_token = bearer_token.json()
+    if 'access_token' in bearer_token.json():
+      logging.info('Access token successfully generated for Mandiant API.')
+      access_token = bearer_token.json()['access_token']
 
-  # get Indicators from MATI API
-  # - this is hard coded to retrieve Mandiant sources indicators only
-  # - i.e,. the open source indicators are already in Chronicle SIEM
-  first_page = get_indicators_first_page(access_token=access_token, start_epoch=epoch, gte_score=gte_score)
+    epoch = generate_epoch_timestamp(int(collection_interval_minutes)) 
 
-  if 'indicators' in first_page.json():
-    logging.info('{} indicators returned in the first page.'.format(len(first_page.json()['indicators'])))
-    next_page = first_page.json()
-    send_iocs_to_chronicle(next_page)
+    # get Indicators from MATI API
+    # - this is hard coded to retrieve Mandiant sources indicators only
+    # - i.e,. the open source indicators are already in Chronicle SIEM
+    first_page = get_indicators_first_page(access_token=access_token, start_epoch=epoch, gte_score=gte_score)
 
-  if 'next' in next_page:
-    logging.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page['next'])))
-    next_page_token = next_page['next']
+    if 'indicators' in first_page.json():
+      logging.info('{} indicators returned in the first page.'.format(len(first_page.json()['indicators'])))
+      next_page = first_page.json()
+      send_iocs_to_chronicle(next_page)
 
-    while next_page_token:
-        logging.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page_token)))
-        next_page = get_indicators_next_page(access_token=access_token, next_page=next_page['next'])
-        logging.info('{} additional indicators successfully returned.'.format(len(next_page.json()['indicators'])))
-        #next_page = get_iocs(access_token=access_token, page_token=next_page_token)
-        time.sleep(1)
+    if 'next' in next_page:
+      logging.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page['next'])))
+      next_page_token = next_page['next']
 
-        if 'next' in next_page.json():
-          next_page_token = next_page.json()['next']
-          logging.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page_token)))
-        else:
-          next_page_token = None
+      while next_page_token:
+          next_page = get_indicators_next_page(access_token=access_token, next_page=next_page['next'])
+          logging.info('{} additional indicators successfully returned.'.format(len(next_page.json()['indicators'])))
+          time.sleep(1)
 
-  else:
-    logging.info('No further pages.')    
-    next_page_token = None
+          try:
+            if 'next' in next_page.json():
+              next_page_token = next_page.json()['next']
+              logging.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page_token)))
+            else:
+              next_page_token = None
+          except KeyError:
+            logging.error('key not found: {}'.format(e))
+    else:
+      logging.info('No further pages.')
+      next_page_token = None
+
+  except Exception as e:
+    logging.error('exception: {}'.format(e))
+    return "Function execution failed."
+
 
   return "Function execution finished."
