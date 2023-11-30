@@ -708,7 +708,7 @@ def main(req):
 
         if 'next' in next_page.json():
           next_page_token = next_page.json()['next']
-          logging.info.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page_token)))
+          logging.info('Further page(s) available.  Page token hash: {}'.format(hash(next_page_token)))
         else:
           next_page_token = None
 
