@@ -1,0 +1,307 @@
+lookml:
+- crossfilter_enabled: true
+  dashboard: observed_assets
+  description: ""
+  elements:
+  - col: 0
+    column_limit: 50
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    dynamic_fields:
+    - _kind_hint: dimension
+      _type_hint: number
+      category: table_calculation
+      expression: count_distinct(${events.principal__asset__hostname})
+      label: count_distinct_principal_asset_hostname
+      table_calculation: count_distinct_principal_asset_hostname
+      value_format: null
+      value_format_name: null
+    enable_conditional_formatting: false
+    explore: events_connector
+    fields:
+    - events.principal__asset__hostname
+    filters:
+      events.principal__asset__hostname: -NULL
+      events.time_filter: 30 days
+    header_font_size: 12
+    header_text_alignment: left
+    height: 3
+    hidden_fields:
+    - events.principal__asset__hostname
+    hide_row_totals: false
+    hide_totals: false
+    limit: 5000
+    limit_displayed_rows: false
+    listen:
+      Metadata > Event Date: events.metadata__event_timestamp_date
+      Metadata > Log Type: events.metadata__log_type
+    model: scn
+    name: Distinct Count of Principal Asset Hostname
+    note_display: above
+    note_state: collapsed
+    note_text: 'Usage Instructions:  In the context of this Dashboard an Asset is
+      considered to be a corporate owned device; however, challenge with uniquely
+      identifying assets in Chronicle SIEM include i) certain parsers will populate
+      the principal.hostname or principal.ip of an external or public device, ii)
+      log sources can generate a range of identifiers for a unique asset, e.g., hostname,
+      hostname.domain.tld, 1.2.3.4.  To solve challenge i) a combination of using
+      only principal, and filtering our certain log sources that include external
+      devices is recommended, i.e., use the Log Type filter to filter these sources.
+      ii) is solved by using principal.asset.hostname to use an aliased value that
+      can unify an asset across ip, hostname, or mac address.'
+    row: 2
+    rows_font_size: 12
+    show_comparison: false
+    show_comparison_label: true
+    show_row_numbers: true
+    show_single_value_title: true
+    show_view_names: false
+    size_to_fit: true
+    sorts:
+    - events.principal__asset__hostname
+    table_theme: white
+    title: Distinct Count of Principal Asset Hostname
+    transpose: false
+    truncate_text: true
+    type: single_value
+    width: 22
+  - col: 11
+    color_application:
+      collection_id: 5f313589-67ce-44ba-b084-ec5107a7bb7e
+      palette_id: be92eae7-de25-46ae-8e4f-21cb0b69a1f3
+    column_group_spacing_ratio: 0.5
+    column_limit: 50
+    column_spacing_ratio: null
+    comparison_reverse_colors: false
+    comparison_type: value
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    custom_color_enabled: true
+    defaults_version: 1
+    enable_conditional_formatting: false
+    explore: events_connector
+    fields:
+    - events.metadata__log_type
+    - events.count
+    filters:
+      events.principal__asset__hostname: -NULL
+      events.time_filter: 30 days
+    header_font_size: "12"
+    header_text_alignment: left
+    height: 7
+    hidden_fields: []
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 500
+    limit_displayed_rows: false
+    listen:
+      Metadata > Event Date: events.metadata__event_timestamp_date
+      Metadata > Log Type: events.metadata__log_type
+    minimum_column_width: 75
+    model: scn
+    name: b) Log Sources populating Principal Asset Hostname
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 8
+    rows_font_size: "12"
+    series_cell_visualizations:
+      events.count:
+        is_active: true
+    series_column_widths:
+      events.metadata__log_type: 292.1099999999999
+    show_comparison: false
+    show_comparison_label: true
+    show_null_labels: false
+    show_row_numbers: true
+    show_row_totals: true
+    show_silhouette: false
+    show_single_value_title: true
+    show_sql_query_menu_options: false
+    show_totals: true
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - events.count desc
+    stacking: ""
+    table_theme: white
+    title: b) Log Sources populating Principal Asset Hostname
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_header: false
+    truncate_text: true
+    type: looker_grid
+    width: 11
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    x_axis_zoom: true
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+    y_axis_zoom: true
+  - col: 0
+    column_limit: 50
+    conditional_formatting_include_nulls: false
+    conditional_formatting_include_totals: false
+    defaults_version: 1
+    dynamic_fields:
+    - _kind_hint: dimension
+      _type_hint: number
+      category: table_calculation
+      expression: count_distinct(${events.principal__asset__hostname})
+      is_disabled: true
+      label: count_distinct_principal_asset_hostname
+      table_calculation: count_distinct_principal_asset_hostname
+      value_format: null
+      value_format_name: null
+    enable_conditional_formatting: false
+    explore: events_connector
+    fields:
+    - events.principal__asset__hostname
+    - events.count
+    filters:
+      events.principal__asset__hostname: -NULL
+      events.time_filter: 10 days
+    header_font_size: 12
+    header_text_alignment: left
+    height: 7
+    hidden_pivots: {}
+    hide_row_totals: false
+    hide_totals: false
+    label_density: 25
+    legend_position: center
+    limit: 5000
+    limit_displayed_rows: false
+    listen:
+      Metadata > Event Date: events.metadata__event_timestamp_date
+      Metadata > Log Type: events.metadata__log_type
+    model: scn
+    name: a) Count of Principal Asset Hostname
+    ordering: none
+    plot_size_by_field: false
+    point_style: none
+    row: 8
+    rows_font_size: 12
+    show_null_labels: false
+    show_row_numbers: true
+    show_silhouette: false
+    show_totals_labels: false
+    show_value_labels: false
+    show_view_names: false
+    show_x_axis_label: true
+    show_x_axis_ticks: true
+    show_y_axis_labels: true
+    show_y_axis_ticks: true
+    size_to_fit: true
+    sorts:
+    - events.count desc
+    stacking: ""
+    table_theme: white
+    title: a) Count of Principal Asset Hostname
+    totals_color: '#808080'
+    transpose: false
+    trellis: ""
+    truncate_text: true
+    type: looker_grid
+    width: 11
+    x_axis_gridlines: false
+    x_axis_reversed: false
+    x_axis_scale: auto
+    y_axis_combined: true
+    y_axis_gridlines: true
+    y_axis_reversed: false
+    y_axis_scale_mode: linear
+    y_axis_tick_density: default
+    y_axis_tick_density_custom: 5
+  - body_text: '[{"type":"p","children":[{"text":"Overview:","bold":true},{"text":"
+      This dashboard shows the number of unique Assets for a specific interval using
+      the "},{"text":"Principal Asset Hostname","code":true},{"text":" UDM field.  "}]},{"type":"p","id":1701452315274,"children":[{"text":""}]}]'
+    col: 0
+    height: 2
+    name: ""
+    rich_content_json: '{"format":"slate"}'
+    row: 0
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 22
+  - body_text: '[{"type":"p","children":[{"text":"","bold":true}]},{"type":"p","id":1701452528566,"children":[{"bold":true,"text":"Usage"},{"text":":
+      Use the below widgets to find log sources that include Assets that may be external
+      (a), and identity the log sources that are generating these values (b).  Using
+      these in combination with filtering you can verify the quality of your log sources
+      in order to determine an optimal set of Dashboard level filters to generate
+      a distinct count of principal assets."}]}]'
+    col: 0
+    height: 3
+    name: ' (2)'
+    rich_content_json: '{"format":"slate"}'
+    row: 5
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 22
+  - body_text: '[{"type":"p","children":[{"text":"Limitations","bold":true},{"text":":
+      Embedded Looker dashboards have a limit of 5,000 rows per widget.  If you have
+      more than 5,000 Assets this Dashboard will not be able to show all devices."}],"id":1701452459480}]'
+    col: 0
+    height: 3
+    name: ' (3)'
+    rich_content_json: '{"format":"slate"}'
+    row: 15
+    subtitle_text: ""
+    title_text: ""
+    type: text
+    width: 22
+  filters:
+  - allow_multiple_values: true
+    default_value: ""
+    explore: events_connector
+    field: events.metadata__log_type
+    listens_to_filters: []
+    model: scn
+    name: Metadata > Log Type
+    required: false
+    title: Metadata > Log Type
+    type: field_filter
+    ui_config:
+      display: popover
+      type: tag_list
+  - allow_multiple_values: true
+    default_value: 7 day
+    explore: events_connector
+    field: events.metadata__event_timestamp_date
+    listens_to_filters: []
+    model: scn
+    name: Metadata > Event Date
+    required: false
+    title: Metadata > Event Date
+    type: field_filter
+    ui_config:
+      display: inline
+      options: []
+      type: relative_timeframes
+  layout: newspaper
+  title: Observed Assets
+metadata:
+  exported_at: "2023-12-01T11:37:11-08:00"
+  file_fingerprint: "16522476095979518432410827114021192169"
+  looker_version: 23.16.63
+  version: "1"
