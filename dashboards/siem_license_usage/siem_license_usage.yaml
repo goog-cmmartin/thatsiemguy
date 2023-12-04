@@ -519,7 +519,7 @@ lookml:
       display: popover
       type: checkboxes
   - allow_multiple_values: true
-    default_value: -aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,-NULL
+    default_value: -NULL
     explore: ingestion_metrics
     field: ingestion_metrics.collector_id
     listens_to_filters: []
