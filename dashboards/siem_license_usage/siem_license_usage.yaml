@@ -348,17 +348,7 @@ lookml:
     ordering: none
     plot_size_by_field: false
     point_style: none
-    reference_lines:
-    - color: '#65fe08'
-      label: Daily License
-      label_position: center
-      line_value: "3835.61644"
-      margin_bottom: deviation
-      margin_top: deviation
-      margin_value: mean
-      range_end: min
-      range_start: max
-      reference_type: line
+    reference_lines: []
     row: 13
     rows_font_size: 12
     show_null_labels: false
@@ -519,7 +509,7 @@ lookml:
       display: popover
       type: checkboxes
   - allow_multiple_values: true
-    default_value: -NULL
+    default_value: -aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,-NULL
     explore: ingestion_metrics
     field: ingestion_metrics.collector_id
     listens_to_filters: []
@@ -563,7 +553,7 @@ lookml:
   layout: newspaper
   title: "\U0001FAAA SIEM License Usage"
 metadata:
-  exported_at: "2023-12-04T07:11:25-08:00"
-  file_fingerprint: "170711540131549836877045054944030762591"
+  exported_at: "2023-12-04T08:05:16-08:00"
+  file_fingerprint: "166824658199247852433024710934971877045"
   looker_version: 23.12.52
   version: "1"
