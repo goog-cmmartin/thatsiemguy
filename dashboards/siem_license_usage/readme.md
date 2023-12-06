@@ -20,7 +20,7 @@ The Dashboard uses the Chronicle Datalake (BigQuery dataset) Ingestion Metrics t
 - If you receive errors on individual widgets then the most likely explanation is that you have days with 0 value entries, of which the default dashboard Trendline will error if it encounters this scenario.  A second copy of the dashboardwith out a Trendline is added for environments where this may happen.
 - You can add a Trendline or static threshold by editing a Widgets and the Y axis tab to add a Reference Line or Trend Line.  To show the daily volume, take your annual license in GibiBytes, divide by 365, and plot this as a static value.
 
-![Chronicle SIEM License Usage Dashboard](https://github.com/goog-cmmartin/thatsiemguy/blob/main/dashboards/siem_license_usage/siem_license_usage_threshold.png "Adding a static threshold value">
+![Chronicle SIEM License Usage Dashboard](https://github.com/goog-cmmartin/thatsiemguy/blob/main/dashboards/siem_license_usage/siem_license_usage_threshold.png "Adding a static threshold value")
 
 
 __Note, this is not an official Google Cloud Chronicle Dashboard.  There is no guarantee the numbers in this Dashboard align or match to those which Google Cloud may use for licensing monitoring purposes.__
