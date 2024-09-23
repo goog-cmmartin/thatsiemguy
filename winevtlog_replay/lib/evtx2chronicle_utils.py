@@ -60,7 +60,7 @@ def find_regex_matches(text, pattern):
 
   return matches
 
-#TODO(): check, is this used anymore?
+
 def replace_date_in_string_regex(original_date_str, substitute_date):
   """
   This function replaces the date part in a formatted date string with a substitute date using regular expressions.
@@ -79,7 +79,7 @@ def replace_date_in_string_regex(original_date_str, substitute_date):
 
     # Substitute the date part with the substitute date string
     new_date_str = re.sub(date_pattern, substitute_date, original_date_str)
-    
+
     return new_date_str
 
 

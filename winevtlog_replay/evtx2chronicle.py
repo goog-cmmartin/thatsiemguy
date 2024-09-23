@@ -4,19 +4,10 @@ import os
 import logging
 import time
 from lib import evtx2chronicle_utils
-from lib import siem_auth 
+from lib import siem_auth
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='EVTX2Chronicle')
-    
-    # Required arguments
-    # parser.add_argument('credentials_file', help='Path to Chronicle SIEM credentials JSON file')
-    # parser.add_argument('customer_id', help='Chronicle SIEM Customer ID')
-    # parser.add_argument('region', help='Chronicle SIEM Ingestion API Region')
-    # parser.add_argument('path', help='Path to EVTX or XML input file')
-    # parser.add_argument("use_case_name", help='The Use Case name, added to the Ingestion Labels')
-    # parser.add_argument("namespace", nargs='?', const="untagged", default="untagged", help="Chronicle SIEM Namespace")
-    # parser.add_argument("test_mode", nargs='?', const="false", default="false", help="If true then Events are not replayed to SIEM")    
 
     # Required arguments
     parser.add_argument('--credentials_file', required=True, help='Path to Chronicle SIEM credentials JSON file')
@@ -37,13 +28,13 @@ if __name__ == '__main__':
 
     logging.basicConfig(
         level=logging.INFO, 
-        format='<%(levelname)s>%(asctime)s: %(message)s', 
+        format='<%(levelname)s>%(asctime)s: %(message)s',
         datefmt='%Y-%m-%dT%H:%M:%S%z'
     )
 
     logger = logging.getLogger(__name__)
     for arg_name, arg_value in vars(args).items():
-        logger.info(f'{arg_name.replace("_", " ").title()}: {arg_value}') 
+        logger.info(f'{arg_name.replace("_", " ").title()}: {arg_value}')
 
     try:
         evtx_file = args.path
@@ -67,14 +58,14 @@ if __name__ == '__main__':
         if ext in ("evtx"):
             logger.info(f"Valid file extension: {ext}")
             if evtx2chronicle_utils.is_file_empty(evtx_file):
-                raise ValueError("File is empty.")            
+                raise ValueError("File is empty.")
             # Convert the EVTX to XML, and loads the XML file
             evtx2chronicle_utils.extract_xml_from_evtx(evtx_file, evtx_file + '.xml')
-            evtx_xml = evtx2chronicle_utils.read_file(evtx_file + '.xml')        
+            evtx_xml = evtx2chronicle_utils.read_file(evtx_file + '.xml')
         elif ext in ("xml"):
             logger.info(f"Valid file extension: {ext}")
             if evtx2chronicle_utils.is_file_empty(evtx_file):
-                raise ValueError("File is empty.")            
+                raise ValueError("File is empty.")
             # Loads the XML file
             evtx_xml = evtx2chronicle_utils.read_file(evtx_file)
         else:
@@ -143,7 +134,7 @@ if __name__ == '__main__':
                     labels_list,
                     args.namespace
                 )
-                time.sleep(1)   
+                time.sleep(1)
 
     except Exception as e:
         logger.exception(f"An error occurred: {e}") 
