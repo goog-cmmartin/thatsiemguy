@@ -1,3 +1,15 @@
+from google.auth.transport import requests
+from google.oauth2 import service_account
+
+import argparse
+import sys
+import os
+import logging
+import base64
+import json
+
+import google.auth.transport.requests
+import requests
 
 
 def auth(credentials_file):
@@ -14,9 +26,6 @@ def auth(credentials_file):
         requests.AuthorizedSession: A Requests session object authorized with the
                                     provided service account credentials.
     """
-
-    from google.auth.transport import requests
-    from google.oauth2 import service_account
 
     AUTHORIZATION_SCOPES = [
         "https://www.googleapis.com/auth/chronicle-backstory",
@@ -63,7 +72,6 @@ import json
 
 def create_unstructuredlogentry(auth,customer_id,region,log_type,log_entry,labels,namespace="untagged"):
 
-    #authenticated = auth(CREDENTIALS_FILE)
     authenticated = auth
 
     data = {}
@@ -87,3 +95,47 @@ def create_unstructuredlogentry(auth,customer_id,region,log_type,log_entry,label
 
     print(r.text)
     return r
+
+# ---
+
+def get_authorized_session(credentials_file):
+    """
+    Authenticates a Google API client session using service account credentials.
+    """
+
+    AUTHORIZATION_SCOPES = [
+        "https://www.googleapis.com/auth/cloud-platform"
+    ]
+
+    credentials = service_account.Credentials.from_service_account_file(
+        str(credentials_file),
+        scopes=AUTHORIZATION_SCOPES
+    )
+
+    request = google.auth.transport.requests.Request()
+    credentials.refresh(request)
+
+    return credentials.token    
+
+
+def build_payload(project_id, customer_id, forwarder_id, log_entry):
+    """Constructs the payload for the Chronicle ingestion API."""
+    return {
+        'inline_source': {
+            'logs': [log_entry],
+            "forwarder": f"projects/{project_id}/locations/us/instances/{customer_id}/forwarders/{forwarder_id}"
+        }
+    }
+
+
+def send_to_chronicle(region, project_id, customer_id, log_type, auth_token, payload):
+    """Sends the log data to the Chronicle ingestion API."""
+    headers = {
+        "Authorization": f"Bearer {auth_token}",
+        'Content-Type': 'application/json'
+    }
+
+    endpoint = f"https://{region}-chronicle.googleapis.com/v1alpha/projects/{project_id}/locations/us/instances/{customer_id}/logTypes/{log_type}/logs:import"
+
+    submission = requests.post(url=endpoint, headers=headers, json=payload)
+    return submission

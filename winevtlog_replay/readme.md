@@ -1,89 +1,97 @@
-# Windows Event Log Replay Utility
-
 ## Overview
 
-This Python script replays a Windows Event Log, in either binary EVTX or XLM file, to a Google SecOps SIEM tenant.
-
-The script automatically:
-* can convert binary EVTX files into XML files
-* identify the appropriate Ingestion Label by evaluating the Windows Event Log Channel
-* update Timestamps to the time of running, with a configurable offset, while maintaining the original interval between events
-* batch ingest into SecOps SIEM
+This Python script replays a Windows Event Log in either binary EVTX or XLM file to a Google SecOps SIEM tenant.  
 
 ## Setup Steps
 
 ### Python Requirements
-
-You can configure a Python environment with the following commands:
 
 ```
 sudo apt install python3.11-venv
 python3 -m venv EVTX
 source EVTX/bin/activate
 pip3 install python-evtx
+pip3 install google-cloud
 pip3 install google-auth
 pip3 install requests
 ```
 
-### EVTX and XML Samples
+### Download EVTX Samples
 
-You can download binary EVTX files from various online sources, for example:
+Optionally, download EVTX samples or utilize your own exported EVTX files.
 
 ```
 sudo apt-get install git
 git clone https://github.com/Yamato-Security/hayabusa-sample-evtx.git
 ```
 
-Or you can download Event Logs from Sandbox sources on VirusTotal, e.g., Zenbox, CAPE.
+## Create a BYOP SecOps Service Account
 
-## Example Usage
-
-The script is called with the following parameters:
-
+Bash variables:
 ```
-# Required arguments
-parser.add_argument('--credentials_file', required=True, help='Path to Chronicle SIEM credentials JSON file')
-parser.add_argument('--customer_id', required=True, help='Chronicle SIEM Customer ID')
-parser.add_argument('--region', required=True, help='Chronicle SIEM Ingestion API Region')
-parser.add_argument('--path', required=True, help='Path to EVTX or XML input file')
-parser.add_argument('--use_case_name', required=True, help='The Use Case name, added to the Ingestion Labels')
-
-# Optional arguments with default values
-parser.add_argument('--namespace', default="untagged", help="Chronicle SIEM Namespace")
-parser.add_argument('--test_mode', default="false", help="If true then Events are not replayed to SIEM")
+SERVICE_ACCOUNT_NAME="sa-secops-siem"
+DESCRIPTION="SecOps SIEM Service Account"
+DISPLAY_NAME="SecOps SIEM Service Account"
+PROJECT_ID="your-secops-gcp-project"
+ROLE_NAME="chronicle_log_import"
 ```
 
-To ingest an XML file:
+Custom IAM Role YAML File:
 ```
-python3 evtx2chronicle.py --credentials_file "./config/creds.json" --customer_id "889af7ee-9a1e-41a2-8901-830838bc12b8" --region "us" --path "/tmp/evtx_samples/88da89_Zenbox.evtx/Microsoft-Windows-SysmonOperational.xml" --use_case_name "RANSOMWARE-LOCKBIT.V2" --namespace "Cymbal" --test_mode="true"
-```
-
-Example output:
-
-```
-<INFO>2024-09-23T20:12:05+0200: Credentials File: ./config/creds.json
-<INFO>2024-09-23T20:12:05+0200: Customer Id: 889af7ee-9a1e-41a2-8901-830838bc12b8
-<INFO>2024-09-23T20:12:05+0200: Region: us
-<INFO>2024-09-23T20:12:05+0200: Path: /tmp/evtx_samples/88da89_Zenbox.evtx/Microsoft-Windows-SysmonOperational.xml
-<INFO>2024-09-23T20:12:05+0200: Use Case Name: RANSOMWARE-LOCKBIT.V2
-<INFO>2024-09-23T20:12:05+0200: Namespace: Cymbal
-<INFO>2024-09-23T20:12:05+0200: Test Mode: true
-<INFO>2024-09-23T20:12:05+0200: Valid file extension: xml
-<INFO>2024-09-23T20:12:05+0200: EVTX filename = Microsoft-Windows-SysmonOperational.xml
-<INFO>2024-09-23T20:12:05+0200: Unique Ingestion Labels count = 1
-<INFO>2024-09-23T20:12:05+0200: Event count = 7679
-<INFO>2024-09-23T20:12:05+0200: Estimated size of the list: 11544255 bytes
-<INFO>2024-09-23T20:12:05+0200: dry_run mode = true
-<INFO>2024-09-23T20:12:05+0200: Exiting.
+title: "SecOps Log Import"
+description: "Allows importing logs via the Chronicle API."
+stage: "GA"
+includedPermissions:
+  - chronicle.logs.import
 ```
 
-## SecOps Integration
+Create the custom IAM Role:
+```
+gcloud iam roles create "$ROLE_NAME" \
+--project="$PROJECT_ID" \
+--file="custom_role.yaml"
+```
 
+Create a GCP Service Account:
+```
+gcloud iam service-accounts create $SERVICE_ACCOUNT_NAME \
+  --description="$DESCRIPTION" \
+  --display-name="$DISPLAY_NAME"
+```
 
-The following SecOps SIEM Ingestion Labels are supported:
-* POWERSHELL
-* WINDOWS_SYSMON
-* WINEVTLOG
+Grant the custom IAM Role:
+```
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SERVICE_ACCOUNT_NAME@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role="projects/$PROJECT_ID/roles/$ROLE_NAME"
+```
+
+Create a Service Account Key:
+```
+gcloud iam service-accounts keys create chronicle-api-sa-key.json  \
+ --iam-account="$SERVICE_
+ACCOUNT_NAME@$PROJECT_ID.iam.gserviceaccount.com"
+```
+
+## Example Script Usage
+
+You can access the following configuration parameters from:
+* Customer_id = SIEM Setting > Customer GUID
+* Region = the region of your SecOps tenant
+ - US (us) or Europe (eu) for multiregion instances, otherwise the region, e.g., "asia-south1"
+* Forwarder_id = Create a Chronicle Forwarder, and copy the Config ID
+
+```
+python3 evtx2chronicle.py --credentials_file "./config/chronicle-api-sa-key.jsonn" \ 
+--customer_id "b3465895-93ec-4db4-84af-e2c13008e537" \ 
+--region "eu" \ 
+--project_id "thatsiemguy-europe-chronicle" \ 
+--forwarder_id "d856c51d-722e-40a6-a320-8bb07df99e07" \ 
+--path "~/SecOps/EVTX_to_Chronicle/VT/2047bb9f00b_Zenbox.evtx/Microsoft-Windows-SysmonOperational.xml" \ 
+--use_case_name "CATEGORY-USECASE" \
+--namespace "TEST" \
+--dry_run "true"
+```
 
 
 

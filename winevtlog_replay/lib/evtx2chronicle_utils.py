@@ -1,9 +1,12 @@
 import os
 import re
 import sys
-import hashlib
+import logging
+import base64
 import Evtx.Evtx as evtx  #!pip3 install python-evtx
 from datetime import date, datetime, timedelta
+
+logger = logging.getLogger(__name__) 
 
 def is_file_empty(filename):
   """Checks if a file is empty.
@@ -32,15 +35,15 @@ def read_file(filename):
     with open(filename, "r") as file:
         content = "".join(
             line.replace("\t", "\\t") for line in file if line.strip()
-        )
-        return content
+        )           
+        return content      
   except FileNotFoundError:
     print(f"Error: File not found - {filename}")
     return None
   except Exception as e:
     print(f"Error reading file {filename}: {e}")
     return None
-
+  
 
 def find_regex_matches(text, pattern):
   """
@@ -59,28 +62,6 @@ def find_regex_matches(text, pattern):
   matches = regex.findall(text)
 
   return matches
-
-
-def replace_date_in_string_regex(original_date_str, substitute_date):
-  """
-  This function replaces the date part in a formatted date string with a substitute date using regular expressions.
-
-  Args:
-      original_date_str: The original string containing the date in YYYY-MM-DD format.
-      substitute_date: A datetime object representing the substitute date.
-
-  Returns:
-      A new string with the date part replaced by the substitute date, or None if the format is invalid.
-  """
-  if original_date_str:
-
-    # Regular expression to match the date part (YYYY-MM-DD)
-    date_pattern = r"\d{4}-\d{2}-\d{2}"
-
-    # Substitute the date part with the substitute date string
-    new_date_str = re.sub(date_pattern, substitute_date, original_date_str)
-
-    return new_date_str
 
 
 def get_date_with_offset(offset=0):
@@ -123,24 +104,36 @@ def extract_xml_from_evtx(evtx_file_path, output_file_path):
             outfile.write('</Events>\n')  # Close the XML document
 
 
-def generate_hash(input_string, algorithm='sha256'):
-    """Generates a hash of the given string using the specified algorithm.
+def prepare_log_entry(log_message, namespace, use_case_name):
+    """
+    Encodes a log message into a base64-encoded JSON string.
 
     Args:
-        input_string: The string to be hashed.
-        algorithm: The hashing algorithm to use (default: 'sha256').
-                   Supported algorithms include 'md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512'.
+        log_message: original windows XML event
+        namespace: SecOps SIEM environment namespace
+        use_case_name: Adds custom metadata.ingestion_labels
 
     Returns:
-        The hexadecimal representation of the generated hash.
+        A dictionary in the Telemetry Log format
     """
 
-    hash_object = hashlib.new(algorithm)
-    hash_object.update(input_string.encode('utf-8'))  # Encode the string to bytes
-    return hash_object.hexdigest()
+    json_bytes = log_message.encode('utf-8')
+    base64_bytes = base64.b64encode(json_bytes)
+    base64_str = base64_bytes.decode('utf-8')
+    return { "data": base64_str, 
+            "environment_namespace": namespace,
+            "labels" : {
+                "use_case_name": {
+                   "value": use_case_name
+                    },
+                "replayed_date": {
+                    "value": get_date_with_offset()
+                    }
+                }
+            }
 
 
-def split_list_by_size(data_list, max_chunk_size=800000, max_limit=1000000):
+def split_list_by_size(data_list, namespace="untagged", use_case_name="evtx_replay", max_chunk_size=3200000, max_limit=4000000):
     """
     Splits a list into chunks based on their estimated size in bytes.
 
@@ -159,6 +152,7 @@ def split_list_by_size(data_list, max_chunk_size=800000, max_limit=1000000):
 
     for item in data_list:
         item_size = sys.getsizeof(item)
+        item = prepare_log_entry(item,namespace,use_case_name)
 
         # If adding the item would exceed the max_limit, start a new chunk
         if current_chunk_size + item_size > max_limit:
@@ -195,20 +189,20 @@ def check_evtx_type(evtx):
     Returns:
         The detected Chronicle Ingestion Label based upon the Channel
         Returns WINEVTLOG if no exact match is found.
-    """
+    """   
 
     # Security
     if "Microsoft-Windows-Security-Auditing" in evtx:
         return "WINEVTLOG"
     # System
     elif "<Channel>System</Channel>" in evtx:
-        return "WINEVTLOG"
+        return "WINEVTLOG"       
     # Application
     elif "<Channel>Application</Channel>" in evtx:
        return "WINEVTLOG"
     # Setup
     elif "<Channel>Setup</Channel>" in evtx:
-       return "WINEVTLOG"
+       return "WINEVTLOG"       
     # Sysmon
     elif "Microsoft-Windows-Sysmon/Operational" in evtx:
        return "WINDOWS_SYSMON"
@@ -218,8 +212,8 @@ def check_evtx_type(evtx):
     elif "<Channel>Windows PowerShell</Channel>" in evtx:
         return "POWERSHELL"
     elif "<Channel>Microsoft-Windows-PowerShell/Operational</Channel>" in evtx:
-        return "POWERSHELL"
-    # Catch-all
+        return "POWERSHELL"       
+    # Catch-all            
     else:
         return "WINEVTLOG"
 
@@ -289,7 +283,7 @@ def update_log_times(logs, offset_minutes=-60):
         new_sysmon_timestamp = sysmon_timestamp + time_delta
 
         new_sysmon_timestamp_str = new_sysmon_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
-        log = log.replace(sysmon_timestamp_str, new_sysmon_timestamp_str)
+        log = log.replace(sysmon_timestamp_str, new_sysmon_timestamp_str)        
 
 
     # Format the new timestamp back into the original string format
