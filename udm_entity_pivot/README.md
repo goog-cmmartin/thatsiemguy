@@ -2,6 +2,9 @@
 
 This HTML widget, designed for Chronicle SOAR, enhances alert investigation by providing pivot links for UDM and Raw Log searches based on related entities.  It streamlines the process of querying Chronicle UDM and raw logs, enabling analysts to quickly explore relevant data within a specified timeframe.
 
+<img src="https://github.com/goog-cmmartin/thatsiemguy/blob/main/udm_entity_pivot/udm_entity_pivot.png" />
+![UDM Entity Pivot](udm_entity_pivot.png)
+
 ## Features
 
 * **Entity Table:** Displays entities associated with an alert, including:
