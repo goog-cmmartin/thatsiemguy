@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-bs-theme="dark">
   <head>
-    <title>Google SecOps UDM Entity Pivot</title>
+    <title>Google SecOps Entity Explorer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Bootstrap -->
     <link
@@ -92,18 +92,11 @@
         width: 4px;
       }
 
-      .tabulator
-        .tabulator-header
-        .tabulator-col.tabulator-sortable
-        .tabulator-col-content {
+      .tabulator .tabulator-header .tabulator-col.tabulator-sortable .tabulator-col-content {
         padding-right: 25px; /* Make space for the sort arrow */
       }
 
-      .tabulator
-        .tabulator-header
-        .tabulator-col
-        .tabulator-col-content
-        .tabulator-col-sorter {
+      .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-sorter {
         position: absolute;
         top: 50%;
         right: 10px;
@@ -176,9 +169,7 @@
       }
 
       .tabulator-row.tabulator-selected {
-        background-color: var(
-          --bs-primary-bg-subtle
-        ); /* A subtle primary background */
+        background-color: var(--bs-primary-bg-subtle); /* A subtle primary background */
         color: var(--bs-primary-color);
       }
 
@@ -207,22 +198,16 @@
 
       /* Dark theme overrides */
       [data-bs-theme="dark"] .tabulator-row.tabulator-group {
-        background-color: var(
-          --studioform-library--sf-color--dark-gray-secops-600
-        );
+        background-color: var(--studioform-library--sf-color--dark-gray-secops-600);
         border-bottom-color: var(--bs-border-color-translucent);
       }
       [data-bs-theme="dark"] .tabulator-row.tabulator-group .tabulator-arrow {
-        border-left-color: var(
-          --bs-body-color
-        ); /* Adjust arrow color for dark */
+        border-left-color: var(--bs-body-color); /* Adjust arrow color for dark */
       }
       [data-bs-theme="dark"]
         .tabulator-row.tabulator-group.tabulator-group-visible
         .tabulator-arrow {
-        border-top-color: var(
-          --bs-body-color
-        ); /* Adjust arrow color for dark */
+        border-top-color: var(--bs-body-color); /* Adjust arrow color for dark */
       }
 
       .tabulator .tabulator-footer .tabulator-paginator {
@@ -252,9 +237,7 @@
         cursor: not-allowed;
       }
 
-      .tabulator
-        .tabulator-footer
-        .tabulator-page:hover:not(.active):not(:disabled) {
+      .tabulator .tabulator-footer .tabulator-page:hover:not(.active):not(:disabled) {
         background-color: var(--bs-light);
       }
 
@@ -265,10 +248,7 @@
         border-color: var(--bs-border-color-translucent);
       }
 
-      [data-bs-theme="dark"]
-        .tabulator
-        .tabulator-footer
-        .tabulator-page.active {
+      [data-bs-theme="dark"] .tabulator .tabulator-footer .tabulator-page.active {
         background-color: var(--bs-primary); /* Keep primary color for active */
         color: var(--bs-white);
         border-color: var(--bs-primary);
@@ -297,9 +277,7 @@
         .tabulator-col-content
         .tabulator-col-sorter
         .tabulator-arrow {
-        border-bottom-color: var(
-          --bs-primary-light
-        ); /* Adjust for dark theme */
+        border-bottom-color: var(--bs-primary-light); /* Adjust for dark theme */
       }
 
       [data-bs-theme="dark"]
@@ -325,9 +303,7 @@
       }
 
       .tabulator .tabulator-header {
-        background-color: var(
-          --bs-secondary-bg
-        ); /* Use a secondary background */
+        background-color: var(--bs-secondary-bg); /* Use a secondary background */
         border-bottom: 1px solid var(--bs-border-color);
         box-sizing: border-box;
         color: var(--bs-secondary-color); /* Use a secondary text color */
@@ -357,11 +333,7 @@
         position: relative;
       }
 
-      .tabulator
-        .tabulator-header
-        .tabulator-col
-        .tabulator-col-content
-        .tabulator-col-title {
+      .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
         box-sizing: border-box;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -374,9 +346,7 @@
         position: relative;
         white-space: nowrap;
         width: 100%;
-        background-color: var(
-          --bs-body-bg
-        ); /* Match tableholder to body background */
+        background-color: var(--bs-body-bg); /* Match tableholder to body background */
       }
 
       .tabulator .tabulator-tableholder .tabulator-table {
@@ -441,9 +411,7 @@
       }
 
       .tabulator-footer {
-        background-color: var(
-          --bs-secondary-bg
-        ); /* Use a secondary background */
+        background-color: var(--bs-secondary-bg); /* Use a secondary background */
         border-top: 1px solid var(--bs-border-color);
         color: var(--bs-secondary-color); /* Use a secondary text color */
         font-weight: 700;
@@ -483,9 +451,7 @@
       }
 
       [data-bs-theme="dark"] .tabulator-footer {
-        background-color: var(
-          --bs-dark-bg-subtle
-        ); /* Darker footer background */
+        background-color: var(--bs-dark-bg-subtle); /* Darker footer background */
         color: var(--bs-body-color); /* Revert to body color for contrast */
         border-top-color: var(--bs-border-color);
       }
@@ -521,26 +487,15 @@
               </li>
               <li><a class="dropdown-item" href="#" data-logic="OR">OR</a></li>
             </ul>
-            <button
-              id="get-selected-rows"
-              class="btn btn-success"
-              type="button"
-            >
+            <button id="get-selected-rows" class="btn btn-success" type="button">
               Run &nbsp; <i class="bi bi-box-arrow-up-right"></i>
             </button>
           </div>
         </div>
         <div class="col d-flex justify-content-end">
           <div class="form-check form-switch text-end">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="darkModeSwitch"
-              checked
-            />
-            <label class="form-check-label" for="darkModeSwitch"
-              >Dark Mode</label
-            >
+            <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked />
+            <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
           </div>
         </div>
       </div>
@@ -568,25 +523,21 @@
         });
       });
 
-      const getSelectedRowsButton =
-        document.getElementById("get-selected-rows");
+      const getSelectedRowsButton = document.getElementById("get-selected-rows");
 
+     // On click of the getSelectedRowsButton, it retrieves selected table data, logic from a dropdown, creates a link, and opens it in a new tab.
       getSelectedRowsButton.addEventListener("click", () => {
         const selectedRows = table.getSelectedData();
-        
-        const selectedLogic = document
-          .getElementById("logicDropdown")
-          .textContent.trim();
-
+        const selectedLogic = document.getElementById("logicDropdown").textContent.trim();
         const dropdownMenu = document.querySelector(".dropdown-menu");
         pivotLink = createUdmLink1(selectedRows, selectedLogic);
-
         window.open(pivotLink, "_blank");
       });
 
       const dropdownMenu = document.querySelector(".dropdown-menu");
       const dropdownButton = document.getElementById("logicDropdown");
 
+      // Add an event listener to the dropdown menu
       dropdownMenu.addEventListener("click", (event) => {
         event.preventDefault();
         const selectedLogic = event.target.dataset.logic;
@@ -594,59 +545,55 @@
       });
 
       function createUdmLink1(data, logic) {
+        // Handle single row data (backward compatibility)
         if (!Array.isArray(data)) {
           const rowData = data;
           const {
             CreationTime,
             EntityCards: { SourceSystemUrl, Identifier, Type },
           } = rowData;
+
+          // Check if the Type is supported
+          if (!getQuery(Identifier, Type)) {
+            return null; // Return null if not supported. This will hide the button in the table cell
+          }
           const queryParam = getQuery(Identifier, Type);
-          const { startTimeIso, endTimeIso } = convertTimestamps(
-            CreationTime,
-            CreationTime
-          );
-          return createLink(queryParam, startTimeIso, endTimeIso);
+          const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime, CreationTime);
+          return createLink(SourceSystemUrl, queryParam, startTimeIso, endTimeIso);
         }
 
         // Handle multiple rows with AND/OR logic
         else {
           let queryParams = [];
+          let validRows = []; // Store only valid rows for processing
           for (const row of data) {
             const {
               EntityCards: { Identifier, Type },
             } = row;
-            queryParams.push(getQuery(Identifier, Type));
+
+            // Check if the type is supported. if not, dont add to the array for URL processing.
+            if (getQuery(Identifier, Type)) {
+              queryParams.push(getQuery(Identifier, Type));
+              validRows.push(row);
+            }
           }
 
-          const combinedQueryParam = queryParams.join(
-            logic === "AND" ? " AND " : " OR "
-          );
-          const firstRow = data[0];
+          if (validRows.length === 0) return null; // If no rows have valid types, dont return a link.
+
+          const combinedQueryParam = queryParams.join(logic === "AND" ? " AND " : " OR ");
+          const firstRow = validRows[0]; // Use the first VALID row data.
           const {
             EntityCards: { SourceSystemUrl },
           } = firstRow;
           const { CreationTime } = firstRow;
-          const { startTimeIso, endTimeIso } = convertTimestamps(
-            CreationTime,
-            CreationTime
-          );
-          return createLink(
-            SourceSystemUrl,
-            combinedQueryParam,
-            startTimeIso,
-            endTimeIso
-          );
+          const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime, CreationTime);
+          return createLink(SourceSystemUrl, combinedQueryParam, startTimeIso, endTimeIso);
         }
       }
 
-      function createLink(
-        SourceSystemUrl,
-        queryParam,
-        startTimeIso,
-        endTimeIso
-      ) {
+      function createLink(SourceSystemUrl, queryParam, startTimeIso, endTimeIso) {
         const formattedValue = `${SourceSystemUrl}/search?query=${encodeURIComponent(
-          queryParam
+          queryParam,
         )}&startTime=${startTimeIso}&endTime=${endTimeIso}`;
         const link = document.createElement("a");
         link.href = formattedValue;
@@ -661,8 +608,7 @@
           ADDRESS: "ip = {{identifier}} nocase",
           DOMAIN: "domain = {{identifier}} nocase",
           HOSTNAME: "hostname = {{identifier}} nocase",
-          USERUNIQNAME:
-            "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
+          USERUNIQNAME: "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
           PROCESS: "process_id = {{identifier}} nocase",
           FILENAME: "file_path = {{identifier}} nocase",
           FILEHASH: "hash = {{identifier}} nocase",
@@ -671,28 +617,49 @@
         const template = queryTemplates[entityType];
 
         if (template) {
-          return template.replace(
-            /\{\{identifier\}\}/g,
-            JSON.stringify(identifier)
-          );
+          return template.replace(/\{\{identifier\}\}/g, JSON.stringify(identifier));
+        } else {
+          return null; // Return null if the entity type is not supported
+        }
+      }
+
+      function getQuery(identifier, entityType) {
+        const queryTemplates = {
+          ADDRESS: "ip = {{identifier}} nocase",
+          DOMAIN: "domain = {{identifier}} nocase",
+          HOSTNAME: "hostname = {{identifier}} nocase",
+          USERUNIQNAME: "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
+          PROCESS: "process_id = {{identifier}} nocase",
+          FILENAME: "file_path = {{identifier}} nocase",
+          FILEHASH: "hash = {{identifier}} nocase",
+        };
+
+        const template = queryTemplates[entityType];
+
+        if (template) {
+          return template.replace(/\{\{identifier\}\}/g, JSON.stringify(identifier));
         } else {
           return "";
         }
       }
 
       function convertTimestamps(oldestTime, latestTime) {
+        // Convert timestamps from milliseconds to seconds
         const startTimeSeconds = oldestTime / 1000;
         const endTimeSeconds = latestTime / 1000;
 
+        // Calculate start and end times with 1 day offset
         const startTime = new Date(startTimeSeconds * 1000);
-        startTime.setDate(startTime.getDate() - 1); 
+        startTime.setDate(startTime.getDate() - 1); // Subtract 1 day
 
-        let endTime = new Date(endTimeSeconds * 1000); 
-        endTime.setDate(endTime.getDate() + 1); 
+        let endTime = new Date(endTimeSeconds * 1000); // Use 'let' instead of 'const'
+        endTime.setDate(endTime.getDate() + 1); // Add 1 day
 
+        // Ensure end time is not in the future
         const now = new Date();
-        endTime = endTime > now ? now : endTime; 
+        endTime = endTime > now ? now : endTime; // Now you can reassign endTime
 
+        // Format timestamps as ISO strings with milliseconds and 'Z' for UTC
         const startTimeIso = startTime.toISOString().replace("+00:00", "Z");
         const endTimeIso = endTime.toISOString().replace("+00:00", "Z");
 
@@ -708,27 +675,39 @@
           CreationTime,
           EntityCards: { SourceSystemUrl, Identifier, Type },
         } = rowData;
+
+        // Check if the Type is supported
+        if (!getQuery(Identifier, Type)) {
+          return ""; // Return an empty string if the Type is not supported. This will hide the button in the table cell
+        }
+
         const queryParam = getQuery(Identifier, Type);
 
         // Directly use CreationTime for both start and end times
-        const { startTimeIso, endTimeIso } = convertTimestamps(
-          CreationTime,
-          CreationTime
-        );
+        const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime, CreationTime);
 
-        const formattedValue = `${SourceSystemUrl}/search?query=${encodeURIComponent(
-          queryParam
-        )}&startTime=${startTimeIso}&endTime=${endTimeIso}`;
-
-        const link = document.createElement("a");
-        link.href = formattedValue;
-        link.innerHTML = "Run" + " " + svg_open;
-        link.classList.add("btn", "btn-success");
-        link.target = "_blank";
-
-        return link;
+        return createLink(SourceSystemUrl, queryParam, startTimeIso, endTimeIso);
       }
 
+      function getQuery(identifier, entityType) {
+        const queryTemplates = {
+          ADDRESS: "ip = {{identifier}} nocase",
+          DOMAIN: "domain = {{identifier}} nocase",
+          HOSTNAME: "hostname = {{identifier}} nocase",
+          USERUNIQNAME: "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
+          PROCESS: "process_id = {{identifier}} nocase",
+          FILENAME: "file_path = {{identifier}} nocase",
+          FILEHASH: "hash = {{identifier}} nocase",
+        };
+
+        const template = queryTemplates[entityType];
+
+        if (template) {
+          return template.replace(/\{\{identifier\}\}/g, JSON.stringify(identifier));
+        } else {
+          return null; // Return null if the entity type is not supported
+        }
+      }
 
       function createRlsLink(cell, formatterParams, onRendered) {
         const rowData = cell.getRow().getData();
@@ -737,13 +716,11 @@
           EntityCards: { SourceSystemUrl, Identifier },
         } = rowData;
 
-        const { startTimeIso, endTimeIso } = convertTimestamps(
-          CreationTime,
-          CreationTime
-        );
+        // Directly use CreationTime for both start and end times
+        const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime, CreationTime);
 
         const formattedValue = `${SourceSystemUrl}/search?query=raw%20%3D%20%2F%28%3Fi%29${encodeURIComponent(
-          JSON.stringify(Identifier).slice(1, -1).replace(/\\/g, '\\\\')
+          JSON.stringify(Identifier).slice(1, -1).replace(/\\/g, "\\\\"),
         )}%2F&startTime=${startTimeIso}&endTime=${endTimeIso}`;
 
         const link = document.createElement("a");
@@ -758,29 +735,17 @@
       }
 
       function buildJsonObject(filter) {
-        const entitiesIdentifier =
-          String.raw`[Entity.Identifier]`.split(
-            ","
-          );
-        const entitiesType =
-          "[Entity.Type]".split(
-            ","
-          );
-        const entitiesInternal = "[Entity.IsInternalAsset]".split(
-          ","
-        );
-        const entitiesSuspicious =
-          "[Entity.IsSuspicious]".split(",");
-        const entitiesPivot = "[Entity.IsPivot]".split(
-          ","
-        );
-        const entitiesManual = "[Entity.IsManuallyCreated]".split(
-          ","
-        );
+        const entitiesIdentifier = String.raw`[Entity.Identifier]`.split(",");
+        const entitiesType = "[Entity.Type]".split(",");
+        const entitiesInternal = "[Entity.IsInternalAsset]".split(",");
+        const entitiesSuspicious = "[Entity.IsSuspicious]".split(",");
+        const entitiesPivot = "[Entity.IsPivot]".split(",");
+        const entitiesManual = "[Entity.IsManuallyCreated]".split(",");
         const secopsUrl = "https://go-preview-americas-sdl.backstory.chronicle.security";
 
         const date = new Date("[Alert.CreationTime]");
 
+        // Get the timestamp in milliseconds
         const timestampMilis = date.getTime(); //* 1000;
 
         return entitiesIdentifier
@@ -802,6 +767,7 @@
       const filter = ["THREAT", "THREATSIGNATURE", "EMAILSUBJECT"];
       const jsonObject = JSON.stringify(buildJsonObject(filter));
 
+      // Parse the JSON string
       var tabledata = JSON.parse(jsonObject);
 
       var table = new Tabulator("#entity-table", {
@@ -811,7 +777,7 @@
         rowHeader: {
           headerSort: false,
           resizable: true,
-          frozen: false,
+          frozen: true,
           headerHozAlign: "center",
           hozAlign: "center",
           formatter: "rowSelection",
@@ -826,11 +792,7 @@
             field: "EntityCards.Identifier",
             widthGrow: 4,
             formatter: function (cell, formatterParams, onRendered) {
-              return (
-                "<div style='overflow-x: auto;'>" +
-                cell.getValue() +
-                "</div>"
-              );
+              return "<div style='overflow-x: auto;'>" + cell.getValue() + "</div>";
             },
           },
 
@@ -861,7 +823,7 @@
           },
           {
             title: "Internal",
-            field: "EntityCards.IsInternal",
+            field: "EntityCards.IsInternalAsset",
             formatter: "tickCross",
             hozAlign: "center",
           },
@@ -874,11 +836,9 @@
         ],
       });
 
-      const tooltipTriggerList = document.querySelectorAll(
-        '[data-bs-toggle="tooltip"]'
-      );
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       const tooltipList = [...tooltipTriggerList].map(
-        (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
+        (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
       );
     </script>
   </body>
