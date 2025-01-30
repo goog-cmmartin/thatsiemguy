@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
   <head>
     <title>Google SecOps Entity Explorer</title>
@@ -92,11 +92,18 @@
         width: 4px;
       }
 
-      .tabulator .tabulator-header .tabulator-col.tabulator-sortable .tabulator-col-content {
+      .tabulator
+        .tabulator-header
+        .tabulator-col.tabulator-sortable
+        .tabulator-col-content {
         padding-right: 25px; /* Make space for the sort arrow */
       }
 
-      .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-sorter {
+      .tabulator
+        .tabulator-header
+        .tabulator-col
+        .tabulator-col-content
+        .tabulator-col-sorter {
         position: absolute;
         top: 50%;
         right: 10px;
@@ -169,7 +176,9 @@
       }
 
       .tabulator-row.tabulator-selected {
-        background-color: var(--bs-primary-bg-subtle); /* A subtle primary background */
+        background-color: var(
+          --bs-primary-bg-subtle
+        ); /* A subtle primary background */
         color: var(--bs-primary-color);
       }
 
@@ -198,16 +207,22 @@
 
       /* Dark theme overrides */
       [data-bs-theme="dark"] .tabulator-row.tabulator-group {
-        background-color: var(--studioform-library--sf-color--dark-gray-secops-600);
+        background-color: var(
+          --studioform-library--sf-color--dark-gray-secops-600
+        );
         border-bottom-color: var(--bs-border-color-translucent);
       }
       [data-bs-theme="dark"] .tabulator-row.tabulator-group .tabulator-arrow {
-        border-left-color: var(--bs-body-color); /* Adjust arrow color for dark */
+        border-left-color: var(
+          --bs-body-color
+        ); /* Adjust arrow color for dark */
       }
       [data-bs-theme="dark"]
         .tabulator-row.tabulator-group.tabulator-group-visible
         .tabulator-arrow {
-        border-top-color: var(--bs-body-color); /* Adjust arrow color for dark */
+        border-top-color: var(
+          --bs-body-color
+        ); /* Adjust arrow color for dark */
       }
 
       .tabulator .tabulator-footer .tabulator-paginator {
@@ -237,7 +252,9 @@
         cursor: not-allowed;
       }
 
-      .tabulator .tabulator-footer .tabulator-page:hover:not(.active):not(:disabled) {
+      .tabulator
+        .tabulator-footer
+        .tabulator-page:hover:not(.active):not(:disabled) {
         background-color: var(--bs-light);
       }
 
@@ -248,7 +265,10 @@
         border-color: var(--bs-border-color-translucent);
       }
 
-      [data-bs-theme="dark"] .tabulator .tabulator-footer .tabulator-page.active {
+      [data-bs-theme="dark"]
+        .tabulator
+        .tabulator-footer
+        .tabulator-page.active {
         background-color: var(--bs-primary); /* Keep primary color for active */
         color: var(--bs-white);
         border-color: var(--bs-primary);
@@ -277,7 +297,9 @@
         .tabulator-col-content
         .tabulator-col-sorter
         .tabulator-arrow {
-        border-bottom-color: var(--bs-primary-light); /* Adjust for dark theme */
+        border-bottom-color: var(
+          --bs-primary-light
+        ); /* Adjust for dark theme */
       }
 
       [data-bs-theme="dark"]
@@ -303,7 +325,9 @@
       }
 
       .tabulator .tabulator-header {
-        background-color: var(--bs-secondary-bg); /* Use a secondary background */
+        background-color: var(
+          --bs-secondary-bg
+        ); /* Use a secondary background */
         border-bottom: 1px solid var(--bs-border-color);
         box-sizing: border-box;
         color: var(--bs-secondary-color); /* Use a secondary text color */
@@ -333,7 +357,11 @@
         position: relative;
       }
 
-      .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
+      .tabulator
+        .tabulator-header
+        .tabulator-col
+        .tabulator-col-content
+        .tabulator-col-title {
         box-sizing: border-box;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -346,7 +374,9 @@
         position: relative;
         white-space: nowrap;
         width: 100%;
-        background-color: var(--bs-body-bg); /* Match tableholder to body background */
+        background-color: var(
+          --bs-body-bg
+        ); /* Match tableholder to body background */
       }
 
       .tabulator .tabulator-tableholder .tabulator-table {
@@ -411,7 +441,9 @@
       }
 
       .tabulator-footer {
-        background-color: var(--bs-secondary-bg); /* Use a secondary background */
+        background-color: var(
+          --bs-secondary-bg
+        ); /* Use a secondary background */
         border-top: 1px solid var(--bs-border-color);
         color: var(--bs-secondary-color); /* Use a secondary text color */
         font-weight: 700;
@@ -451,7 +483,9 @@
       }
 
       [data-bs-theme="dark"] .tabulator-footer {
-        background-color: var(--bs-dark-bg-subtle); /* Darker footer background */
+        background-color: var(
+          --bs-dark-bg-subtle
+        ); /* Darker footer background */
         color: var(--bs-body-color); /* Revert to body color for contrast */
         border-top-color: var(--bs-border-color);
       }
@@ -487,15 +521,26 @@
               </li>
               <li><a class="dropdown-item" href="#" data-logic="OR">OR</a></li>
             </ul>
-            <button id="get-selected-rows" class="btn btn-success" type="button">
+            <button
+              id="get-selected-rows"
+              class="btn btn-success"
+              type="button"
+            >
               Run &nbsp; <i class="bi bi-box-arrow-up-right"></i>
             </button>
           </div>
         </div>
         <div class="col d-flex justify-content-end">
           <div class="form-check form-switch text-end">
-            <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked />
-            <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="darkModeSwitch"
+              checked
+            />
+            <label class="form-check-label" for="darkModeSwitch"
+              >Dark Mode</label
+            >
           </div>
         </div>
       </div>
@@ -523,77 +568,112 @@
         });
       });
 
-      const getSelectedRowsButton = document.getElementById("get-selected-rows");
+      // In your JavaScript code
+      const getSelectedRowsButton =
+        document.getElementById("get-selected-rows");
 
-     // On click of the getSelectedRowsButton, it retrieves selected table data, logic from a dropdown, creates a link, and opens it in a new tab.
       getSelectedRowsButton.addEventListener("click", () => {
         const selectedRows = table.getSelectedData();
-        const selectedLogic = document.getElementById("logicDropdown").textContent.trim();
+
+        // Get the selected logic from the button's text content
+        const selectedLogic = document
+          .getElementById("logicDropdown")
+          .textContent.trim();
+
+        // Get the dropdown menu element
         const dropdownMenu = document.querySelector(".dropdown-menu");
         pivotLink = createUdmLink1(selectedRows, selectedLogic);
+
         window.open(pivotLink, "_blank");
       });
 
+      // Get the dropdown menu and the button
       const dropdownMenu = document.querySelector(".dropdown-menu");
       const dropdownButton = document.getElementById("logicDropdown");
 
       // Add an event listener to the dropdown menu
       dropdownMenu.addEventListener("click", (event) => {
+        // Prevent default link behavior
         event.preventDefault();
+
+        // Get the selected logic condition
         const selectedLogic = event.target.dataset.logic;
+
+        // Update the button text
         dropdownButton.textContent = selectedLogic;
+
+        // Do something with the selected logic (e.g., update your query builder)
+        // console.log("Selected logic:", selectedLogic);
       });
 
-      function createUdmLink1(data, logic) {
-        // Handle single row data (backward compatibility)
-        if (!Array.isArray(data)) {
-          const rowData = data;
-          const {
-            CreationTime,
-            EntityCards: { SourceSystemUrl, Identifier, Type },
-          } = rowData;
-
-          // Check if the Type is supported
-          if (!getQuery(Identifier, Type)) {
+ function createUdmLink1(data, logic) {
+     // Handle single row data (backward compatibility)
+     if (!Array.isArray(data)) {
+       const rowData = data;
+       const {
+         CreationTime,
+         EntityCards: { SourceSystemUrl, Identifier, Type },
+       } = rowData;
+       
+       // Check if the Type is supported
+       if (!getQuery(Identifier, Type)) {
             return null; // Return null if not supported. This will hide the button in the table cell
-          }
-          const queryParam = getQuery(Identifier, Type);
-          const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime, CreationTime);
-          return createLink(SourceSystemUrl, queryParam, startTimeIso, endTimeIso);
         }
+       const queryParam = getQuery(Identifier, Type);
+       const { startTimeIso, endTimeIso } = convertTimestamps(
+         CreationTime,
+         CreationTime
+       );
+       return createLink(SourceSystemUrl,queryParam, startTimeIso, endTimeIso);
+     }
+ 
+     // Handle multiple rows with AND/OR logic
+     else {
+       let queryParams = [];
+       let validRows = []; // Store only valid rows for processing
+       for (const row of data) {
+         const {
+           EntityCards: { Identifier, Type },
+         } = row;
 
-        // Handle multiple rows with AND/OR logic
-        else {
-          let queryParams = [];
-          let validRows = []; // Store only valid rows for processing
-          for (const row of data) {
-            const {
-              EntityCards: { Identifier, Type },
-            } = row;
-
-            // Check if the type is supported. if not, dont add to the array for URL processing.
-            if (getQuery(Identifier, Type)) {
-              queryParams.push(getQuery(Identifier, Type));
-              validRows.push(row);
-            }
+         // Check if the type is supported. if not, dont add to the array for URL processing.
+         if (getQuery(Identifier,Type)){
+            queryParams.push(getQuery(Identifier, Type));
+            validRows.push(row)
           }
+       }
 
-          if (validRows.length === 0) return null; // If no rows have valid types, dont return a link.
+       if (validRows.length === 0) return null; // If no rows have valid types, dont return a link.
 
-          const combinedQueryParam = queryParams.join(logic === "AND" ? " AND " : " OR ");
-          const firstRow = validRows[0]; // Use the first VALID row data.
-          const {
-            EntityCards: { SourceSystemUrl },
-          } = firstRow;
-          const { CreationTime } = firstRow;
-          const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime, CreationTime);
-          return createLink(SourceSystemUrl, combinedQueryParam, startTimeIso, endTimeIso);
-        }
-      }
+       const combinedQueryParam = queryParams.join(
+         logic === "AND" ? " AND " : " OR "
+       );
+       const firstRow = validRows[0]; // Use the first VALID row data.
+       const {
+         EntityCards: { SourceSystemUrl },
+       } = firstRow;
+       const { CreationTime } = firstRow;
+       const { startTimeIso, endTimeIso } = convertTimestamps(
+         CreationTime,
+         CreationTime
+       );
+       return createLink(
+        SourceSystemUrl,
+         combinedQueryParam,
+         startTimeIso,
+         endTimeIso
+       );
+     }
+   }
 
-      function createLink(SourceSystemUrl, queryParam, startTimeIso, endTimeIso) {
+   function createLink(
+    SourceSystemUrl,
+    queryParam,
+    startTimeIso,
+    endTimeIso
+   ) {
         const formattedValue = `${SourceSystemUrl}/search?query=${encodeURIComponent(
-          queryParam,
+          queryParam
         )}&startTime=${startTimeIso}&endTime=${endTimeIso}`;
         const link = document.createElement("a");
         link.href = formattedValue;
@@ -602,13 +682,38 @@
         link.target = "_blank";
         return link;
       }
+   
+   function getQuery(identifier, entityType) {
+     const queryTemplates = {
+       ADDRESS: "ip = {{identifier}} nocase",
+       DOMAIN: "domain = {{identifier}} nocase",
+       HOSTNAME: "hostname = {{identifier}} nocase",
+       USERUNIQNAME:
+         "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
+       PROCESS: "process_id = {{identifier}} nocase",
+       FILENAME: "file_path = {{identifier}} nocase",
+       FILEHASH: "hash = {{identifier}} nocase",
+     };
+ 
+     const template = queryTemplates[entityType];
+ 
+     if (template) {
+       return template.replace(
+         /\{\{identifier\}\}/g,
+         JSON.stringify(identifier)
+       );
+     } else {
+       return null;  // Return null if the entity type is not supported
+     }
+   }
 
       function getQuery(identifier, entityType) {
         const queryTemplates = {
           ADDRESS: "ip = {{identifier}} nocase",
           DOMAIN: "domain = {{identifier}} nocase",
           HOSTNAME: "hostname = {{identifier}} nocase",
-          USERUNIQNAME: "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
+          USERUNIQNAME:
+            "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
           PROCESS: "process_id = {{identifier}} nocase",
           FILENAME: "file_path = {{identifier}} nocase",
           FILEHASH: "hash = {{identifier}} nocase",
@@ -617,27 +722,10 @@
         const template = queryTemplates[entityType];
 
         if (template) {
-          return template.replace(/\{\{identifier\}\}/g, JSON.stringify(identifier));
-        } else {
-          return null; // Return null if the entity type is not supported
-        }
-      }
-
-      function getQuery(identifier, entityType) {
-        const queryTemplates = {
-          ADDRESS: "ip = {{identifier}} nocase",
-          DOMAIN: "domain = {{identifier}} nocase",
-          HOSTNAME: "hostname = {{identifier}} nocase",
-          USERUNIQNAME: "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
-          PROCESS: "process_id = {{identifier}} nocase",
-          FILENAME: "file_path = {{identifier}} nocase",
-          FILEHASH: "hash = {{identifier}} nocase",
-        };
-
-        const template = queryTemplates[entityType];
-
-        if (template) {
-          return template.replace(/\{\{identifier\}\}/g, JSON.stringify(identifier));
+          return template.replace(
+            /\{\{identifier\}\}/g,
+            JSON.stringify(identifier)
+          );
         } else {
           return "";
         }
@@ -669,45 +757,53 @@
       // Open in new windows SVG Icon
       const svg_open = `<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M17.444 17.444H6.555V6.556H12V5H6.555C5.692 5 5 5.7 5 6.556v10.888C5 18.3 5.692 19 6.555 19h10.889c.855 0 1.555-.7 1.555-1.556V12h-1.555v5.444z"></path><path d="M13.556 5v1.556h2.792L8.703 14.2l1.096 1.097 7.646-7.646v2.792H19V5h-5.444z"></path></svg>`;
 
-      function createUdmLink(cell, formatterParams, onRendered) {
-        const rowData = cell.getRow().getData();
-        const {
-          CreationTime,
-          EntityCards: { SourceSystemUrl, Identifier, Type },
-        } = rowData;
-
-        // Check if the Type is supported
-        if (!getQuery(Identifier, Type)) {
-          return ""; // Return an empty string if the Type is not supported. This will hide the button in the table cell
+    function createUdmLink(cell, formatterParams, onRendered) {
+         const rowData = cell.getRow().getData();
+         const {
+           CreationTime,
+           EntityCards: { SourceSystemUrl, Identifier, Type },
+         } = rowData;
+        
+         // Check if the Type is supported
+         if (!getQuery(Identifier, Type)) {
+            return ""; // Return an empty string if the Type is not supported. This will hide the button in the table cell
         }
-
-        const queryParam = getQuery(Identifier, Type);
-
-        // Directly use CreationTime for both start and end times
-        const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime, CreationTime);
-
+     
+         const queryParam = getQuery(Identifier, Type);
+     
+         // Directly use CreationTime for both start and end times
+         const { startTimeIso, endTimeIso } = convertTimestamps(
+           CreationTime,
+           CreationTime
+         );
+     
         return createLink(SourceSystemUrl, queryParam, startTimeIso, endTimeIso);
-      }
+       }
 
-      function getQuery(identifier, entityType) {
-        const queryTemplates = {
-          ADDRESS: "ip = {{identifier}} nocase",
-          DOMAIN: "domain = {{identifier}} nocase",
-          HOSTNAME: "hostname = {{identifier}} nocase",
-          USERUNIQNAME: "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
-          PROCESS: "process_id = {{identifier}} nocase",
-          FILENAME: "file_path = {{identifier}} nocase",
-          FILEHASH: "hash = {{identifier}} nocase",
-        };
+       function getQuery(identifier, entityType) {
+         const queryTemplates = {
+           ADDRESS: "ip = {{identifier}} nocase",
+           DOMAIN: "domain = {{identifier}} nocase",
+           HOSTNAME: "hostname = {{identifier}} nocase",
+           USERUNIQNAME:
+             "( user = {{identifier}} nocase OR email = {{identifier}} nocase )",
+           PROCESS: "process_id = {{identifier}} nocase",
+           FILENAME: "file_path = {{identifier}} nocase",
+           FILEHASH: "hash = {{identifier}} nocase",
+         };
+     
+         const template = queryTemplates[entityType];
+     
+         if (template) {
+           return template.replace(
+             /\{\{identifier\}\}/g,
+             JSON.stringify(identifier)
+           );
+         } else {
+           return null;  // Return null if the entity type is not supported
+         }
+       }
 
-        const template = queryTemplates[entityType];
-
-        if (template) {
-          return template.replace(/\{\{identifier\}\}/g, JSON.stringify(identifier));
-        } else {
-          return null; // Return null if the entity type is not supported
-        }
-      }
 
       function createRlsLink(cell, formatterParams, onRendered) {
         const rowData = cell.getRow().getData();
@@ -717,10 +813,13 @@
         } = rowData;
 
         // Directly use CreationTime for both start and end times
-        const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime, CreationTime);
+        const { startTimeIso, endTimeIso } = convertTimestamps(
+          CreationTime,
+          CreationTime
+        );
 
         const formattedValue = `${SourceSystemUrl}/search?query=raw%20%3D%20%2F%28%3Fi%29${encodeURIComponent(
-          JSON.stringify(Identifier).slice(1, -1).replace(/\\/g, "\\\\"),
+          JSON.stringify(Identifier).slice(1, -1).replace(/\\/g, '\\\\')
         )}%2F&startTime=${startTimeIso}&endTime=${endTimeIso}`;
 
         const link = document.createElement("a");
@@ -735,12 +834,25 @@
       }
 
       function buildJsonObject(filter) {
-        const entitiesIdentifier = String.raw`[Entity.Identifier]`.split(",");
-        const entitiesType = "[Entity.Type]".split(",");
-        const entitiesInternal = "[Entity.IsInternalAsset]".split(",");
-        const entitiesSuspicious = "[Entity.IsSuspicious]".split(",");
-        const entitiesPivot = "[Entity.IsPivot]".split(",");
-        const entitiesManual = "[Entity.IsManuallyCreated]".split(",");
+        const entitiesIdentifier =
+          String.raw`[Entity.Identifier]`.split(
+            ","
+          );
+        const entitiesType =
+          "[Entity.Type]".split(
+            ","
+          );
+        const entitiesInternal = "[Entity.IsInternalAsset]".split(
+          ","
+        );
+        const entitiesSuspicious =
+          "[Entity.IsSuspicious]".split(",");
+        const entitiesPivot = "[Entity.IsPivot]".split(
+          ","
+        );
+        const entitiesManual = "[Entity.IsManuallyCreated]".split(
+          ","
+        );
         const secopsUrl = "https://go-preview-americas-sdl.backstory.chronicle.security";
 
         const date = new Date("[Alert.CreationTime]");
@@ -771,74 +883,80 @@
       var tabledata = JSON.parse(jsonObject);
 
       var table = new Tabulator("#entity-table", {
-        data: tabledata,
-        className: "my-tabulator-table",
-        layout: "fitColumns",
-        rowHeader: {
-          headerSort: false,
-          resizable: true,
-          frozen: true,
-          headerHozAlign: "center",
-          hozAlign: "center",
-          formatter: "rowSelection",
-          titleFormatter: "rowSelection",
-          cellClick: function (e, cell) {
-            cell.getRow().toggleSelect();
+          data: tabledata,
+          className: "my-tabulator-table",
+          layout: "fitColumns",
+          rowHeader: {
+              headerSort: false,
+              resizable: true,
+              frozen: true,
+              headerHozAlign: "center",
+              hozAlign: "center",
+              formatter: "rowSelection",
+              titleFormatter: "rowSelection",
+              cellClick: function (e, cell) {
+                  cell.getRow().toggleSelect();
+              },
+              width: 40
           },
-        },
-        columns: [
-          {
-            title: "Identifier",
-            field: "EntityCards.Identifier",
-            widthGrow: 4,
-            formatter: function (cell, formatterParams, onRendered) {
-              return "<div style='overflow-x: auto;'>" + cell.getValue() + "</div>";
-            },
-          },
-
-          { title: "Type", field: "EntityCards.Type" },
-          {
-            title: "UDM",
-            field: "combined",
-            hozAlign: "center",
-            formatter: createUdmLink,
-          },
-          {
-            title: "RLS",
-            field: "combined",
-            hozAlign: "center",
-            formatter: createRlsLink,
-          },
-          {
-            title: "Suspicious",
-            field: "EntityCards.IsSuspicious",
-            formatter: "tickCross",
-            hozAlign: "center",
-          },
-          {
-            title: "Pivot",
-            field: "EntityCards.IsPivot",
-            formatter: "tickCross",
-            hozAlign: "center",
-          },
-          {
-            title: "Internal",
-            field: "EntityCards.IsInternalAsset",
-            formatter: "tickCross",
-            hozAlign: "center",
-          },
-          {
-            title: "Created Manually",
-            field: "EntityCards.IsManuallyCreated",
-            formatter: "tickCross",
-            hozAlign: "center",
-          },
-        ],
+          columns: [
+              {
+                  title: "Identifier",
+                  field: "EntityCards.Identifier",
+                  widthGrow: 4,
+                  formatter: function (cell, formatterParams, onRendered) {
+                      return (
+                          "<div style='overflow-x: auto;'>" +
+                          cell.getValue() +
+                          "</div>"
+                      );
+                  },
+              },
+              { title: "Type", field: "EntityCards.Type" },
+              {
+                  title: "UDM",
+                  field: "combined",
+                  hozAlign: "center",
+                  formatter: createUdmLink,
+              },
+              {
+                  title: "RLS",
+                  field: "combined",
+                  hozAlign: "center",
+                  formatter: createRlsLink,
+              },
+              {
+                  title: "Suspicious",
+                  field: "EntityCards.IsSuspicious",
+                  formatter: "tickCross",
+                  hozAlign: "center",
+              },
+              {
+                  title: "Pivot",
+                  field: "EntityCards.IsPivot",
+                  formatter: "tickCross",
+                  hozAlign: "center",
+              },
+              {
+                  title: "Internal",
+                  field: "EntityCards.IsInternal",
+                  formatter: "tickCross",
+                  hozAlign: "center",
+              },
+              {
+                  title: "Created Manually",
+                  field: "EntityCards.IsManuallyCreated",
+                  formatter: "tickCross",
+                  hozAlign: "center",
+              },
+          ],
       });
 
-      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+      const tooltipTriggerList = document.querySelectorAll(
+        '[data-bs-toggle="tooltip"]'
+      );
       const tooltipList = [...tooltipTriggerList].map(
-        (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
+        (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
       );
     </script>
   </body>
