@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <title>Google SecOps Entity Explorer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"
+      integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
+      crossorigin="anonymous"
+    />
+
+    <!-- Tabulator-->
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"
+      integrity="sha256-9r74lwsOuL2Ld3JmF+1xLhV2xFSJ7DqVlkv2q2LQtqA="
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Jquery-->
+    <script 
+      src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+      integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+      crossorigin="anonymous"
+    ></script>
+
+    <link rel="stylesheet" href="widget-styles.css">
+  </head>
+  <body>
+    <div class="container-fluid pt-3">
+      <div id="entity-table"></div>
+      <br />
+      <div class="row px-2">
+        <div class="col d-flex">
+          <div class="dropdown d-flex align-items-center gap-2">
+            <p
+              class="mb-0"
+              data-bs-toggle="tooltip"
+              data-bs-html="true"
+              data-bs-title="<em>Select multiple Entities to Run a compound UDM Search.</em>"
+            >
+              Compound Operator:
+            </p>
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="logicDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              AND
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="logicDropdown">
+              <li>
+                <a class="dropdown-item" href="#" data-logic="AND">AND</a>
+              </li>
+              <li><a class="dropdown-item" href="#" data-logic="OR">OR</a></li>
+            </ul>
+            <button
+              id="get-selected-rows"
+              class="btn btn-success"
+              type="button"
+            >
+              Run &nbsp; <i class="bi bi-box-arrow-up-right"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col d-flex justify-content-end">
+          <div class="form-check form-switch text-end">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="darkModeSwitch"
+              checked
+            />
+            <label class="form-check-label" for="darkModeSwitch"
+              >Dark Mode</label
+            >
+          </div>
+        </div>
+      </div>
+      <row class="px-2">&nbsp;</row>
+    </div>
+
+    <script src="udm-pivot-widget.js" defer></script>
+  </body>
+</html>
