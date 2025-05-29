@@ -2,7 +2,7 @@
 
 The following field mapping summary from the original raw log into UDM was created automatically using Gemini.
 
-## Domain object mapping to SecOps UDM
+## Domain object mapping 
 
 [Domain Object](https://gtidocs.virustotal.com/reference/domains-object)
 
@@ -50,7 +50,7 @@ __securityResult:__
 - __confidenceScore__: `attributes.mandiant_ic_score` 
 
 
-## File object mapping to SecOps UDM
+## File object mapping
 
 [File Object](https://gtidocs.virustotal.com/reference/file-object)
 
@@ -138,3 +138,29 @@ __about:__
     - __asn__: `attributes.asn`
     - __ipSubnetRange__: `attributes.network`
   - __jarm__: `attributes.jarm`
+
+## URL Object Mapping
+
+[URL Object](https://gtidocs.virustotal.com/reference/url-object)
+
+__metadata:__
+
+- __productLogId__: `context_attributes.notification_id`
+- __eventTimestamp__: `context_attributes.notification_date` 
+- __eventType__: "GENERIC_EVENT" (Hardcoded)
+- __vendorName__: "Google Cloud" (Hardcoded)
+- __productName__: "IOC Stream" (Hardcoded)
+- __productEventType__: `type` 
+- __urlBackToProduct__: Constructed using the type and id: `https://www.virustotal.com/gui/{type}/{id}`
+- __logType__: "GTI_IOC_STREAM" (Hardcoded)
+
+__additional:__
+- __malicious__: `last_analysis_stats.malicious`
+- __suspicious__: `last_analysis_stats.suspicious`
+- __undetected__: `last_analysis_stats.undetected`
+- __harmless__: `last_analysis_stats.harmless`
+- __timeout__: `last_analysis_stats.timeout`
+
+__securityResult:__
+- __summary__: `attributes.threat_severity.level_description` 
+- __severityDetails__: `attributes.threat_severity.threat_severity_level`
