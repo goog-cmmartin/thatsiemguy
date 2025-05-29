@@ -80,9 +80,9 @@ __securityResult:__
 - __ruleId__: `context_attributes.sources[0].id`
 - __ruleLabels__:
   - __key__: "sources_label" (Hardcoded)
-  - __value__: `context_attributes.sources[0].label` (Mimikatz)
+  - __value__: `context_attributes.sources[0].label`
   - __key__: "sources_type" (Hardcoded)
-  - __value__: `context_attributes.sources[0].type` (hunting_ruleset)
+  - __value__: `context_attributes.sources[0].type`
 
 __about:__
 - __file__:
