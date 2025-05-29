@@ -97,3 +97,44 @@ __about:__
   - __tags__: `attributes.type_tags`
   - __firstSubmissionTime__: `attributes.first_submission_date`
   - __lastSubmissionTime__: `attributes.last_submission_date`
+
+## IP Address Object Mapping
+
+[IP Address Object](https://gtidocs.virustotal.com/reference/ip-object)
+
+__metadata:__
+- __productLogId__: `context_attributes.notification_id` 
+- __eventTimestamp__: `context_attributes.notification_date`
+- __eventType__: "GENERIC_EVENT" (Hardcoded)
+- __vendorName__: "Google Cloud" (Hardcoded)
+- __productName__: "IOC Stream" (Hardcoded)
+- __productEventType__: `type` (ip_address)
+- __urlBackToProduct__: Constructed using the type and id: `https://www.virustotal.com/gui/{type}/{id}`
+- __logType__: "GTI_IOC_STREAM" (Hardcoded)
+
+__additional:__
+- __malicious__: `last_analysis_stats.malicious`
+- __suspicious__: `last_analysis_stats.suspicious`
+- __undetected__: `last_analysis_stats.undetected`
+- __harmless__: `last_analysis_stats.harmless`
+- __timeout__: `last_analysis_stats.timeout`
+
+__securityResult:__
+- __ruleName__: `context_attributes.hunting_info.rule_name`
+- __summary__: `attributes.threat_severity.level_description`
+- __severityDetails__: `attributes.threat_severity.threat_severity_level`
+- __urlBackToProduct__: Constructed using the rule ID: `https://yara-editor.virustotal.com/livehunt/{context_attributes.sources.0.id}`
+- __ruleId__: `context_attributes.sources[0].id`
+- __ruleLabels__:
+  - __key__: "sources_label" (Hardcoded)
+  - __value__: `context_attributes.sources[0].label`
+  - __key__: "sources_type" (Hardcoded)
+  - __value__: `context_attributes.sources[0].type`
+
+__about:__
+- __artifact__:
+  - __ip__: `id`
+  - __network__:
+    - __asn__: `attributes.asn`
+    - __ipSubnetRange__: `attributes.network`
+  - __jarm__: `attributes.jarm`
