@@ -1,0 +1,584 @@
+filter {
+
+    mutate {
+        replace => {
+        "_security_result" => ""
+        "id" => ""
+        "type" => ""
+        "attributes.exiftool.MIMEType" => ""
+        "attributes.first_submission_date" => ""
+        "attributes.jarm" => ""
+        "attributes.last_analysis_date" => ""
+        "attributes.last_analysis_stats" => ""
+        "attributes.last_modification_date" => ""
+        "attributes.last_submission_date" => ""
+        "attributes.mandiant_ic_score" => ""
+        "attributes.last_https_certificate.subject.CN" => ""
+        "attributes.last_https_certificate.serial_number" => ""
+        "attributes.md5" => ""
+        "attributes.sha1" => ""
+        "attributes.sha256" => ""
+        "attributes.size" => ""
+        "attributes.ssdeep" => ""
+        "attributes.threat_severity.last_analysis_date" => ""
+        "attributes.threat_severity.threat_severity_level" => ""
+        "attributes.threat_severity.level_description" => ""
+        "attributes.vhash" => ""
+        "attributes.asn" => ""
+        "context_attributes.hunting_info.rule_name" => ""
+        "context_attributes.notification_id" => ""
+        "context_attributes.sources.0.id" => ""
+        "context_attributes.notification_date" => ""
+        "context_attributes.sources.0.label" => ""
+        "context_attributes.sources.0.type" => ""
+        }
+    }
+
+    json {
+        source => "message"
+        array_function => "split_columns"
+        on_error => "not_json"
+    }
+
+    if [not_json] {
+        drop {
+            tag => "TAG_MALFORMED_ENCODING"
+        }        
+    } else {
+
+        # Only the following types for IOC_STREAM are expected 
+        if [type] !~ "ip_address|domain|url|file"   {
+            drop {
+                tag => "TAG_UNSUPPORTED"
+            }             
+        }
+
+        # >>> GENERIC
+
+        mutate {
+            replace => {
+                "event1.idm.read_only_udm.metadata.vendor_name" => "Google Cloud"
+                "event1.idm.read_only_udm.metadata.product_name" => "IOC Stream"
+                "event1.idm.read_only_udm.metadata.event_type" => "GENERIC_EVENT"
+            }
+        }
+
+        if [context_attributes][notification_date] != "" {
+            date {
+                match => ["context_attributes.notification_date", "RC3389"]
+                target => "event1.idm.read_only_udm.metadata.event_timestamp"
+                on_error => "_date_unsupported_format"                
+            }   
+        }
+
+        # Create URL Back to Product
+        if [id] != "" {
+            # VT ID and URL paths are not consistent, e.g., ip_address needs be ip-address in the URL
+            if [type] == "ip_address" {
+                mutate {
+                    replace => {
+                    "event1.idm.read_only_udm.metadata.url_back_to_product" => "https://www.virustotal.com/gui/ip-address/%{id}"
+                    }
+                }
+            } else {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.metadata.url_back_to_product" => "https://www.virustotal.com/gui/%{type}/%{id}"
+                    }
+                }
+            }
+        }
+
+        if [context_attributes][notification_id] != "" {
+            mutate {
+                replace => {
+                    "event1.idm.read_only_udm.metadata.product_log_id" => "%{context_attributes.notification_id}"
+                }
+            }
+        }
+
+        if [type] != "" {
+            mutate {
+                replace => {
+                    "event1.idm.read_only_udm.metadata.product_event_type" => "%{type}"
+                }
+            }
+        }
+
+        if [attributes][asn] != "" {
+            mutate {
+                convert => {
+                    "attributes.asn" => "string"
+                }
+            }
+            mutate  {
+                replace => {
+                    "_security_result.about.artifact.network.asn" => "%{attributes.asn}"
+                }
+            }
+        }
+
+        # >>>>>>>>>>>>
+        # >>> FILE >>>
+        # >>>>>>>>>>>>
+
+        if [type] == "file" {
+
+            if [attributes][sha256] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.about.file.sha256" => "%{attributes.sha256}"
+                    }
+                }
+            }
+
+            if [attributes][md5] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.about.file.md5" => "%{attributes.md5}"
+                    }
+                }
+            }
+
+            if [attributes][sha1] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.about.file.sha1" => "%{attributes.sha1}"
+                    }
+                }
+            }
+
+            if [attributes][size] != "" {
+                mutate {
+                    convert => {
+                        "attributes.size" => "uinteger"
+                    }
+                }
+                mutate {
+                    rename => {
+                        "attributes.size" => "_security_result.about.file.size"
+                    }
+                }
+            }
+
+            if [attributes][ssdeep] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.about.file.ssdeep" => "%{attributes.ssdeep}"
+                    }
+                }
+            } 
+
+            if [attributes][vhash] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.about.file.vhash" => "%{attributes.vhash}"
+                    }
+                }
+            }
+
+            for tag in attributes.type_tags {
+                mutate {
+                    merge => {
+                        "_security_result.about.file.tags" => "tag"
+                    }
+                }
+            }
+
+            if [attributes][exiftool][MIMEType] != "" {
+                mutate {
+                    replace => {
+                        "_about.file.mime_type" => "%{attributes.exiftool.MIMEType}"
+                    }
+                }
+            }
+
+            if [attributes][last_modification_date] != "" {
+                mutate {
+                    convert => {
+                        "attributes.last_modification_date" => "string"
+                    }
+                }
+                date {
+                    match => ["attributes.last_modification_date", "UNIX"]
+                    target => "_security_result.about.file.last_modification_time"
+                    #on_error => "_date_unsupported_format"                
+                }   
+            }
+
+            if [attributes][first_submission_date] != "" {
+                mutate {
+                    convert => {
+                        "attributes.first_submission_date" => "string"
+                    }
+                    on_error => "_catch_exception"
+                }
+                date {
+                    match => ["attributes.first_submission_date", "UNIX"]
+                    target => "_security_result.about.file.first_submission_time"
+                }   
+            }
+
+            if [attributes][last_analysis_date] != "" {
+                mutate {
+                    convert => {
+                        "attributes.last_analysis_date" => "string"
+                    }
+                    on_error => "_catch_exception"
+                }
+                date {
+                    match => ["attributes.last_analysis_date", "UNIX"]
+                    target => "_security_result.about.file.last_analysis_time"
+                }   
+            }
+
+
+            if [attributes][last_submission_date] != "" {
+                mutate {
+                    convert => {
+                        "attributes.last_submission_date" => "string"
+                    }
+                    on_error => "_catch_exception"
+                }
+                date {
+                    match => ["attributes.last_submission_date", "UNIX"]
+                    target => "_security_result.about.file.last_submission_time"
+                }   
+            }
+
+        }
+        
+        # >>>>>>>>>>
+        # >>> IP >>>
+        # >>>>>>>>>>
+
+        if [type] == "ip_address" {
+
+            if [id] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.about.artifact.ip" => "%{id}"
+                    }
+                }                
+            }
+
+            if [attributes][jarm] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.about.artifact.jarm" => "%{attributes.jarm}"
+                    }
+                }
+            }
+
+            if [attributes][network] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.about.artifact.network.ip_subnet_range" => "%{attributes.network}"
+                    }
+                }                
+            }
+
+        }
+
+
+
+        # >>>>>>>>>>>>>>
+        # >>> DOMAIN >>>
+        # >>>>>>>>>>>>>>
+
+        if [type] == "domain" {
+
+            mutate {
+                replace => {
+                    "event1.idm.read_only_udm.target.domain.name" => "%{id}"
+                }
+            }
+
+            if [attributes][jarm] != "" {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.domain.jarm" => "%{attributes.jarm}"
+                    }
+                }
+            }
+
+
+            # last_dns_record
+            for index, rr_data in attributes.last_dns_records {
+
+                mutate {
+                    replace => {
+                        "_answers" => ""
+                    }
+                }
+
+
+                for item_key, item_value in rr_data map {
+
+                    if [item_key] == "value" {
+                        mutate {
+                            replace => {
+                                "_answers.value" => "%{item_value}"
+                            }
+                        }                    
+                    }
+
+                    if [item_key] == "type" {
+                        mutate {
+                            replace => {
+                                "_answers.type" => "%{item_value}"
+                            }
+                        }  
+                    }
+
+                }
+
+                if [_answers] != "" {
+                    mutate {
+                        merge => {
+                            "event1.idm.read_only_udm.target.domain.last_dns_records" => "_answers"
+                        }
+                    }
+                }
+            }
+
+            # last_https_certificate
+            if [attributes][last_https_certificate][serial_number] != "" {
+                # serial_number
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.domain.last_https_certificate.serial_number" => "%{attributes.last_https_certificate.serial_number}"
+                    }
+                }
+            }
+            if [attributes][last_https_certificate][subject][CN] != "" {
+                # subject.CN
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.domain.last_https_certificate.subject.common_name" => "%{attributes.last_https_certificate.subject.CN}"
+                    }
+                }
+            }
+
+            if [attributes][threat_severity][last_analysis_date] != "" {
+                date {
+                    match => ["attributes.threat_severity.last_analysis_date", "UNIX"]
+                    target => "_security_result.last_updated_time"
+                    on_error => "_date_unsupported_format"                
+                }
+            }
+
+            if [attributes][threat_severity][threat_severity_level] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.severity_details" => "%{attributes.threat_severity.threat_severity_level}"
+                    }
+                }
+            }
+        }
+
+        # >>>>>>>>>>>
+        # >>> URL >>>
+        # >>>>>>>>>>>
+
+        if [type] == "url" {
+            if [attributes][url] != "" {
+                mutate {
+                    replace => {
+                        "_security_result.about.url" => "%{attributes.url}"
+                    }
+                }
+            }
+        }
+      
+
+        # >>>>>>>>>>>>>>>
+        # >>> GENERAL >>>
+        # >>>>>>>>>>>>>>>
+
+        if [attributes][last_analysis_stats] != "" {
+            #malicious
+            mutate {
+                replace => {
+                    "_last_analysis_stats_malicious.key" => "malicious"
+                }
+            }
+            mutate {
+                copy => {
+                    "_last_analysis_stats_malicious.value.number_value" => "attributes.last_analysis_stats.malicious"
+                }
+            }
+            mutate {
+                merge => {
+                    "event1.idm.read_only_udm.additional.fields" => "_last_analysis_stats_malicious"
+                }
+            }
+
+            #suspicious
+            mutate {
+                replace => {
+                    "_last_analysis_stats_suspicious.key" => "suspicious"
+                }
+            }
+            mutate {
+                copy => {
+                    "_last_analysis_stats_suspicious.value.number_value" => "attributes.last_analysis_stats.suspicious"
+                }
+            }
+            mutate {
+                merge => {
+                    "event1.idm.read_only_udm.additional.fields" => "_last_analysis_stats_suspicious"
+                }
+            }
+
+            #undetected
+            mutate {
+                replace => {
+                    "_last_analysis_stats_undetected.key" => "undetected"
+                }
+            }
+            mutate {
+                copy => {
+                    "_last_analysis_stats_undetected.value.number_value" => "attributes.last_analysis_stats.undetected"
+                }
+            }
+            mutate {
+                merge => {
+                    "event1.idm.read_only_udm.additional.fields" => "_last_analysis_stats_undetected"
+                }
+            }
+
+            #harmless
+            mutate {
+                replace => {
+                    "_last_analysis_stats_harmless.key" => "harmless"
+                }
+            }
+            mutate {
+                copy => {
+                    "_last_analysis_stats_harmless.value.number_value" => "attributes.last_analysis_stats.harmless"
+                }
+            }
+            mutate {
+                merge => {
+                    "event1.idm.read_only_udm.additional.fields" => "_last_analysis_stats_harmless"
+                }
+            }
+
+            #timeout
+            mutate {
+                replace => {
+                    "_last_analysis_stats_timeout.key" => "timeout"
+                }
+            }
+            mutate {
+                copy => {
+                    "_last_analysis_stats_timeout.value.number_value" => "attributes.last_analysis_stats.timeout"
+                }
+            }
+            mutate {
+                merge => {
+                    "event1.idm.read_only_udm.additional.fields" => "_last_analysis_stats_timeout"
+                }
+            }
+        }
+
+
+
+        # >>>>>>>>>>>>>>>>>>>>>>>
+        # >>> SECURITY RESULT >>>
+        # >>>>>>>>>>>>>>>>>>>>>>>        
+
+        if [context_attributes][sources][0][id] != "" {
+            mutate {
+                replace => {
+                    "_security_result.url_back_to_product" => "https://yara-editor.virustotal.com/livehunt/%{context_attributes.sources.0.id}"
+                }
+            }            
+        }
+
+        if [context_attributes][sources][0][label] != "" {
+            mutate {
+                replace => {
+                    "_label0.key" => "sources_label"
+                    "_label0.value" => "%{context_attributes.sources.0.label}"
+                }
+            }
+            mutate {
+                merge => {
+                    "_security_result.rule_labels" => "_label0"
+                }
+            }
+        }
+
+        if [context_attributes][sources][0][type] != "" {
+            mutate {
+                replace => {
+                    "_label1.key" => "sources_type"
+                    "_label1.value" => "%{context_attributes.sources.0.type}"
+                }
+            }
+            mutate {
+                merge => {
+                    "_security_result.rule_labels" => "_label1"
+                }
+            }
+        }
+
+        if [attributes][threat_severity][threat_severity_level] != "" {
+            mutate {
+                replace => {
+                    "_security_result.severity_details" => "%{attributes.threat_severity.threat_severity_level}"
+                }
+            }
+        }
+
+        if [attributes][threat_severity][level_description] != "" {
+            mutate {
+                replace => {
+                    "_security_result.summary" => "%{attributes.threat_severity.level_description}"
+                }
+            }
+        }
+
+        if [attributes][mandiant_ic_score] != "" {
+            mutate {
+                rename => {
+                    "attributes.mandiant_ic_score" => "_security_result.confidence_score"
+                }
+            }
+        }
+
+        if [context_attributes][sources][0][id] != "" {
+            mutate {
+                replace => {
+                    "_security_result.rule_id" => "%{context_attributes.sources.0.id}"
+                }
+            }
+        }       
+          
+        if [context_attributes][hunting_info][rule_name] != "" {
+            mutate {
+                replace => {
+                    "_security_result.rule_name" => "%{context_attributes.hunting_info.rule_name}"
+                }
+            }
+        } 
+
+        mutate {
+            merge => {
+                "event1.idm.read_only_udm.security_result" => "_security_result"
+            }
+        }
+
+        mutate {
+            remove_field => [ "data","message" ]
+        }
+
+        mutate {
+            merge => {
+                "@output" => "event1"
+            }
+        }        
+    }     
+}
