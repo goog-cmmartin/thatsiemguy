@@ -164,3 +164,6 @@ __additional:__
 __securityResult:__
 - __summary__: `attributes.threat_severity.level_description` 
 - __severityDetails__: `attributes.threat_severity.threat_severity_level`
+
+__about:__
+- __url__: `attributes.url``
