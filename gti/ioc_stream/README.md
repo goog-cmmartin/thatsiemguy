@@ -15,7 +15,6 @@ Benefits of implementing this custom integration include:
 * Google SecOps (any license Edition)
 * Google Threat Intelligence (Enterprise or Enterprise+)
 * Google Cloud Platform
-- if using GCP Cloud Run
 
 ## Python Script Overview
 
