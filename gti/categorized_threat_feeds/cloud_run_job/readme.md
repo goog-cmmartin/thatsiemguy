@@ -22,7 +22,7 @@ VT_ITEM_LIMIT="400"
 VT_API_KEY_SECRET_PATH="projects/your-gcp-project/secrets/vt-api-key-name/versions/latest"
 VT_ITEM_LIMIT="4000"
 VT_THREAT_FEED="infostealer"
-``
+```
 
 # Build the Docker image
 
