@@ -26,24 +26,32 @@ VT_THREAT_FEED="infostealer"
 
 # Build the Docker image
 
-`docker build -t $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest .`
-`docker push $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest`
+```
+docker build -t $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest .
+docker push $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest
+```
 
 # Create a GCP Secret for the GTI API Key
 
-`SECRET_NAME="vt-api-key"`
-`API_KEY_VALUE="your-gti-api-key`
-`echo -n "${API_KEY_VALUE}" | gcloud secrets create "${SECRET_NAME}"   --project="${GCP_PROJECT}"   --data-file=-`
-r
+```
+SECRET_NAME="vt-api-key"
+API_KEY_VALUE="your-gti-api-key
+echo -n "${API_KEY_VALUE}" | gcloud secrets create "${SECRET_NAME}"   --project="${GCP_PROJECT}"   --data-file=-
+```
 
 
 ## Deploy the Cloud Rub Job
 
-`gcloud auth login`
-`gcloud run jobs deploy $CLOUD_RUN_JOB_NAME-$VT_THREAT_FEED --image $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest --project $GCP_PROJECT --region $REGION --service-account $SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com --set-env-vars="GCP_PROJECT_ID=$GCP_PROJECT,SECOPS_INSTANCE_GUID=$SECOPS_INSTANCE_GUID,SECOPS_INSTANCE_LOCATION=$SECOPS_INSTANCE_LOCATION,SECOPS_LOG_TYPE=$SECOPS_LOG_TYPE,SECOPS_FORWARDER_ID=$SECOPS_FORWARDER_ID,VT_API_KEY_SECRET_PATH=$VT_API_KEY_SECRET_PATH,VT_THREAT_FEED=$VT_THREAT_FEED,VT_QUERY=$VT_QUERY,VT_ITEM_LIMIT=$VT_ITEM_LIMIT"`
+```
+gcloud auth login
+gcloud run jobs deploy $CLOUD_RUN_JOB_NAME-$VT_THREAT_FEED --image $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest --project $GCP_PROJECT --region $REGION --service-account $SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com --set-env-vars="GCP_PROJECT_ID=$GCP_PROJECT,SECOPS_INSTANCE_GUID=$SECOPS_INSTANCE_GUID,SECOPS_INSTANCE_LOCATION=$SECOPS_INSTANCE_LOCATION,SECOPS_LOG_TYPE=$SECOPS_LOG_TYPE,SECOPS_FORWARDER_ID=$SECOPS_FORWARDER_ID,VT_API_KEY_SECRET_PATH=$VT_API_KEY_SECRET_PATH,VT_THREAT_FEED=$VT_THREAT_FEED,VT_QUERY=$VT_QUERY,VT_ITEM_LIMIT=$VT_ITEM_LIMIT"
+```
 
 ## Schedule the Cloud Run Job
 
-`SCHEDULER_JOB_NAME="invoke-$CLOUD_RUN_JOB_NAME-job-hourly-$VT_THREAT_FEED"`
-`gcloud scheduler jobs create http $SCHEDULER_JOB_NAME   --schedule="0 * * * *"   --uri="https://$(echo $REGION)-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$(echo $GCP_PROJECT)/jobs/$(echo $CLOUD_RUN_JOB_NAME-$VT_THREAT_FEED):run"   --http-method=POST   --oauth-service-account-email=$SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com   --location=$REGION`
+```
+SCHEDULER_JOB_NAME="invoke-$CLOUD_RUN_JOB_NAME-job-hourly-$VT_THREAT_FEED"
+gcloud scheduler jobs create http $SCHEDULER_JOB_NAME   --schedule="0 * * * *"   --uri="https://$(echo $REGION)-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$(echo $GCP_PROJECT)/jobs/$(echo $CLOUD_RUN_JOB_NAME-$VT_THREAT_FEED):run"   --http-method=POST   --oauth-service-account-email=$SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com   --location=$REGION
+```
+
  
