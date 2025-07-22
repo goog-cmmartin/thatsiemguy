@@ -1,0 +1,541 @@
+filter {
+    mutate {
+        replace => {
+            "not_json" => False
+            "id" => ""
+            "monitor" => ""
+            "monitor_id" => ""
+            "monitor_version" => ""
+            "alert_type" => ""
+            "alert_summary" => ""
+            "severity" => ""
+            "doc.__type" => ""
+            "doc.timestamp" => ""
+            "doc.source" => ""
+            "title" => ""
+            "ignore" => ""
+            "confidence" => ""
+            "indicator_mscore" => ""
+            "doc.source_url" => ""
+            "doc.item_type" => ""
+            # account_discovery
+            "doc.service_account.login" => ""
+            "doc.service_account.profile.contact.email_domain" => ""
+            # document_analysis
+            "doc.filename" => ""
+            "doc.file_hashes.md5" => ""
+            "doc.file_hashes.sha1" => ""
+            "doc.file_hashes.sha256" => ""
+            "doc.file_hashes.ssdeep" => ""
+            "doc.content_type" => ""
+            # domain discovery
+            "doc.domain_whois.registrar.identity.name" => ""
+            # shop_listing
+            "doc.payment_card.brand" => ""
+        }
+    }
+
+    json {
+        source => "message"
+        array_function => "split_columns"
+        on_error => "not_json"
+    }
+
+    if [not_json] {
+        drop {
+            tag => "TAG_MALFORMED_ENCODING"
+        }        
+    } else {
+        mutate {
+            replace => {
+                "event1.idm.read_only_udm.metadata.vendor_name" => "Google Cloud"
+                "event1.idm.read_only_udm.metadata.product_name" => "Digital Threat Monitoring"
+                "event1.idm.read_only_udm.metadata.event_type" => "GENERIC_EVENT"
+            }
+        }
+        if [doc][timestamp] != "" {
+            date {
+                match => ["doc.timestamp", "RC3389"]
+                target => "event1.idm.read_only_udm.metadata.event_timestamp"
+                on_error => "_date_unsupported_format"                
+            }   
+        }
+
+        # TARGET > RESOURCE
+        if [doc][item_type] != "" {
+            mutate {
+                replace => {
+                    "event1.idm.read_only_udm.target.resource.resource_subtype" => "%{doc.item_type}"
+                }
+            }
+        }
+
+        # >>> SECURITY RESULT
+        if [indicator_mscore] != "" {
+            mutate {
+                rename => {
+                    "indicator_mscore" => "_security_result.risk_score"
+                }
+            }
+        }
+
+        if [monitor] != "" {
+            mutate {
+                replace => {
+                    "_security_result.rule_name" => "%{monitor.name}"
+                }
+            }
+            mutate {
+                replace => {
+                    "_security_result.summary" => "%{monitor.description}"
+                }
+            }
+            mutate {
+                replace => {
+                    "_security_result.rule_type" => "%{monitor.doc_condition.topic}"
+                }
+            }
+
+
+        }
+
+        if [monitor_id] != "" {
+            mutate {
+                replace => {
+                    "_security_result.rule_id" => "%{monitor_id}"
+                }
+            }
+        }
+
+        if [monitor_version] != "" {
+            mutate {
+                convert => {
+                    "monitor_version" => "string"
+                }
+            }
+            mutate {
+                replace => {
+                    "_security_result.rule_version" => "%{monitor_version}"
+                }
+            }
+        }
+
+        #TODO(): more checks needed, likely will fail        
+        if [severity] != "" {
+            mutate {
+                uppercase => [ "severity" ]
+            }
+            mutate {
+                replace => {
+                    "_security_result.severity" => "%{severity}"
+                }
+            }
+        }
+
+        if [confidence] != "" {
+            mutate {
+                rename => {
+                    "confidence" => "_security_result.confidence_score"
+                }
+            }
+        }
+
+        if [doc][source] != "" {
+            mutate {
+                replace => {
+                    "_security_result.threat_feed_name" => "%{doc.source}"
+                }
+            }
+        }
+
+        if [id] != "" {
+            mutate {
+                replace => {
+                    "event1.idm.read_only_udm.metadata.product_log_id" => "%{id}"
+                }
+            }
+            mutate {
+                replace => {
+                    "event1.idm.read_only_udm.metadata.url_back_to_product" => "https://advantage.mandiant.com/dtm/alerts/%{id}"
+                }
+
+            }
+        }
+        if [doc][__type] != "" {
+            mutate {
+                replace => {
+                    "event1.idm.read_only_udm.metadata.product_event_type" => "%{doc.__type}"
+                }
+            }            
+        }
+
+        if [ignore] != "" {
+            mutate {
+                replace => {
+                    "_ignore.key" => "ignore"
+                    "_ignore.value.bool_value" => "%{ignore}"
+                }
+                on_error => "_ignore_not_present"
+            }
+            if not [_ignore_not_present] {
+                mutate {
+                    convert => {
+                        "_ignore.value.bool_value" => "boolean"
+                    }
+                    on_error => "_ignore_already_a_boolean"
+                }                
+                mutate {
+                    merge => {
+                        "event1.idm.read_only_udm.additional.fields" => "_ignore"
+                    }
+                    on_error => "additional_data_field_not_found"
+                }                
+            }
+        }
+
+        if [has_analysis] != "" {
+            mutate {
+                replace => {
+                    "_has_analysis.key" => "has_analysis"
+                    "_has_analysis.value.bool_value" => "%{has_analysis}"
+                }
+                on_error => "_has_analysis_not_present"
+            }
+            if not [_has_analysis_not_present] {
+                mutate {
+                    convert => {
+                        "_has_analysis.value.bool_value" => "boolean"
+                    }
+                    on_error => "_has_analysis_already_a_boolean"
+                }                
+                mutate {
+                    merge => {
+                        "event1.idm.read_only_udm.additional.fields" => "_has_analysis"
+                    }
+                    on_error => "additional_data_field_not_found"
+                }                
+            }            
+        }
+
+        # ACCOUNT DISCOVERY
+        if [doc][__type] == "account_discovery" {
+
+            if [doc][service_account][login] != "" {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.user.userid" => "%{doc.service_account.login}"
+                    }
+                }
+            }
+            if [doc][service_account][profile][contact][email_domain] != "" {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.domain.name" => "%{doc.service_account.profile.contact.email_domain}"
+                    }
+                }                
+            }
+
+
+        }
+
+        # DOCUMENT ANALYSIS
+
+        if [doc][__type] == "document_analysis" {
+
+
+
+            if [doc][file_hashes][md5] != "" {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.file.md5" => "%{doc.file_hashes.md5}"
+                    }
+                }
+            }
+
+            if [doc][file_hashes][sha1] != "" {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.file.sha1" => "%{doc.file_hashes.sha1}"
+                    }
+                }
+            }
+
+            if [doc][file_hashes][sha256] != "" {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.file.sha256" => "%{doc.file_hashes.sha256}"
+                    }
+                }
+            }
+
+            if [doc][file_hashes][ssdeep] != "" {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.file.ssdeep" => "%{doc.file_hashes.ssdeep}"
+                    }
+                }
+            }
+
+            if [doc][content_type] != "" {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.file.mime_type" => "%{doc.content_type}"
+                    }
+                }
+            }
+
+        }
+
+        # DOMAIN DISCOVERY
+        if [doc][__type] == "domain_discovery" {
+            if [doc][domain] != "" {
+                mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.hostname" => "%{doc.domain}"
+                    }
+                }
+            }
+
+            if [doc][domain_whois][registrar][identity][name] != "" {
+                  mutate {
+                    replace => {
+                        "event1.idm.read_only_udm.target.domain.registrar" => "%{doc.domain_whois.registrar.identity.name}"
+                    }
+                }              
+            }
+            
+        }
+
+
+        for index, rr_data in doc.rr {
+            mutate {
+                replace => {
+                    "_answers" => ""
+                }
+            }
+
+            for item_key, item_value in rr_data map {
+                if [item_key] == "rdata_ipv4" {
+                    mutate {
+                        replace => {
+                            "_answers.data" => "%{item_value}"
+                        }
+                    }                    
+                }
+
+                if [item_key] == "rdata_domain" {
+                    mutate {
+                        replace => {
+                            "_answers.data" => "%{item_value}"
+                        }
+                    }                    
+                }
+
+
+                if [item_key] == "type" {
+                      if [item_value] == "A" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "1"
+                              }
+                          }
+                      }
+                      if [item_value] == "NS" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "2"
+                              }
+                          }
+                      }
+                      if [item_value] == "CNAME" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "5"
+                              }
+                          }
+                      }
+                      if [item_value] == "SOA" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "6"
+                              }
+                          }
+                      }
+                      if [item_value] == "PTR" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "12"
+                              }
+                          }
+                      }
+                      if [item_value] == "MX" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "15"
+                              }
+                          }
+                      }
+                      if [item_value] == "TXT" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "16"
+                              }
+                          }
+                      }
+                      if [item_value] == "AAAA" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "28"
+                              }
+                          }
+                      }
+                      if [item_value] == "SRV" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "33"
+                              }
+                          }
+                      }
+                      if [item_value] == "NAPTR" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "35"
+                              }
+                          }
+                      }
+                      if [item_value] == "DS" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "43"
+                              }
+                          }
+                      }
+                      if [item_value] == "DNSKEY" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "48"
+                              }
+                          }
+                      }
+                      if [item_value] == "IXFR" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "251"
+                              }
+                          }
+                      }
+                      if [item_value] == "AXFR" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "252"
+                              }
+                          }
+                      }
+                      if [item_value] == "TYPE99" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "99"
+                              }
+                          }
+                      }
+                      if [item_value] == "TKEY" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "249"
+                              }
+                          }
+                      }
+                      if [item_value] == "ANY" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "255"
+                              }
+                          }
+                      }
+                      if [item_value] == "ALL" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "255"
+                              }
+                          }
+                      }
+                      if [item_value] == "URI" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "256"
+                              }
+                          }
+                      }
+                      if [item_value] == "NULL" {
+                          mutate {
+                              replace => {
+                                  "_answers.type" => "0"
+                              }
+                          }
+                      }                   
+                    mutate {
+                        convert => {
+                            "_answers.type" => "uinteger"
+                        }
+                    }  
+                }
+
+            }
+
+
+            if [_answers] != "" {
+                mutate {
+                    merge => { "event1.idm.read_only_udm.network.dns.answers" => "_answers" }
+                    }
+            }
+
+        }
+
+        # SHOP LISTING
+        if [doc][payment_card][brand] != "" {
+
+            mutate {
+                replace => {
+                    "_payment_card_brand.key" => "payment_card_brand"
+                    "_payment_card_brand.value.string_value" => "%{doc.payment_card.brand}"
+                }
+                on_error => "_payment_card_brand_not_present"
+            }
+            mutate {
+                merge => {
+                    "event1.idm.read_only_udm.additional.fields" => "__payment_card_brand"
+                }
+                on_error => "additional_data_field_not_found"
+            }                
+        }
+
+        if [doc][source_url] != "" {
+            mutate {
+                replace => {
+                    "event1.idm.read_only_udm.src.url" => "%{doc.source_url}"
+                }
+            }
+        }
+
+        if [title] != "" {
+            mutate {
+                replace => {
+                    "event1.idm.read_only_udm.metadata.description" => "%{title}"
+                }
+            }
+        }
+
+        mutate {
+            merge => {
+                "event1.idm.read_only_udm.security_result" => "_security_result"
+            }
+        }
+
+        mutate {
+            merge => {
+                "@output" => "event1"
+            }
+        }
+    }
+
+}
