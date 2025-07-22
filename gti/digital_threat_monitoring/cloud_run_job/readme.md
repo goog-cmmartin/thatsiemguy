@@ -18,14 +18,14 @@ GTI_DTM_TO_SECOPS="DTM-to-SecOps"
 Copy the template .env.example file as .env.yaml, and update parameters accordingly.
 
 
-# Build the Docker image
+### Build the Docker image
 
 ```
 docker build -t $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest .
 docker push $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest
 ```
 
-# Create a GCP Secret for the GTI API Key
+### Create a GCP Secret for the GTI API Key
 
 ```
 SECRET_NAME="vt-api-key"
@@ -34,14 +34,14 @@ echo -n "${API_KEY_VALUE}" | gcloud secrets create "${SECRET_NAME}"   --project=
 ```
 
 
-## Deploy the Cloud Rub Job
+### Deploy the Cloud Rub Job
 
 ```
 gcloud auth login
 gcloud run jobs deploy $CLOUD_RUN_JOB_NAME-$GTI_DTM_TO_SECOPS --image $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest --project $GCP_PROJECT --region $REGION --service-account $SA_NAME@$GCP_PROJECT.iam.gserviceaccount.com --set-env-file env.yaml"
 ```
 
-## Schedule the Cloud Run Job
+### Schedule the Cloud Run Job
 
 ```
 SCHEDULER_JOB_NAME="invoke-$CLOUD_RUN_JOB_NAME-job-hourly-$GTI_DTM_TO_SECOPS"
