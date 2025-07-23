@@ -13,8 +13,8 @@ The following integrations are available in this repo:
 
 * [Categorized Threat Lists](categorized_threat_lists/)
 * Collections (CVE)
-* Digital Threat Monitoring (DTM)
-* Live Stream (IOC Hunt)
+* [Digital Threat Monitoring](digital_threat_monitoring/)
+* [Live Stream aka Live Hunt](ioc_stream/) 
 
 The integrations are a combination of GCP Cloud Run Jobs, Google SecOps Parsers, and Google SecOps Dashboards.
 
