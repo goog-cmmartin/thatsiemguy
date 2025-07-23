@@ -2,6 +2,8 @@
 
 state: draft
 
+GCP Cloud Run Jobs are used to poll the [`/api/v3/threat_lists/{threat_list_id}/{time}`](https://gtidocs.virustotal.com/reference/get-hourly-threat-list)  GTI API endpoint.  A Cloud Run Job is created for each individual `Category name`.
+
 ## Set environment variables before deployment as a Cloud Run Job
 
 ```
@@ -24,14 +26,14 @@ VT_ITEM_LIMIT="4000"
 VT_THREAT_FEED="infostealer"
 ```
 
-# Build the Docker image
+## Build the Docker image
 
 ```
 docker build -t $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest .
 docker push $REGION-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/$CLOUD_RUN_JOB_NAME:latest
 ```
 
-# Create a GCP Secret for the GTI API Key
+## Create a GCP Secret for the GTI API Key
 
 ```
 SECRET_NAME="vt-api-key"
