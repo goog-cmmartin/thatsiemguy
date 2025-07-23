@@ -11,7 +11,7 @@ This repo includes several custom GTI to Google SecOps integrations.  These are 
 
 The following integrations are available in this repo:
 
-* Categorized Threat Lists
+* [Categorized Threat Lists](categorized_threat_lists/)
 * Collections (CVE)
 * Digital Threat Monitoring (DTM)
 * Live Stream (IOC Hunt)
