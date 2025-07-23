@@ -1,6 +1,11 @@
 # GTI Categorized Threat Feeds to Google SecOps
 ---
 
+This integration enable the periodic collection of File, Domain, IP or URL IOCs from GTI for automated or manual IOC matching in Google SecOps.
+
+A GCP Cloud Run Job is used to collect specified Categories (listed below), and in combination with a custom SecOps Log Type, and custom SecOps Parser, UDM Entities are created into the Entity Context Graph (ECG).
+
+
 
 ## Available GTI Categorized Threat Feeds
 
