@@ -8,6 +8,6 @@ Use widgets (a) and (b) to find log sources that include Assets that may be exte
 
 Note, embedded Looker dashboards have a limit of 5,000 rows per widget.  If you have more than 5,000 Assets this Dashboard will not be able to show all devices.
 
-![Chronicle SIEM Observed Assets](https://github.com/goog-cmmartin/thatsiemguy/blob/main/dashboards/observed_assets/observed_assets.png "SIEM Observed Assets")
+![Chronicle SIEM Observed Assets](observed_assets.png)
 
 __Note, this is not an official Google Cloud Chronicle Dashboard.__
