@@ -3,8 +3,9 @@
 
 This repo includes several custom GTI to Google SecOps integrations.  These are not official nor supported by Google Cloud, and you use at your own risk.
 
-status: draft
-last_updated: 23/07/2025
+*status: draft*
+
+*last_updated: 23/07/2025*
 
 ## Integrations
 
