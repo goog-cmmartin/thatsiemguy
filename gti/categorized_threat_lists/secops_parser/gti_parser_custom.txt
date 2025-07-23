@@ -1,0 +1,467 @@
+filter {
+     mutate {
+        replace => {
+            "threat_feed_id" => ""
+            "data.type" => ""
+            "data.id" => ""
+            "data.attributes.md5" => ""
+            "data.attributes.vhash" => ""
+            "data.attributes.asn" => ""
+            "data.attributes.network" => ""
+            "data.attributes.as_owner" => ""
+            "data.attributes.regional_internet_registry" => ""  
+            "data.attributes.country" => ""
+            "data.attributes.jarm" => ""
+            "data.attributes.last_final_url" => ""
+            "data.attributes.creation_date" => ""
+            "data.attributes.last_http_response_code" => ""
+            "data.attributes.gti_assessment.verdict.value" => ""
+            "data.attributes.gti_assessment.threat_score.value" => ""
+            "data.attributes.gti_assessment.severity.value" => ""
+            "data.attributes.gti_assessment.vhash" => ""
+            "data.attributes.first_submission_date" => ""
+            "data.attributes.last_analysis_date" => ""
+            "data.attributes.last_submission_date" => ""
+            "data.attributes.last_analysis_stats.malicious" => ""
+        }
+     }
+
+    json {
+        source => "message"
+        array_function => "split_columns"
+        on_error => "not_json"
+    }
+
+    if [not_json] {
+        drop {
+            tag => "TAG_MALFORMED_ENCODING"
+        }
+    } else {
+
+        # Only the following types for IOC_STREAM are expected
+        if [data][type] !~ "ip_address|domain|url|file"   {
+            drop {
+                tag => "TAG_UNSUPPORTED"
+            }
+        }
+
+        # >>>>>>>>>>>>>>>>
+        # >>> METADATA >>>
+        # >>>>>>>>>>>>>>>>
+
+        mutate {
+            replace => {
+                "event.idm.entity.metadata.vendor_name" => "Google Threat Intelligence"
+                "event.idm.entity.metadata.product_name" => "Categorized Threat Lists"
+            }
+        }
+
+        if [data][id] != "" {
+            mutate {
+                replace => {
+                    "event.idm.entity.metadata.product_entity_id" => "%{data.id}"
+                }
+            }
+        }
+
+        mutate {
+            replace => {
+                "epoch" => "1"
+            }
+        }
+        date {
+            match => ["epoch","UNIX"]
+            target => "event.idm.entity.metadata.interval.start_time"
+            on_error => "first_seen_not_present"
+        }
+
+
+        if [data][attributes][first_submission_date] != "" {
+            mutate {
+                convert => {
+                    "data.attributes.first_submission_date" => "string"
+                }
+            }
+            date {
+                match => ["data.attributes.first_submission_date","UNIX"]
+                target => "event.idm.entity.entity.file.first_submission_time"
+                on_error => "first_seen_not_present"
+            }
+        }
+
+        if [data][attributes][last_analysis_date] != "" {
+            mutate {
+                convert => {
+                    "data.attributes.last_analysis_date" => "string"
+                }
+            }
+            date {
+                match => ["data.attributes.last_analysis_date","UNIX"]
+                target => "event.idm.entity.entity.file.last_analysis_time"
+                on_error => "last_analysis_date_not_present"
+            }
+        }
+
+
+        if [data][attributes][last_modification_date] != "" {
+            mutate {
+                convert => {
+                    "data.attributes.last_modification_date" => "string"
+                }
+            }
+            date {
+                match => ["data.attributes.last_modification_date","UNIX"]
+                target => "event.idm.entity.entity.file.last_modification_time"
+                on_error => "last_modification_date_not_present"
+            }
+        }
+
+        if [data][attributes][last_submission_date] != "" {
+            mutate {
+                convert => {
+                    "data.attributes.last_submission_date" => "string"
+                }
+            }
+            date {
+                match => ["data.attributes.last_submission_date","UNIX"]
+                target => "event.idm.entity.entity.file.last_submission_time"
+                on_error => "last_submission_date_not_present"
+            }
+        }
+
+
+        if [data][attributes][last_analysis_stats][malicious] != "" {
+            mutate {
+                convert => {
+                    "data.attributes.last_analysis_stats.malicious" => "integer"
+                }
+            }
+            mutate {
+                rename => {
+                    "data.attributes.last_analysis_stats.malicious" => "_verdict_info.malicious_count"
+                }
+            }
+        }
+
+        for name in data.attributes.names {
+            mutate {
+                merge => {
+                    "event.idm.entity.entity.file.names" => "name"
+                }
+            }
+        }
+
+
+        for tag in data.attributes.tags {
+            mutate {
+                merge => {
+                    "event.idm.entity.entity.file.tags" => "tag"
+                }
+            }
+        }
+
+
+        if [data][attributes][gti_assessment][threat_score][value] != "" {
+            mutate {
+                rename => {
+                    "data.attributes.gti_assessment.threat_score.value" => "_threat.risk_score"
+                }
+            }
+        }
+
+        if [data][attributes][gti_assessment][severity][value] != "" {
+            mutate {
+                gsub => [
+                    "data.attributes.gti_assessment.severity.value", "SEVERITY_", ""
+                ]
+            }
+            mutate {
+                replace => {
+                    "_threat.severity" => "%{data.attributes.gti_assessment.severity.value}"
+                }
+            }
+        }
+
+        if [data][attributes][gti_assessment][verdict][value] != "" {
+            # BENIGN	2	VerdictResponse resulted a threat as benign.
+            # MALICIOUS	1	VerdictResponse resulted a threat as malicious.
+            # VERDICT_RESPONSE_UNSPECIFIED	0	The default verdict response type.
+            if [data][attributes][gti_assessment][verdict][value]  == "VERDICT_MALICIOUS" {
+                mutate {
+                    replace => {
+                        "_verdict_info.verdict_response" => "MALICIOUS"
+                    }
+                }
+            }
+            if [data][attributes][gti_assessment][verdict][value]  == "VERDICT_BENIGN" {
+                mutate {
+                    replace => {
+                        "_verdict_info.verdict_response" => "BENIGN"
+                    }
+                }
+            }
+
+            # fix this, or make sure it is always last
+            mutate {
+                merge => {
+                    "_threat.verdict_info" => "_verdict_info"
+                }
+                on_error => "verdict_info_not_found"
+                remove_field => ["_verdict_info"]
+            }
+
+            mutate {
+                merge => {
+                    "event.idm.entity.metadata.threat" => "_threat"
+                }
+            }
+
+        }
+
+        for category in data.attributes.categories {
+            mutate {
+                merge => {
+                    "_threat.category_details" => "category"
+                }
+            }
+        }
+
+        if [data][attributes][asn] != "" {
+            mutate {
+                convert => {
+                    "data.attributes.asn" => "integer"
+                }
+            }
+            mutate {
+                rename => {
+                    "data.attributes.asn" => "event.idm.entity.entity.artifact.asn"
+                }
+            }
+        }
+
+        if [data][attributes][as_owner] != "" {
+            mutate {
+                replace => {
+                    "event.idm.entity.entity.artifact.as_owner" => "%{data.attributes.as_owner}"
+                }
+            }            
+        }
+
+        if [data][attributes][network] != "" {
+            mutate {
+                replace => {
+                    "event.idm.entity.entity.artifact.network.ip_subnet_range" => "%{data.attributes.network}"
+                }
+            }
+        }
+
+        if [data][attributes][regional_internet_registry] != "" {
+            mutate {
+                replace => {
+                    "event.idm.entity.entity.artifact.regional_internet_registry" => "%{data.attributes.regional_internet_registry}"
+                }
+            }
+        }
+
+        if [data][attributes][country] != "" {
+            mutate {
+                replace => {
+                    "event.idm.entity.entity.artifact.location.country_or_region" => "%{data.attributes.country}"
+                }
+            }
+        }
+
+        if [data][attributes][last_final_url] !=  "" {
+            mutate {
+                replace => {
+                    "event.idm.entity.entity.url_metadata.last_final_url" => "%{data.attributes.last_final_url}"
+                }
+            }
+        }
+
+        if [data][attributes][last_http_response_code] != "" {
+            mutate {
+                convert => {
+                    "data.attributes.last_http_response_code" => "integer"
+                }
+            }
+            mutate {
+                rename => {
+                    "data.attributes.last_http_response_code" => "event.idm.entity.entity.url_metadata.last_http_response_code"
+                }
+            }
+        }
+
+
+        # >>>>>>>>>>>>
+        # >>> FILE >>>
+        # >>>>>>>>>>>>
+
+        if [data][attributes][md5] != "" {
+            mutate {
+                replace => {
+                    "event.idm.entity.metadata.entity_type" => "FILE"
+                    "event.idm.entity.entity.file.md5" => "%{data.attributes.md5}"
+                }
+                on_error => "no_target_process_md5"
+            }
+        }
+
+        if [data][attributes][vhash] != "" {
+            mutate {
+                replace => {
+                    "event.idm.entity.entity.file.vhash" => "%{data.attributes.vhash}"
+
+                }
+            }
+        }
+
+        # >>>>>>>>>>>
+        # >>> URL >>>
+        # >>>>>>>>>>>
+        if [data][type] == "url" {
+            mutate {
+                replace => {
+                    "event.idm.entity.metadata.entity_type" => "URL"
+                    "event.idm.entity.entity.url" => "%{data.attributes.url}"
+                }
+                on_error => "no_url"
+            }
+        }
+
+        # >>>>>>>>>>>>>>>>>>
+        # >>> IP_ADDRESS >>>
+        # >>>>>>>>>>>>>>>>>>
+        if [data][type] == "ip_address" {
+            mutate {
+                replace => {
+                    "event.idm.entity.metadata.entity_type" => "IP_ADDRESS"
+                }
+                on_error => "no_ip"
+            }
+            mutate {
+                merge => {
+                    "event.idm.entity.entity.ip" => "data.id"
+                }
+            }
+        }
+
+        # >>>>>>>>>>>>>>
+        # >>> DOMAIN >>>
+        # >>>>>>>>>>>>>>
+        if [data][type] == "domain" {
+
+            mutate {
+                replace => {
+                    "event.idm.entity.metadata.entity_type" => "DOMAIN_NAME"
+                    "event.idm.entity.entity.hostname" => "%{data.id}"
+                    "event.idm.entity.entity.domain.name" => "%{data.id}"
+                }
+                on_error => "no_url"
+            }
+
+            if [data][attributes][jarm] != "" {
+                mutate {
+                    replace => {
+                        "event.idm.entity.entity.domain.jarm" => "%{data.attributes.jarm}"
+                    }
+                }
+            }
+
+            if [data][attributes][creation_date] != "" {
+                mutate {
+                    convert => {
+                        "data.attributes.creation_date" => "string"
+                    }
+                }
+                date {
+                    match => ["data.attributes.creation_date","UNIX"]
+                    target => "event.idm.entity.entity.domain.creation_time"
+                    on_error => "creation_time_not_present"
+                }
+            }
+
+        }
+
+        # >>>>>>>>>>>>>>>>>>>>>
+        # >>> RELATIONSHIPS >>>
+        # >>>>>>>>>>>>>>>>>>>>>
+
+        for actor in data.relationships.threat_actors.data {
+            mutate {
+                replace => {
+                    "_association" => ""
+                }
+            }
+            mutate {
+                replace => {
+                    "_association.id" => "%{actor.id}"
+                    "_association.name" => "%{actor.attributes.name}"
+                    "_association.type" => "THREAT_ACTOR"
+                }
+            }
+            mutate {
+                merge => {
+                    "_threat.associations" => "_association"
+                }
+            }
+        }
+
+        for actor in data.relationships.malware_families.data {
+            mutate {
+                replace => {
+                    "_association" => ""
+                }
+            }
+            mutate {
+                replace => {
+                    "_association.id" => "%{actor.id}"
+                    "_association.name" => "%{actor.attributes.name}"
+                    "_association.type" => "MALWARE"
+                }
+            }
+            mutate {
+                merge => {
+                    "_threat.associations" => "_association"
+                }
+            }
+        }
+
+        for report in data.relationships.reports.data {
+            mutate {
+                replace => {
+                    "_association" => ""
+                }
+            }            
+            mutate {
+                replace => {
+                    "_association.id" => "%{report.id}"
+                    "_association.name" => "%{report.attributes.name}"
+                }
+            }
+            mutate {
+                merge => {
+                    "_threat.associations" => "_association"
+                }
+            }
+        }
+
+        if [threat_feed_id] != "" {
+            mutate {
+                replace => {
+                    "_threat.threat_feed_name" => "%{threat_feed_id}"
+                }
+            }
+        }
+
+
+        mutate {
+            merge => {
+                "@output" => "event"
+            }
+        }
+
+
+    }
+
+}
