@@ -3,6 +3,9 @@
 
 This repo includes several custom GTI to Google SecOps integrations.  These are not official nor supported by Google Cloud, and you use at your own risk.
 
+status: draft
+last_updated: 23/07/2025
+
 ## Integrations
 
 The following integrations are available in this repo:
@@ -13,6 +16,8 @@ The following integrations are available in this repo:
 * Live Stream (IOC Hunt)
 
 The integrations are a combination of GCP Cloud Run Jobs, Google SecOps Parsers, and Google SecOps Dashboards.
+
+
 
 
 
