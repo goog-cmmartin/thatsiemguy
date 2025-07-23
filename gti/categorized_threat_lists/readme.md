@@ -1,5 +1,8 @@
 # GTI Categorized Threat Feeds to Google SecOps
+---
 
+
+## Available GTI Categorized Threat Feeds
 
 <pre>
 | Category name                    | Threat List ID                   | Entities supported (threat_list_id) | License                        | Description                                                                                                          |
@@ -18,5 +21,4 @@
 | First Stage Delivery Vectors     | first-stage-delivery-vectors     | files                               | Enterprise Plus                | Emails attachments and files served by URLs, that have been identified as malware by our security engine partners.   |
 | Vulnerability Weaponization      | vulnerability-weaponization      | files, URLs, domains, IP addresses  | Enterprise Plus                | IoCs which have been related with Vulnerabilities exploitation by our security engine partners or Google TI experts. |
 | Infostealers                     | infostealer                      | files                               | Enterprise Plus                | Files that have been categorized as Infostealers by our security engine partners or Google TI experts.               |
-
 </pre>
