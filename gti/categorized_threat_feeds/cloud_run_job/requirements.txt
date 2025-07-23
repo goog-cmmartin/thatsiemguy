@@ -1,3 +1,0 @@
-google-cloud-secret-manager
-google-auth
-requests
