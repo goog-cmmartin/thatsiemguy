@@ -1,0 +1,39 @@
+rule gti_threat_list_domain_dga {
+
+  meta:
+    author = "thatsiemguy@"
+    description = "This rule detects network connections that is also present in VirusTotal's categorized threat intelligence feeds that have been updated within the last 24 hours and are tagged as 'dga', 'potential-c2', or 'self-signed'."
+    severity = "LOW"
+    priorit = "MEDIUM"
+
+  events:
+    $e.metadata.event_type = "NETWORK_CONNECTION"
+    $e.principal.ip = $principalIp
+    not $e.target.ip in cidr %cidr_rfc_1918 
+    $e.target.hostname = $domainName
+
+    $vt_threat_feed.graph.entity.file.tags = $tag
+    $vt_threat_feed.graph.metadata.entity_type = "DOMAIN_NAME"
+    $vt_threat_feed.graph.metadata.product_name = "Categorized Threat Lists"
+    $vt_threat_feed.graph.entity.hostname = $domainName
+    $lastModificationTime = timestamp.get_timestamp($vt_threat_feed.graph.entity.file.last_modification_time.seconds)
+
+  match:
+    $principalIp over 1m
+
+  outcome:
+    $risk_score = 0
+    $tagsCheck1 = max(if($tag="dga",1,0))
+    $tagsCheck2 = max(if($tag="potential-c2",1,0))
+    $tagsCheck3 = max(if($tag="self-signed",1,0))  
+    $tagThreshold = ($tagsCheck1 + $tagsCheck2 + $tagsCheck3)
+    $recentlyModifiedDelta = max( timestamp.current_seconds() - $vt_threat_feed.graph.entity.file.last_modification_time.seconds )
+    $wasRecentlyModified = if($recentlyModifiedDelta < 86400,1,0)
+
+  condition:
+    $e 
+    and $vt_threat_feed 
+    and $wasRecentlyModified = 1  // last modified within 24 hours
+    and $tagThreshold > 0 // at least one specified tag was observed
+
+}

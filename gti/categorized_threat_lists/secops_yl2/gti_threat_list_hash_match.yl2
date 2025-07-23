@@ -1,0 +1,35 @@
+rule gti_threat_list_hash_match {
+
+  meta:
+    author = "thatsiemguy@"
+    description = "This rule detects process events that are also present in GTI's Categorized Threat List feeds that have been updated within the last 24 hours."
+    severity = "LOW"
+    priorit = "MEDIUM"
+
+  events:
+    (
+        $e.metadata.event_type = "PROCESS_LAUNCH"        
+        or $e.metadata.event_type = "PROCESS_OPEN"
+        or $e.metadata.event_type = "PROCESS_MODULE_LOAD"
+    )
+    $e.principal.hostname = $hostname
+    $e.target.process.file.md5 = $hash
+
+    $vt_threat_feed.graph.metadata.entity_type = "FILE"
+    $vt_threat_feed.graph.metadata.product_name = "Categorized Threat Lists"
+    $vt_threat_feed.graph.entity.file.md5 = $hash
+    $lastModificationTime = timestamp.get_timestamp($vt_threat_feed.graph.entity.file.last_modification_time.seconds)
+
+  match:
+    $hostname over 1m
+
+  outcome:
+    $risk_score = 0
+    $recentlyModifiedDelta = max( timestamp.current_seconds() - $vt_threat_feed.graph.entity.file.last_modification_time.seconds )
+    $wasRecentlyModified = if($recentlyModifiedDelta < 86400,1,0)
+
+  condition:
+    $e 
+    and $vt_threat_feed 
+
+}

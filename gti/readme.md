@@ -16,7 +16,7 @@ The following integrations are available in this repo:
 * [Digital Threat Monitoring](digital_threat_monitoring/)
 * [Live Stream aka Live Hunt](ioc_stream/) 
 
-The integrations are a combination of GCP Cloud Run Jobs, Google SecOps Parsers, and Google SecOps Dashboards.
+The integrations are a combination of GCP Cloud Run Jobs, Google SecOps Parsers, YARA-L Rules, and (Native) Dashboards.
 
 
 
