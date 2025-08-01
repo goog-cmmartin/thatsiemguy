@@ -2,7 +2,7 @@
     "dashboards": [
         {
             "dashboard": {
-                "name": "a0bd0318-f1cd-418f-a97d-33892def3bc4",
+                "name": "60fbff3d-9709-4982-8c85-27d6ce181e98",
                 "displayName": "[GUS] SecOps > License Utilisation",
                 "description": "owner:cmmartin@",
                 "definition": {
@@ -26,7 +26,7 @@
                     ],
                     "charts": [
                         {
-                            "dashboardChart": "f33b9257-564e-4fa2-bc70-307281bf6f8e",
+                            "dashboardChart": "0a5a5a9e-1d9b-41ee-952c-aa9ad692bbc5",
                             "chartLayout": {
                                 "startX": 0,
                                 "spanX": 24,
@@ -35,7 +35,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "7adefc6b-a0a3-4d30-a2d0-6f5903a55596",
+                            "dashboardChart": "557a9bc1-3788-4007-b55b-fafd7b9e700d",
                             "chartLayout": {
                                 "startX": 24,
                                 "spanX": 24,
@@ -44,7 +44,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "2e59a672-689c-4d32-a595-8b1f1edd1b7a",
+                            "dashboardChart": "b89a3eb1-e5db-416e-a163-5a20b4720a38",
                             "chartLayout": {
                                 "startX": 48,
                                 "spanX": 24,
@@ -53,7 +53,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "b5735d68-665b-42a4-ac0b-d9404c493ea3",
+                            "dashboardChart": "d08db3b3-81fa-43a1-a29e-ff14f4cebe00",
                             "chartLayout": {
                                 "startX": 0,
                                 "spanX": 48,
@@ -62,7 +62,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "c69666de-6cac-4fa2-bb30-555972dcbd1c",
+                            "dashboardChart": "8ee4be3d-b676-423e-b1b4-c630a823c174",
                             "chartLayout": {
                                 "startX": 48,
                                 "spanX": 48,
@@ -71,7 +71,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "33e0d614-bb96-40fb-9e46-826c0518fa47",
+                            "dashboardChart": "0735b399-ec58-497b-b932-197c664dbaf8",
                             "chartLayout": {
                                 "startX": 0,
                                 "spanX": 96,
@@ -80,7 +80,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "d3d4a418-03c2-4458-ac07-3e123f0da60c",
+                            "dashboardChart": "fa548b8e-397a-49ba-9330-0a4ea6fc029f",
                             "chartLayout": {
                                 "startX": 0,
                                 "spanX": 96,
@@ -89,7 +89,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "a5d5c8c6-ed96-42e9-9543-1821b99dbe47",
+                            "dashboardChart": "0fcb0a97-5f7c-4729-9cbe-695711550c7e",
                             "chartLayout": {
                                 "startX": 72,
                                 "spanX": 24,
@@ -98,7 +98,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "43df5c7f-0fbc-4c7f-9f98-5d2e75918da1",
+                            "dashboardChart": "308967b0-4936-4150-909e-242ea85fe0b0",
                             "chartLayout": {
                                 "startX": 0,
                                 "spanX": 96,
@@ -107,7 +107,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "b8ba3128-d11e-4405-9450-81130747f93b",
+                            "dashboardChart": "00f62282-6df4-429d-84e6-e2597f91e07c",
                             "chartLayout": {
                                 "startX": 0,
                                 "spanX": 96,
@@ -116,7 +116,7 @@
                             }
                         },
                         {
-                            "dashboardChart": "a82995df-3d0d-4649-9345-2cf143878d43",
+                            "dashboardChart": "dd668d86-3ea8-4cc3-9c71-27a9373d1194",
                             "chartLayout": {
                                 "startX": 0,
                                 "spanX": 96,
@@ -127,16 +127,16 @@
                     ]
                 },
                 "type": "CUSTOM",
-                "etag": "bab3181250e71ab06e9c1d28b7159705e222a747bbfd477781fc125605e37611",
+                "etag": "0476e8a6c4deec7798923d9f9e298a0c3b9044d8ac4ea7b08e072c94fdbfa726",
                 "access": "DASHBOARD_PRIVATE"
             },
             "dashboardCharts": [
                 {
-                    "name": "7adefc6b-a0a3-4d30-a2d0-6f5903a55596",
+                    "name": "557a9bc1-3788-4007-b55b-fafd7b9e700d",
                     "displayName": "Ingested GB (Last 7 Days)",
                     "description": "In Gigabyte (GB) - 1,000,000,000 (10⁹) bytes.",
                     "chartDatasource": {
-                        "dashboardQuery": "90a2d45b-f6b2-499a-8f15-4a2a0fd243ec",
+                        "dashboardQuery": "21410e7c-95a1-41e9-9fe0-c7d3bb8992e5",
                         "dataSources": [
                             "INGESTION_METRICS"
                         ]
@@ -172,244 +172,14 @@
                         "groupingType": "Off"
                     },
                     "tileType": "TILE_TYPE_VISUALIZATION",
-                    "etag": "189e9dce0114b1406587824a7fa89bd6e0991c9d56b3a1c8a736c48bd1300df9",
+                    "etag": "69fadac97bd50012bb102f1ccadb5c7838cca2b4de914e481eec7ec8dee1214c",
                     "drillDownConfig": {}
                 },
                 {
-                    "name": "43df5c7f-0fbc-4c7f-9f98-5d2e75918da1",
-                    "displayName": "markdown",
-                    "visualization": {
-                        "markdown": {
-                            "content": "---\nThe `Daily Ingestion in GB` Bar chart show a sum of daily volume in GB for the last year.  \n\n&nbsp; &nbsp;\n\nYou can customize the `Threshold Coloring` values within the Bar chart to visually show if you are exceeding the daily average value for your SecOps ingestion license, e.g., if your annual license was 500 TB then your daily average would be 1.36 TB, which you can use as your threshold value.",
-                            "properties": {
-                                "backgroundColor": "transparent"
-                            }
-                        }
-                    },
-                    "tileType": "TILE_TYPE_MARKDOWN",
-                    "etag": "6c92476462854cc1104202f694bb32155bae18330421cface698aa47d093189b"
-                },
-                {
-                    "name": "33e0d614-bb96-40fb-9e46-826c0518fa47",
-                    "displayName": "markdown",
-                    "visualization": {
-                        "markdown": {
-                            "content": "----\nThis `Ingested GB` metric cards displays a sum of Ingested log volume in GigaBytes for the last day, week, month, and year.  ",
-                            "properties": {
-                                "backgroundColor": "transparent"
-                            }
-                        }
-                    },
-                    "tileType": "TILE_TYPE_MARKDOWN",
-                    "etag": "ae055afd73264dffec623298de5490be41b79675e52c720463f021de67cd445e"
-                },
-                {
-                    "name": "a82995df-3d0d-4649-9345-2cf143878d43",
-                    "displayName": "Log Volume (GB) by Log Type - Last 30 Days",
+                    "name": "fa548b8e-397a-49ba-9330-0a4ea6fc029f",
+                    "displayName": "Daily Ingestion in GB - Last 365 Days",
                     "chartDatasource": {
-                        "dashboardQuery": "3eb82c28-47f2-4d3d-8740-a9e20e0dea6f",
-                        "dataSources": [
-                            "INGESTION_METRICS"
-                        ]
-                    },
-                    "visualization": {
-                        "xAxes": [
-                            {
-                                "axisType": "VALUE"
-                            }
-                        ],
-                        "yAxes": [
-                            {
-                                "axisType": "VALUE"
-                            }
-                        ],
-                        "legends": [
-                            {
-                                "legendOrient": "HORIZONTAL"
-                            }
-                        ],
-                        "columnDefs": [
-                            {
-                                "field": "logType",
-                                "header": "logType"
-                            },
-                            {
-                                "field": "GB",
-                                "header": "GB"
-                            },
-                            {
-                                "field": "logCount",
-                                "header": "logCount"
-                            }
-                        ],
-                        "groupingType": "Off",
-                        "tableConfig": {}
-                    },
-                    "tileType": "TILE_TYPE_VISUALIZATION",
-                    "etag": "eadd6e17748ee2dd21985fbd0275b6e3bd9591228e66df46235a84563beef8d0",
-                    "drillDownConfig": {}
-                },
-                {
-                    "name": "b5735d68-665b-42a4-ac0b-d9404c493ea3",
-                    "displayName": "Used Partitions (Days)",
-                    "chartDatasource": {
-                        "dashboardQuery": "6d07f56c-7a17-480d-af64-cbfc80b3b531",
-                        "dataSources": [
-                            "INGESTION_METRICS"
-                        ]
-                    },
-                    "visualization": {
-                        "series": [
-                            {
-                                "seriesType": "GAUGE",
-                                "encode": {
-                                    "value": "partitionCount"
-                                },
-                                "dataLabel": {
-                                    "show": true
-                                },
-                                "gaugeConfig": {
-                                    "baseValue": {},
-                                    "limitValue": {
-                                        "value": 365,
-                                        "color": "#923ef9"
-                                    }
-                                }
-                            }
-                        ],
-                        "xAxes": [
-                            {
-                                "axisType": "VALUE"
-                            }
-                        ],
-                        "yAxes": [
-                            {
-                                "axisType": "VALUE"
-                            }
-                        ],
-                        "legends": [
-                            {
-                                "legendOrient": "HORIZONTAL"
-                            }
-                        ],
-                        "groupingType": "Off"
-                    },
-                    "tileType": "TILE_TYPE_VISUALIZATION",
-                    "etag": "05237d10fd98da61f039493b185d203088ca186b387cb0c229e39bb231dd5d0f"
-                },
-                {
-                    "name": "c69666de-6cac-4fa2-bb30-555972dcbd1c",
-                    "displayName": "Average Events Per Second (EPS) - Last 1 Year",
-                    "chartDatasource": {
-                        "dashboardQuery": "934a8bdf-2b7a-4214-a7a4-3a63f7b8a333",
-                        "dataSources": [
-                            "INGESTION_METRICS"
-                        ]
-                    },
-                    "visualization": {
-                        "series": [
-                            {
-                                "seriesType": "GAUGE",
-                                "encode": {
-                                    "value": "eps"
-                                },
-                                "dataLabel": {
-                                    "show": true
-                                },
-                                "gaugeConfig": {
-                                    "baseValue": {
-                                        "value": 10
-                                    },
-                                    "limitValue": {
-                                        "value": 20,
-                                        "color": "#e51f8f"
-                                    }
-                                }
-                            }
-                        ],
-                        "xAxes": [
-                            {
-                                "axisType": "VALUE"
-                            }
-                        ],
-                        "yAxes": [
-                            {
-                                "axisType": "VALUE"
-                            }
-                        ],
-                        "legends": [
-                            {
-                                "legendOrient": "HORIZONTAL"
-                            }
-                        ],
-                        "groupingType": "Off"
-                    },
-                    "tileType": "TILE_TYPE_VISUALIZATION",
-                    "etag": "6be6d6cb85317e862de63d32f334d730886b39298e95f54a03413cbfb055e2e8"
-                },
-                {
-                    "name": "b8ba3128-d11e-4405-9450-81130747f93b",
-                    "displayName": "markdown",
-                    "visualization": {
-                        "markdown": {
-                            "content": "## GUS > SecOps License Utilisation\n---\nThis dashboard helps to show the utilisation of your Google SecOps license.  Google SecOps is licensed based upon volume of ingested logs in Bytes at the point of Ingestion. ",
-                            "properties": {
-                                "backgroundColor": "transparent"
-                            }
-                        }
-                    },
-                    "tileType": "TILE_TYPE_MARKDOWN",
-                    "etag": "a7b450059cd065161b80cf38df711631174eefbbd59e094e9ac4ba0ed8c1f6b8"
-                },
-                {
-                    "name": "a5d5c8c6-ed96-42e9-9543-1821b99dbe47",
-                    "displayName": "Ingested GB (Last 1 Year)",
-                    "description": "In Gigabyte (GB) - 1,000,000,000 (10⁹) bytes.",
-                    "chartDatasource": {
-                        "dashboardQuery": "36d5c840-5f65-4ac7-b4e3-6a8f9d5c5d80",
-                        "dataSources": [
-                            "INGESTION_METRICS"
-                        ]
-                    },
-                    "visualization": {
-                        "series": [
-                            {
-                                "seriesType": "TEXT",
-                                "label": "GB",
-                                "field": "Count",
-                                "metricTrendConfig": {
-                                    "metricFormat": "METRIC_FORMAT_NUMBER",
-                                    "metricDisplayTrend": "METRIC_DISPLAY_TREND_ABSOLUTE_VALUE",
-                                    "metricTrendType": "METRIC_TREND_TYPE_REGULAR"
-                                }
-                            }
-                        ],
-                        "xAxes": [
-                            {
-                                "axisType": "VALUE"
-                            }
-                        ],
-                        "yAxes": [
-                            {
-                                "axisType": "VALUE"
-                            }
-                        ],
-                        "legends": [
-                            {
-                                "legendOrient": "HORIZONTAL"
-                            }
-                        ],
-                        "groupingType": "Off"
-                    },
-                    "tileType": "TILE_TYPE_VISUALIZATION",
-                    "etag": "a2e7be195cbf195f3995632daa305f21f63e31a5ce6072a00922fb63cf6ff69f",
-                    "drillDownConfig": {}
-                },
-                {
-                    "name": "d3d4a418-03c2-4458-ac07-3e123f0da60c",
-                    "displayName": "Daily Ingestion in GB",
-                    "chartDatasource": {
-                        "dashboardQuery": "2b220ce2-816d-4f32-92e6-9f722f4c3a72",
+                        "dashboardQuery": "5799729e-0663-4a88-9c1a-2f4391383056",
                         "dataSources": [
                             "INGESTION_METRICS"
                         ]
@@ -456,15 +226,15 @@
                         ]
                     },
                     "tileType": "TILE_TYPE_VISUALIZATION",
-                    "etag": "8823176738fadddf135ce4022058418c125a113ca5ad41f6fc58c48334b37fc5",
+                    "etag": "c585d6264a3a8c1d961d7a708b9e0c7c08dddd4714af859a0339ec48b33e0b0e",
                     "drillDownConfig": {}
                 },
                 {
-                    "name": "2e59a672-689c-4d32-a595-8b1f1edd1b7a",
+                    "name": "b89a3eb1-e5db-416e-a163-5a20b4720a38",
                     "displayName": "Ingested GB (Last 30 Days)",
                     "description": "In Gigabyte (GB) - 1,000,000,000 (10⁹) bytes.",
                     "chartDatasource": {
-                        "dashboardQuery": "f24898ab-dd58-44dc-be9b-4676477ff653",
+                        "dashboardQuery": "e8ce7e69-b86d-4764-a1aa-0e80c2aabe6b",
                         "dataSources": [
                             "INGESTION_METRICS"
                         ]
@@ -500,15 +270,93 @@
                         "groupingType": "Off"
                     },
                     "tileType": "TILE_TYPE_VISUALIZATION",
-                    "etag": "27369803724807803190c4e3042823dc0ae8fbe3dc276a62b0e1b3b8a0c0b33a",
+                    "etag": "ed39543de21a85b132d92f535f98a94a6f70be3529acc966c65c6bab3ba48935",
                     "drillDownConfig": {}
                 },
                 {
-                    "name": "f33b9257-564e-4fa2-bc70-307281bf6f8e",
-                    "displayName": "Ingested GB (Last 1 Day)",
+                    "name": "0735b399-ec58-497b-b932-197c664dbaf8",
+                    "displayName": "markdown",
+                    "visualization": {
+                        "markdown": {
+                            "content": "----\nThis `Ingested GB` metric cards displays a sum of Ingested log volume in GigaBytes for the last day, week, month, and year.  ",
+                            "properties": {
+                                "backgroundColor": "transparent"
+                            }
+                        }
+                    },
+                    "tileType": "TILE_TYPE_MARKDOWN",
+                    "etag": "c2e9518e7b953a47786656c3d381bc3b32634dd886776e5d776541368d0dfb98"
+                },
+                {
+                    "name": "8ee4be3d-b676-423e-b1b4-c630a823c174",
+                    "displayName": "Average Events Per Second (EPS) - Last 365 Days",
+                    "chartDatasource": {
+                        "dashboardQuery": "b8e01aa6-77bf-40db-bb19-b304d2cee233",
+                        "dataSources": [
+                            "INGESTION_METRICS"
+                        ]
+                    },
+                    "visualization": {
+                        "series": [
+                            {
+                                "seriesType": "GAUGE",
+                                "encode": {
+                                    "value": "eps"
+                                },
+                                "dataLabel": {
+                                    "show": true
+                                },
+                                "gaugeConfig": {
+                                    "baseValue": {
+                                        "value": 10
+                                    },
+                                    "limitValue": {
+                                        "value": 20,
+                                        "color": "#e51f8f"
+                                    }
+                                }
+                            }
+                        ],
+                        "xAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "yAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "legends": [
+                            {
+                                "legendOrient": "HORIZONTAL"
+                            }
+                        ],
+                        "groupingType": "Off"
+                    },
+                    "tileType": "TILE_TYPE_VISUALIZATION",
+                    "etag": "6efb2e0400d0a616ea53ca924f59f571d8b1b0ff1192d420fae62af9462b0d37"
+                },
+                {
+                    "name": "308967b0-4936-4150-909e-242ea85fe0b0",
+                    "displayName": "markdown",
+                    "visualization": {
+                        "markdown": {
+                            "content": "---\nThe `Daily Ingestion in GB` Bar chart show a sum of daily volume in GB for the last year.  \n\n&nbsp; &nbsp;\n\nYou can customize the `Threshold Coloring` values within the Bar chart to visually show if you are exceeding the daily average value for your SecOps ingestion license, e.g., if your annual license was 500 TB then your daily average would be 1.36 TB, which you can use as your threshold value.",
+                            "properties": {
+                                "backgroundColor": "transparent"
+                            }
+                        }
+                    },
+                    "tileType": "TILE_TYPE_MARKDOWN",
+                    "etag": "06fc2d40a65e089b4e8b4c7c0a61ba797b8e48dcae2be3baaa37ef961ca9a0f6"
+                },
+                {
+                    "name": "0fcb0a97-5f7c-4729-9cbe-695711550c7e",
+                    "displayName": "Ingested GB (Last 365 Days)",
                     "description": "In Gigabyte (GB) - 1,000,000,000 (10⁹) bytes.",
                     "chartDatasource": {
-                        "dashboardQuery": "d4acf9f6-8073-4439-a06b-eaee3cdedae5",
+                        "dashboardQuery": "b8731788-3ce8-443a-95fc-3bd070cac0b5",
                         "dataSources": [
                             "INGESTION_METRICS"
                         ]
@@ -544,13 +392,166 @@
                         "groupingType": "Off"
                     },
                     "tileType": "TILE_TYPE_VISUALIZATION",
-                    "etag": "34707bced9afc036726c7deaa445112af8316309a4c2aebaefa73dfc66889687",
+                    "etag": "e11a90f9b560b3c2c0102d0b4759bafc6f0e080f4235986e591ed2ba2597f197",
                     "drillDownConfig": {}
+                },
+                {
+                    "name": "0a5a5a9e-1d9b-41ee-952c-aa9ad692bbc5",
+                    "displayName": "Ingested GB (Last 1 Day)",
+                    "description": "In Gigabyte (GB) - 1,000,000,000 (10⁹) bytes.",
+                    "chartDatasource": {
+                        "dashboardQuery": "b756be94-b8ab-4e25-baa3-12a8e92ac82e",
+                        "dataSources": [
+                            "INGESTION_METRICS"
+                        ]
+                    },
+                    "visualization": {
+                        "series": [
+                            {
+                                "seriesType": "TEXT",
+                                "label": "GB",
+                                "field": "Count",
+                                "metricTrendConfig": {
+                                    "metricFormat": "METRIC_FORMAT_NUMBER",
+                                    "metricDisplayTrend": "METRIC_DISPLAY_TREND_ABSOLUTE_VALUE",
+                                    "metricTrendType": "METRIC_TREND_TYPE_REGULAR"
+                                }
+                            }
+                        ],
+                        "xAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "yAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "legends": [
+                            {
+                                "legendOrient": "HORIZONTAL"
+                            }
+                        ],
+                        "groupingType": "Off"
+                    },
+                    "tileType": "TILE_TYPE_VISUALIZATION",
+                    "etag": "d471913bfe393cff299812307d0d029cc399d075b310951acaceff72f660f29f",
+                    "drillDownConfig": {}
+                },
+                {
+                    "name": "dd668d86-3ea8-4cc3-9c71-27a9373d1194",
+                    "displayName": "Log Volume (GB) by Log Type - Last 30 Days",
+                    "chartDatasource": {
+                        "dashboardQuery": "8e0c8bcc-2f7d-40d8-acaa-cc9022fdd85b",
+                        "dataSources": [
+                            "INGESTION_METRICS"
+                        ]
+                    },
+                    "visualization": {
+                        "xAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "yAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "legends": [
+                            {
+                                "legendOrient": "HORIZONTAL"
+                            }
+                        ],
+                        "columnDefs": [
+                            {
+                                "field": "logType",
+                                "header": "logType"
+                            },
+                            {
+                                "field": "GB",
+                                "header": "GB"
+                            },
+                            {
+                                "field": "logCount",
+                                "header": "logCount"
+                            }
+                        ],
+                        "groupingType": "Off",
+                        "tableConfig": {}
+                    },
+                    "tileType": "TILE_TYPE_VISUALIZATION",
+                    "etag": "2350920cbc8cfbff542c55e6ac293564064202f7a740b58747af56be08d58d24",
+                    "drillDownConfig": {}
+                },
+                {
+                    "name": "d08db3b3-81fa-43a1-a29e-ff14f4cebe00",
+                    "displayName": "Used Partitions",
+                    "description": "Number of days indexed data",
+                    "chartDatasource": {
+                        "dashboardQuery": "98fef278-276e-440e-9b95-0046418d5220",
+                        "dataSources": [
+                            "INGESTION_METRICS"
+                        ]
+                    },
+                    "visualization": {
+                        "series": [
+                            {
+                                "seriesType": "GAUGE",
+                                "encode": {
+                                    "value": "partitionCount"
+                                },
+                                "dataLabel": {
+                                    "show": true
+                                },
+                                "gaugeConfig": {
+                                    "baseValue": {},
+                                    "limitValue": {
+                                        "value": 365,
+                                        "color": "#923ef9"
+                                    }
+                                }
+                            }
+                        ],
+                        "xAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "yAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "legends": [
+                            {
+                                "legendOrient": "HORIZONTAL"
+                            }
+                        ],
+                        "groupingType": "Off"
+                    },
+                    "tileType": "TILE_TYPE_VISUALIZATION",
+                    "etag": "4280da6c8de7fb81e0b68854d542540446f6f74a1b58f09573c08b916a4ad7d3"
+                },
+                {
+                    "name": "00f62282-6df4-429d-84e6-e2597f91e07c",
+                    "displayName": "markdown",
+                    "visualization": {
+                        "markdown": {
+                            "content": "## GUS > SecOps License Utilisation\n---\nThis dashboard helps to show the utilisation of your Google SecOps license.  Google SecOps is licensed based upon volume of ingested logs in Bytes at the point of Ingestion.   The default retention interval of 365 days is used.  If you have a longer or shorter online retention interval you will need to update widgets accordingly.",
+                            "properties": {
+                                "backgroundColor": "transparent"
+                            }
+                        }
+                    },
+                    "tileType": "TILE_TYPE_MARKDOWN",
+                    "etag": "ed2e00bcddd1f0f4e6091d315c04ece950d40040d3686ed8781f60ffe76958e6"
                 }
             ],
             "dashboardQueries": [
                 {
-                    "name": "d4acf9f6-8073-4439-a06b-eaee3cdedae5",
+                    "name": "b756be94-b8ab-4e25-baa3-12a8e92ac82e",
                     "query": "ingestion.component = \"Ingestion API\"\n\noutcome:\n    $Count = math.round(sum(ingestion.log_volume) / 1000 / 1000 / 1000, 4)\n",
                     "input": {
                         "relativeTime": {
@@ -558,10 +559,10 @@
                             "startTimeVal": "1"
                         }
                     },
-                    "etag": "c22f2eca0dc4bd7850a869f00f3f4799711903d2bec1b114c0982f41d102170e"
+                    "etag": "c4a8db12356c0b311b8a9f36057bff5642351832c2e365bd72570c557e27b63d"
                 },
                 {
-                    "name": "3eb82c28-47f2-4d3d-8740-a9e20e0dea6f",
+                    "name": "8e0c8bcc-2f7d-40d8-acaa-cc9022fdd85b",
                     "query": "ingestion.component = \"Ingestion API\"\ningestion.log_type = $logType\nmatch: \n    $logType\noutcome:\n    $GB = math.round(sum(ingestion.log_volume) / 1000 / 1000 / 1000, 4)\n    $logCount = sum(ingestion.log_count)    \norder:\n    $GB desc",
                     "input": {
                         "relativeTime": {
@@ -569,32 +570,32 @@
                             "startTimeVal": "1"
                         }
                     },
-                    "etag": "492049a3e04630d201877e22965559ef3eddad36d3eaa6f2fa5656a1b08bafa0"
+                    "etag": "be6355923e54edcce3cf783545af261677dfe347b87338409f32362ac8cc63ff"
                 },
                 {
-                    "name": "6d07f56c-7a17-480d-af64-cbfc80b3b531",
+                    "name": "98fef278-276e-440e-9b95-0046418d5220",
                     "query": "ingestion.component = \"Ingestion API\"\noutcome:\n    $partitionCount = math.round( ( max(ingestion.end_time) - min(ingestion.end_time) ) / 86400, 2)",
                     "input": {
                         "relativeTime": {
-                            "timeUnit": "YEAR",
-                            "startTimeVal": "1"
+                            "timeUnit": "DAY",
+                            "startTimeVal": "365"
                         }
                     },
-                    "etag": "89fdada84712dc4254800ba18d0839d414134c919ee54c37c41b307c156ad4ce"
+                    "etag": "4ae259426f3459da3e21091eb645e1d9fe005231126f670ad7cb9acaa5cfc6e5"
                 },
                 {
-                    "name": "934a8bdf-2b7a-4214-a7a4-3a63f7b8a333",
+                    "name": "b8e01aa6-77bf-40db-bb19-b304d2cee233",
                     "query": "ingestion.component = \"Ingestion API\"\noutcome:\n    $totalEvents = sum(ingestion.log_count) \n    $time = ( max(ingestion.end_time) - min(ingestion.end_time) )\n    $eps = math.round($totalEvents / $time, 2)",
                     "input": {
                         "relativeTime": {
-                            "timeUnit": "YEAR",
-                            "startTimeVal": "1"
+                            "timeUnit": "DAY",
+                            "startTimeVal": "365"
                         }
                     },
-                    "etag": "ff63cc5af78a24c72f6fa49b24557cd3952964a8820c41436ceecf453183d9bc"
+                    "etag": "2d34efb8bb08097e9c77245fc7d1f70ce44b6712d7a04283c5bbcaa9860358fa"
                 },
                 {
-                    "name": "90a2d45b-f6b2-499a-8f15-4a2a0fd243ec",
+                    "name": "21410e7c-95a1-41e9-9fe0-c7d3bb8992e5",
                     "query": "ingestion.component = \"Ingestion API\"\n\noutcome:\n    $Count = math.round(sum(ingestion.log_volume) / 1000 / 1000 / 1000, 4)\n",
                     "input": {
                         "relativeTime": {
@@ -602,32 +603,32 @@
                             "startTimeVal": "7"
                         }
                     },
-                    "etag": "c32c2a9d378198f4b3e7e7e8c2f479bfd2c5515f388d81581054e762501f9fd5"
+                    "etag": "f6a01aab653408038f079976ac42e6fddd4c7cd7c4608440d4caa5e9af076e49"
                 },
                 {
-                    "name": "36d5c840-5f65-4ac7-b4e3-6a8f9d5c5d80",
+                    "name": "b8731788-3ce8-443a-95fc-3bd070cac0b5",
                     "query": "ingestion.component = \"Ingestion API\"\n\noutcome:\n    $Count = math.round(sum(ingestion.log_volume) / 1000 / 1000 / 1000, 4)\n",
                     "input": {
                         "relativeTime": {
-                            "timeUnit": "YEAR",
-                            "startTimeVal": "1"
+                            "timeUnit": "DAY",
+                            "startTimeVal": "365"
                         }
                     },
-                    "etag": "761e49d6e7b00fa151f91430b519b38e8b1d89b6ff25c0c93b36572068b544db"
+                    "etag": "9ebc8deb3877d9f63caf5e4bf41f68cca41cb108daf2d5c50b5683f68a92446c"
                 },
                 {
-                    "name": "2b220ce2-816d-4f32-92e6-9f722f4c3a72",
+                    "name": "5799729e-0663-4a88-9c1a-2f4391383056",
                     "query": "ingestion.component = \"Ingestion API\"\n$date = timestamp.get_date(ingestion.end_time) \nmatch:\n    $date\noutcome:\n    $GB = math.round(sum(ingestion.log_volume) / 1000 / 1000 / 1000, 4)\norder:\n    $date asc",
                     "input": {
                         "relativeTime": {
-                            "timeUnit": "YEAR",
-                            "startTimeVal": "1"
+                            "timeUnit": "DAY",
+                            "startTimeVal": "365"
                         }
                     },
-                    "etag": "1a373a062d2b539a57342a3251f39a005c4c696998e0a644b4c4819e0fecc421"
+                    "etag": "7d587291f8fdfb5006eadfb65cff182a90622f5af706029ba347367a351cbc18"
                 },
                 {
-                    "name": "f24898ab-dd58-44dc-be9b-4676477ff653",
+                    "name": "e8ce7e69-b86d-4764-a1aa-0e80c2aabe6b",
                     "query": "ingestion.component = \"Ingestion API\"\n\noutcome:\n    $Count = math.round(sum(ingestion.log_volume) / 1000 / 1000 / 1000, 4)\n",
                     "input": {
                         "relativeTime": {
@@ -635,7 +636,7 @@
                             "startTimeVal": "30"
                         }
                     },
-                    "etag": "899fdaa03c2a1108ad1110b99b6e0278216a0a66c8a5d7cad7664a4174b8cb8f"
+                    "etag": "1edf7dad38414cac54152b567913031638b549853ac3b2e344efd20aa23053d6"
                 }
             ]
         }
