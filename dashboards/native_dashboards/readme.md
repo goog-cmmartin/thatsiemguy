@@ -28,3 +28,7 @@ These gauges provide additional context on the rate and consistency of data inge
 
 * **Average Events Per Second (EPS):** Shows the average rate of logs being ingested.
 * **Used Partitions (Days):** Indicates the number of days data was actively ingested.
+
+---
+
+![Google SecOps License Utilisation](secops_license_utilization/gus_secops_license_utilization.png)
