@@ -1,4 +1,4 @@
-# Google SecOps License Utilization Dashboard
+# Google SecOps License Utilisation Dashboard
 
 This dashboard provides a comprehensive view of your Google SecOps license usage, focusing on the volume of data being ingested. It helps you monitor costs, understand data sources, and track ingestion trends over time.
 
@@ -31,4 +31,4 @@ These gauges provide additional context on the rate and consistency of data inge
 
 ---
 
-![Google SecOps License Utilisation](secops_license_utilisation/gus_secops_license_utilization.png)
+![Google SecOps License Utilisation](secops_license_utilisation/gus_secops_license_utilisation.png)
