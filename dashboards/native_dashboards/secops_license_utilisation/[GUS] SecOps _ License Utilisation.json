@@ -338,7 +338,7 @@
                     "displayName": "markdown",
                     "visualization": {
                         "markdown": {
-                            "content": "## GUS > SecOps License Utilization\n---\nThis dashboard helps to show the utilization of your Google SecOps license.  Google SecOps is licensed based upon volume of ingested logs in Bytes at the point of Ingestion. ",
+                            "content": "## GUS > SecOps License Utilisation\n---\nThis dashboard helps to show the utilisation of your Google SecOps license.  Google SecOps is licensed based upon volume of ingested logs in Bytes at the point of Ingestion. ",
                             "properties": {
                                 "backgroundColor": "transparent"
                             }
