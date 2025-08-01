@@ -31,4 +31,4 @@ These gauges provide additional context on the rate and consistency of data inge
 
 ---
 
-![Google SecOps License Utilisation](secops_license_utilization/gus_secops_license_utilization.png)
+![Google SecOps License Utilisation](secops_license_utilisation/gus_secops_license_utilization.png)
