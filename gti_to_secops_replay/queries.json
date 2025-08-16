@@ -1,0 +1,9 @@
+{
+  "gootloader": "entity:file collection:malware--0c0760b0-976d-5331-82e9-bcee24040d39 has:evtx gti_score:80+ tag:long-sleeps",
+  "beacon": "entity:file collection:malware--448e822d-8496-5021-88cb-599062f74176 has:evtx gti_score:80+",
+  "systembc": "entity:file collection:malware--17784955-af55-5462-877f-feaba0c8d80a has:evtx gti_score:100+ fs:10+ size:1mb+",
+  "basta": "entity:file collection:malware--b9525a73-ca34-5bbd-b189-2f760a72f0f4 has:evtx gti_score:100+ fs:10+ size:1mb+",
+  "redbike": "entity:file collection:malware--76feb45b-e63a-5a34-8596-da3ce148e776 has:evtx gti_score:80+ fs:10+ size:1mb+",
+  "by_hash": "(sandbox_name:\"zenbox\") has:evtx 50230c4cb538260e4cf458d0b448a63c67ca75e032bef9ee4f6165b7c824ba64",
+  "macros_7d": "(type:doc OR type:docx) tag:macros generated:7d+ (sandbox_name:\"zenbox\") has:evtx gti_score:70+"
+}
