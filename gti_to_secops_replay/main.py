@@ -300,6 +300,35 @@ def extract_event_logs(
     regex = re.compile(pattern, re.DOTALL)
     return regex.findall(evtx_data)
 
+def replace_computer_name(logs: List[str], new_computer_name: str) -> List[str]:
+    """
+    Replaces all occurrences of the original computer name with a new one.
+    The original computer name is determined from the <Computer> tag in each log.
+
+    Args:
+        logs: A list of log strings.
+        new_computer_name: The new computer name to use.
+
+    Returns:
+        A new list of log strings with the computer name replaced.
+    """
+    updated_logs = []
+    for log in logs:
+        # Find the original computer name from the <Computer> tag
+        match = re.search(r"<Computer>(.*?)</Computer>", log, re.DOTALL)
+        if match:
+            original_computer_name = match.group(1).strip()
+            # Replace all occurrences of the original name with the new one
+            if original_computer_name:
+                updated_log = log.replace(original_computer_name, new_computer_name)
+                updated_logs.append(updated_log)
+            else:
+                updated_logs.append(log) # Append unmodified if original name is empty
+        else:
+            # If no <Computer> tag is found, append the log unmodified
+            updated_logs.append(log)
+    return updated_logs
+
 def sort_logs(
     logs: List[str]
 ) -> List[str]:
@@ -436,6 +465,11 @@ def process_file_hash(
     logging.info(f"--- Processing EVTX Data for {file_hash} ---")
 
     event_logs = extract_event_logs(evtx_data)
+
+    if args.computer_name:
+        logging.info(f"Replacing computer name in logs with '{args.computer_name}'")
+        event_logs = replace_computer_name(event_logs, args.computer_name)
+
     updated_logs = update_log_times(event_logs, offset_minutes=args.offset_minutes)
     log_types = list(map(check_evtx_type, updated_logs))
 
@@ -489,6 +523,7 @@ def main():
     parser.add_argument("--descriptors-only", default=os.environ.get("VT_DESCRIPTORS_ONLY", DEFAULT_DESCRIPTORS_ONLY), help="Return only file descriptors.")
     parser.add_argument("--sandbox-name", default=os.environ.get("VT_SANDBOX_NAME", DEFAULT_SANDBOX_NAME), help="The sandbox name for behavior reports.")
     parser.add_argument("--offset-minutes", type=int, default=os.environ.get("VT_OFFSET_MINUTES", DEFAULT_OFFSET_MINUTES), help="Offset in minutes to apply to event timestamps.")
+    parser.add_argument("--computer-name", default=None, help="Optional. Replace the hostname in the event logs with this value.")
     parser.add_argument("--namespace", default=os.environ.get("NAMESPACE", DEFAULT_NAMESPACE), help="Optional, SecOps NAMESPACE for logs.")
     parser.add_argument("--use-case", default=os.environ.get("USE_CASE", DEFAULT_USE_CASE), help="Optional, custom ingestion_label to tag events with.")
     parser.add_argument("--secops-location", default=os.environ.get("SECOPS_LOCATION", DEFAULT_SECOPS_LOCATION))
