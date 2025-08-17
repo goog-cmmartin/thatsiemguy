@@ -329,6 +329,23 @@ def replace_computer_name(logs: List[str], new_computer_name: str) -> List[str]:
             updated_logs.append(log)
     return updated_logs
 
+def replace_generic_string(logs: List[str], old_string: str, new_string: str) -> List[str]:
+    """
+    Replaces all occurrences of a given string with a new one in a list of logs.
+
+    Args:
+        logs: A list of log strings.
+        old_string: The string to be replaced.
+        new_string: The string to replace with.
+
+    Returns:
+        A new list of log strings with the replacements made.
+    """
+    # Using a list comprehension for a concise and efficient implementation
+    updated_logs = [log.replace(old_string, new_string) for log in logs]
+    logging.info(f"Replaced all instances of '{old_string}' with '{new_string}'.")
+    return updated_logs
+
 def sort_logs(
     logs: List[str]
 ) -> List[str]:
@@ -470,6 +487,11 @@ def process_file_hash(
         logging.info(f"Replacing computer name in logs with '{args.computer_name}'")
         event_logs = replace_computer_name(event_logs, args.computer_name)
 
+    # Apply any generic string replacements
+    if args.replace:
+        for old, new in args.replace:
+            event_logs = replace_generic_string(event_logs, old, new)
+
     updated_logs = update_log_times(event_logs, offset_minutes=args.offset_minutes)
     log_types = list(map(check_evtx_type, updated_logs))
 
@@ -523,6 +545,13 @@ def main():
     parser.add_argument("--descriptors-only", default=os.environ.get("VT_DESCRIPTORS_ONLY", DEFAULT_DESCRIPTORS_ONLY), help="Return only file descriptors.")
     parser.add_argument("--sandbox-name", default=os.environ.get("VT_SANDBOX_NAME", DEFAULT_SANDBOX_NAME), help="The sandbox name for behavior reports.")
     parser.add_argument("--offset-minutes", type=int, default=os.environ.get("VT_OFFSET_MINUTES", DEFAULT_OFFSET_MINUTES), help="Offset in minutes to apply to event timestamps.")
+    parser.add_argument(
+        "--replace",
+        nargs=2,
+        metavar=("OLD_STRING", "NEW_STRING"),
+        action="append",
+        help="Replace all occurrences of OLD_STRING with NEW_STRING. Can be specified multiple times."
+    )
     parser.add_argument("--computer-name", default=None, help="Optional. Replace the hostname in the event logs with this value.")
     parser.add_argument("--namespace", default=os.environ.get("NAMESPACE", DEFAULT_NAMESPACE), help="Optional, SecOps NAMESPACE for logs.")
     parser.add_argument("--use-case", default=os.environ.get("USE_CASE", DEFAULT_USE_CASE), help="Optional, custom ingestion_label to tag events with.")

@@ -127,6 +127,7 @@ python main.py --query-name macros_7d --limit 10 --offset-minutes -30
 | `--sandbox-name`     | The sandbox name for behavior reports (case-sensitive).                     | `Zenbox`       |
 | `--offset-minutes`   | The time offset in minutes to apply to event timestamps (use negative for past). | `-10`          |
 | `--computer-name`    | Optional. Replace the hostname in the event logs with this value.           | `""` (empty)   |
+| `--replace`          | Optional. Replace Replace all occurrences of OLD_STRING with NEW_STRING. Can be specified multiple times | `""` (empty) |
 | `--namespace`        | Optional Chronicle namespace for logs.                                      | `""` (empty)   |
 | `--use-case`         | Optional `use_case_name` label to tag events with.                          | `evtx_replay`  |
 | `--secops-location`  | The Chronicle instance region. Overrides `SECOPS_LOCATION` env var.          | `us`           |
