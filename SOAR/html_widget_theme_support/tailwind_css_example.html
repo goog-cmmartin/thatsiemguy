@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google SecOps SOAR Widget Template</title>
+
+    <!-- 1. Include Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 2. Configure Tailwind to use CSS Variables for theming -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'background': 'var(--widget-bg-color)',
+                        'foreground': 'var(--widget-foreground-color)',
+                        'card': 'var(--widget-card-color)',
+                        'card-foreground': 'var(--widget-card-foreground-color)',
+                        'primary': 'var(--widget-primary-color)',
+                        'primary-foreground': 'var(--widget-primary-foreground-color)',
+                        'secondary': 'var(--widget-secondary-color)',
+                        'secondary-foreground': 'var(--widget-secondary-foreground-color)',
+                        'muted': 'var(--widget-muted-color)',
+                        'muted-foreground': 'var(--widget-muted-foreground-color)',
+                        'accent': 'var(--widget-accent-color)',
+                        'accent-foreground': 'var(--widget-accent-foreground-color)',
+                        'border': 'var(--widget-border-color)',
+                        'input': 'var(--widget-input-color)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 3. Define the default (Light Mode) values for our CSS variables -->
+    <style type="text/tailwindcss">
+        body {
+            /* Define Light Theme variables */
+            --widget-bg-color: #ffffff; /* white */
+            --widget-foreground-color: #020817; /* slate-950 */
+            --widget-card-color: #ffffff; /* white */
+            --widget-card-foreground-color: #020817; /* slate-950 */
+            --widget-primary-color: #020817; /* slate-950 */
+            --widget-primary-foreground-color: #f8fafc; /* slate-50 */
+            --widget-secondary-color: #f1f5f9; /* slate-100 */
+            --widget-secondary-foreground-color: #0f172a; /* slate-900 */
+            --widget-muted-color: #f1f5f9; /* slate-100 */
+            --widget-muted-foreground-color: #64748b; /* slate-500 */
+            --widget-accent-color: #f1f5f9; /* slate-100 */
+            --widget-accent-foreground-color: #0f172a; /* slate-900 */
+            --widget-border-color: #e2e8f0; /* slate-200 */
+            --widget-input-color: #e2e8f0; /* slate-200 */
+
+            /* Apply base styles using Tailwind utilities */
+            @apply bg-background text-foreground;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- Wrapper for the entire widget content -->
+    <div class="p-4 md:p-6">
+
+        <!-- DEMONSTRATION CONTROLS (You can remove this section) -->
+        <div class="mb-6 p-4 border border-dashed rounded-lg bg-secondary">
+            <h2 class="font-semibold text-secondary-foreground mb-2">Theme Simulator</h2>
+            <p class="text-sm text-muted-foreground mb-3">Click these buttons to simulate the theme change message from Google SecOps SOAR.</p>
+            <div class="flex space-x-2">
+                <button onclick="simulateSoarMessage('light')" class="px-3 py-1.5 text-sm font-medium rounded-md bg-white text-black border shadow-sm hover:bg-gray-100">
+                    Simulate Light Mode
+                </button>
+                <button onclick="simulateSoarMessage('dark')" class="px-3 py-1.5 text-sm font-medium rounded-md bg-black text-white border border-black shadow-sm hover:bg-gray-800">
+                    Simulate Dark Mode
+                </button>
+            </div>
+        </div>
+        <!-- END DEMONSTRATION CONTROLS -->
+
+
+        <!-- YOUR WIDGET CONTENT STARTS HERE -->
+        <div class="bg-card text-card-foreground border border-border rounded-xl shadow-md overflow-hidden">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold mb-2">Widget Title</h1>
+                <p class="text-muted-foreground mb-4">
+                    This is a sample widget. Its colors will automatically update based on the Google SecOps SOAR theme.
+                </p>
+
+                <div class="space-y-4">
+                    <div class="flex flex-col space-y-1.5">
+                        <label for="name" class="font-medium text-sm">Name</label>
+                        <input id="name" placeholder="Enter your name" class="w-full px-3 py-2 text-sm rounded-md bg-transparent border border-input focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    </div>
+                     <div class="flex flex-col space-y-1.5">
+                        <label for="framework" class="font-medium text-sm">Framework</label>
+                         <select id="framework" class="w-full px-3 py-2 text-sm rounded-md bg-card border border-input focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <option>Next.js</option>
+                            <option>SvelteKit</option>
+                            <option>Nuxt.js</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-muted/50 px-6 py-4 flex justify-end">
+                <button class="px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-card">
+                    Submit Action
+                </button>
+            </div>
+        </div>
+        <!-- YOUR WIDGET CONTENT ENDS HERE -->
+
+    </div>
+
+
+    <!-- 4. Combined Theming Logic -->
+    <script>
+        // Define the complete theme palettes. This is now the single source of truth.
+        const themes = {
+            light: {
+                '--widget-bg-color': '#ffffff',
+                '--widget-foreground-color': '#020817',
+                '--widget-card-color': '#ffffff',
+                '--widget-card-foreground-color': '#020817',
+                '--widget-primary-color': '#020817',
+                '--widget-primary-foreground-color': '#f8fafc',
+                '--widget-secondary-color': '#f1f5f9',
+                '--widget-secondary-foreground-color': '#0f172a',
+                '--widget-muted-color': '#f1f5f9',
+                '--widget-muted-foreground-color': '#64748b',
+                '--widget-accent-color': '#f1f5f9',
+                '--widget-accent-foreground-color': '#0f172a',
+                '--widget-border-color': '#e2e8f0',
+                '--widget-input-color': '#e2e8f0',
+            },
+            dark: {
+                '--widget-bg-color': '#020817',
+                '--widget-foreground-color': '#f8fafc',
+                '--widget-card-color': '#020817',
+                '--widget-card-foreground-color': '#f8fafc',
+                '--widget-primary-color': '#f8fafc',
+                '--widget-primary-foreground-color': '#020817',
+                '--widget-secondary-color': '#0f172a',
+                '--widget-secondary-foreground-color': '#f8fafc',
+                '--widget-muted-color': '#0f172a',
+                '--widget-muted-foreground-color': '#94a3b8',
+                '--widget-accent-color': '#0f172a',
+                '--widget-accent-foreground-color': '#f8fafc',
+                '--widget-border-color': '#1e293b',
+                '--widget-input-color': '#1e293b',
+            }
+        };
+
+        /**
+         * Applies a full theme palette to the document body.
+         * @param {object} themeObject The theme object (e.g., themes.light).
+         */
+        function applyTheme(themeObject) {
+            for (const [key, value] of Object.entries(themeObject)) {
+                document.body.style.setProperty(key, value);
+            }
+        }
+
+        /**
+         * Determines if a hex color is dark by calculating its luminance.
+         * @param {string} hexColor The hex color string (e.g., '#2f3d5c').
+         * @returns {boolean} True if the color is considered dark.
+         */
+        function isColorDark(hexColor) {
+            if (!hexColor || hexColor.length < 4) return false;
+            let hex = hexColor.replace('#', '');
+            if (hex.length === 3) {
+                hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+            }
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            // Formula for luminance
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+            return luminance < 140; // Threshold can be adjusted
+        }
+
+        //This is the UPDATED script that enables the widget theme to reflect the user's choice.
+        onmessage = evt => {
+            console.log("Message received from SOAR:", evt.data);
+            if (evt.data && evt.data.background) {
+                const isDark = isColorDark(evt.data.background);
+                console.log(`Theme detected as: ${isDark ? 'Dark' : 'Light'}`);
+                applyTheme(isDark ? themes.dark : themes.light);
+            }
+        }
+
+        // --- Simulation Script (For demonstration purposes) ---
+        function simulateSoarMessage(mode) {
+             // This simulates the simple message structure SOAR sends.
+            const message = {
+                data: {
+                    background: mode === 'dark' ? '#2f3d5c' : '#bdc1c6',
+                    color: '#c3d2e8'
+                }
+            };
+            if (window.onmessage) {
+                 window.onmessage(message);
+            } else {
+                console.error("onmessage handler not defined.");
+            }
+        }
+    </script>
+
+</body>
+</html>
+
