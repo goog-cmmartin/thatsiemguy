@@ -1,0 +1,16 @@
+<div id="shortcutOverlay"></div>
+<div id="shortcutModal">
+    <div id="modalHeader">
+        <img id="modalIcon" src="" alt="SecOps Icon">
+        <h2>SecOps Keyboard Shortcuts</h2>
+        <button id="closeModalButton">&times;</button>
+    </div>
+    <hr>
+    <input type="text" id="shortcutSearchInput" placeholder="🔍 Search shortcuts...">
+    <ul></ul>
+    <div id="modalFooter">
+        <p><b>About</b>: This Chrome Extension provides keyboard shortcuts within the Google SecOps user interface by simulating click functions within the user interface by injecting click events for the appropriate Document Object Model (DOM) elements.  Because this relies on the internal structure of the SecOps interface and is not an official integration, future updates by Google to the underlying code may cause this extension to stop working without notice.</p>
+        <p><b>Disclaimer</b>: This is not an official Google Cloud extension for Google SecOps, and been tested primarily using Google Chrome on Linux, for an en-US keyboard, with the integrated Google SecOps platform. It has not been tested against standalone Chronicle SIEM, Chronicle SOAR, or Security Command Center Enterprise (SCCE), and compatibility is not guaranteed.</p>
+        <p id="modalVersion"></p> </div>
+    </div>
+</div>

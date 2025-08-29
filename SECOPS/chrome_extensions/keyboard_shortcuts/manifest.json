@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Google SecOps Keyboard Extensions",
+  "key": "pebbhcjfokadbgbnlmogdkkaahmamnap",
+  "version": "0.008",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },  
+  "description": "Provides keyboard support for Google SecOps",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],  
+  "background": {
+    "service_worker": "background.js"
+  },  
+  "content_scripts": [
+    {
+      "matches": ["*://*.backstory.chronicle.security/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["modal.html", "styles.css", "icon48.png"],
+      "matches": ["*://*.backstory.chronicle.security/*"]
+    }
+  ]  
+}
