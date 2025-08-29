@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google SecOps Entity Explorer</title>
+
+    <!-- 1. Include Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 2. Configure Tailwind to use CSS Variables for theming -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'background': 'var(--widget-bg-color)',
+                        'foreground': 'var(--widget-foreground-color)',
+                        'card': 'var(--widget-card-color)',
+                        'card-foreground': 'var(--widget-card-foreground-color)',
+                        'primary': 'var(--widget-primary-color)',
+                        'primary-foreground': 'var(--widget-primary-foreground-color)',
+                        'secondary': 'var(--widget-secondary-color)',
+                        'secondary-foreground': 'var(--widget-secondary-foreground-color)',
+                        'muted': 'var(--widget-muted-color)',
+                        'muted-foreground': 'var(--widget-muted-foreground-color)',
+                        'accent': 'var(--widget-accent-color)',
+                        'accent-foreground': 'var(--widget-accent-foreground-color)',
+                        'border': 'var(--widget-border-color)',
+                        'input': 'var(--widget-input-color)',
+                        // Specific colors for action buttons
+                        'success': '#16a34a', // green-600
+                        'success-hover': '#15803d', // green-700
+                        'info': '#2563eb', // blue-600
+                        'info-hover': '#1d4ed8', // blue-700
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 3. Define the default (Light Mode) values and apply base styles -->
+    <style type="text/tailwindcss">
+        body {
+            /* Define Light Theme variables by default */
+            --widget-bg-color: #ffffff; /* white */
+            --widget-foreground-color: #020817; /* slate-950 */
+            --widget-card-color: #ffffff; /* white */
+            --widget-card-foreground-color: #020817; /* slate-950 */
+            --widget-primary-color: #020817; /* slate-950 */
+            --widget-primary-foreground-color: #f8fafc; /* slate-50 */
+            --widget-secondary-color: #f1f5f9; /* slate-100 */
+            --widget-secondary-foreground-color: #0f172a; /* slate-900 */
+            --widget-muted-color: #f1f5f9; /* slate-100 */
+            --widget-muted-foreground-color: #64748b; /* slate-500 */
+            --widget-accent-color: #f1f5f9; /* slate-100 */
+            --widget-accent-foreground-color: #0f172a; /* slate-900 */
+            --widget-border-color: #e2e8f0; /* slate-200 */
+            --widget-input-color: #e2e8f0; /* slate-200 */
+
+            /* Apply base styles using Tailwind utilities */
+            @apply bg-background text-foreground;
+        }
+        .sortable:hover {
+            background-color: var(--widget-accent-color);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+  
+    <div class="w-[95%] mx-auto p-4">
+
+      <!-- Title Section -->
+      <div class="flex items-center gap-3 mb-4">
+          <h1 class="text-2xl font-bold text-card-foreground mb-4 flex items-center">
+                    <svg class="h-6 w-6 text-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg> 
+          UDM Entity Pivot</h1>
+      </div>
+  
+      
+      <!-- Controls Section -->
+      <div class="mb-4 flex flex-wrap justify-between items-center gap-4">
+        
+        <!-- Left Controls: Compound Search & Help -->
+        <div class="flex items-center gap-3">
+          <p class="text-sm text-foreground" title="Select multiple Entities to Run a compound UDM Search.">
+            Compound Operator:
+          </p>
+          
+          <!-- Custom Dropdown -->
+          <div class="relative inline-block text-left">
+            <div>
+              <button type="button" id="logic-dropdown-button" class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-card px-3 py-2 text-sm font-semibold text-card-foreground shadow-sm ring-1 ring-inset ring-input hover:bg-muted" aria-expanded="true" aria-haspopup="true">
+                AND
+                <svg class="-mr-1 h-5 w-5 text-muted-foreground" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <div id="logic-dropdown-menu" class="absolute left-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-card shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu" aria-orientation="vertical">
+              <div class="py-1" role="none">
+                <a href="#" class="dropdown-item block px-4 py-2 text-sm text-card-foreground hover:bg-muted" role="menuitem" data-logic="AND">AND</a>
+                <a href="#" class="dropdown-item block px-4 py-2 text-sm text-card-foreground hover:bg-muted" role="menuitem" data-logic="OR">OR</a>
+              </div>
+            </div>
+          </div>
+          
+          <button id="get-selected-rows" class="inline-flex items-center gap-2 rounded-md bg-success px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-success-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success disabled:opacity-50 disabled:cursor-not-allowed">
+            Run
+            <svg class="h-4 w-4" width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M17.444 17.444H6.555V6.556H12V5H6.555C5.692 5 5 5.7 5 6.556v10.888C5 18.3 5.692 19 6.555 19h10.889c.855 0 1.555-.7 1.555-1.556V12h-1.555v5.444z"></path><path d="M13.556 5v1.556h2.792L8.703 14.2l1.096 1.097 7.646-7.646v2.792H19V5h-5.444z"></path></svg>
+          </button>
+          <span id="selection-counter" class="text-sm text-muted-foreground"></span>
+        </div>
+        
+        <!-- Right Controls -->
+        <div>
+            <button id="help-button" class="inline-flex items-center gap-2 rounded-md bg-card px-3 py-2 text-sm font-semibold text-card-foreground shadow-sm ring-1 ring-inset ring-input hover:bg-muted">
+                Help
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" /></svg>
+            </button>
+        </div>
+
+      </div>
+
+      <!-- Table Container -->
+      <div class="overflow-x-auto rounded-lg border border-border shadow-md">
+        <table class="min-w-full divide-y divide-border text-sm">
+          <thead class="bg-secondary">
+            <tr>
+              <th scope="col" class="p-3 text-left w-10">
+                <input type="checkbox" id="select-all-checkbox" class="h-4 w-4 rounded border-input text-primary focus:ring-primary/50">
+              </th>
+              <th scope="col" class="p-3 text-left font-semibold text-secondary-foreground tracking-wider cursor-pointer sortable" data-sort-by="EntityCards.Identifier" title="Click to sort by Identifier">
+                <div class="flex items-center gap-2">Identifier <span class="sort-icon"></span></div>
+              </th>
+              <th scope="col" class="p-3 text-left font-semibold text-secondary-foreground tracking-wider cursor-pointer sortable" data-sort-by="EntityCards.Type" title="Click to sort by Type">
+                 <div class="flex items-center gap-2">Type <span class="sort-icon"></span></div>
+              </th>
+              <th scope="col" class="p-3 text-center font-semibold text-secondary-foreground tracking-wider" title="Run a UDM search for this entity">UDM</th>
+              <th scope="col" class="p-3 text-center font-semibold text-secondary-foreground tracking-wider" title="Run a Raw Log search for this entity">RLS</th>
+              <th scope="col" class="p-3 text-left font-semibold text-secondary-foreground tracking-wider" title="Boolean attributes for this entity">Tags</th>
+            </tr>
+          </thead>
+          <tbody id="entity-table-body" class="divide-y divide-border bg-card">
+            <!-- Table rows will be dynamically inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+    
+    <!-- Help Modal -->
+    <div id="help-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-card text-card-foreground rounded-lg shadow-xl p-6 w-full max-w-lg m-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">How to Use This Widget</h2>
+                <button id="close-modal-button" class="text-muted-foreground hover:text-foreground">&times;</button>
+            </div>
+            <div class="space-y-4 text-sm">
+                <p>This widget displays entities associated with an alert and allows you to quickly pivot to UDM and Raw Log Searches.</p>
+                <ul class="list-disc list-inside space-y-2">
+                    <li><b>UDM / RLS Buttons:</b> Click the <span class="inline-flex items-center text-xs font-semibold px-2 py-1 bg-success text-white rounded">Run</span> or <span class="inline-flex items-center text-xs font-semibold px-2 py-1 bg-info text-white rounded">Run</span> buttons in each row to open a new search tab for that specific entity.</li>
+                    <li><b>Compound Search:</b> Select two or more entities using the checkboxes. Choose a logical operator (<span class="font-mono bg-muted px-1 rounded">AND</span> / <span class="font-mono bg-muted px-1 rounded">OR</span>) and click the main "Run" button to perform a combined UDM search.</li>
+                    <li><b>Sorting:</b> Click on the "Identifier" or "Type" headers to sort the table.</li>
+                    <li><b>Tags:</b> The tags indicate boolean attributes of an entity, such as whether it's suspicious, internal, etc.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Combined Theming and Widget Logic -->
+    <script>
+      // --- THEME DEFINITIONS AND LOGIC ---
+      const themes = {
+          light: {
+              '--widget-bg-color': '#ffffff', '--widget-foreground-color': '#020817', '--widget-card-color': '#ffffff',
+              '--widget-card-foreground-color': '#020817', '--widget-primary-color': '#020817', '--widget-primary-foreground-color': '#f8fafc',
+              '--widget-secondary-color': '#f1f5f9', '--widget-secondary-foreground-color': '#0f172a', '--widget-muted-color': '#f1f5f9',
+              '--widget-muted-foreground-color': '#64748b', '--widget-accent-color': '#f1f5f9', '--widget-accent-foreground-color': '#0f172a',
+              '--widget-border-color': '#e2e8f0', '--widget-input-color': '#e2e8f0',
+          },
+          dark: {
+              '--widget-bg-color': '#020817', '--widget-foreground-color': '#f8fafc', '--widget-card-color': '#020817',
+              '--widget-card-foreground-color': '#f8fafc', '--widget-primary-color': '#f8fafc', '--widget-primary-foreground-color': '#020817',
+              '--widget-secondary-color': '#0f172a', '--widget-secondary-foreground-color': '#f8fafc', '--widget-muted-color': '#0f172a',
+              '--widget-muted-foreground-color': '#94a3b8', '--widget-accent-color': '#0f172a', '--widget-accent-foreground-color': '#f8fafc',
+              '--widget-border-color': '#1e293b', '--widget-input-color': '#1e293b',
+          }
+      };
+
+      function applyTheme(themeObject) {
+          for (const [key, value] of Object.entries(themeObject)) {
+              document.body.style.setProperty(key, value);
+          }
+      }
+
+      function isColorDark(hexColor) {
+          if (!hexColor || hexColor.length < 4) return false;
+          let hex = hexColor.replace('#', '');
+          if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+          const r = parseInt(hex.substring(0, 2), 16), g = parseInt(hex.substring(2, 4), 16), b = parseInt(hex.substring(4, 6), 16);
+          return (0.299 * r + 0.587 * g + 0.114 * b) < 140;
+      }
+
+      onmessage = evt => {
+          if (evt.data && evt.data.background) {
+              const isDark = isColorDark(evt.data.background);
+              applyTheme(isDark ? themes.dark : themes.light);
+          }
+      }
+      
+      // --- WIDGET APPLICATION LOGIC ---
+      document.addEventListener("DOMContentLoaded", () => {
+      
+        function buildJsonObject1(filter) {
+          const entitiesIdentifier = "1.1.1.1,example.com,prod-server-01,USER@1123127805827.EXAMPLE.COM,evil.exe,C:\\Users\\admin\\document.docx,d41d8cd98f00b204e9800998ecf8427e,8.8.8.8".split(",");
+          const entitiesType = "ADDRESS,DOMAIN,HOSTNAME,USERUNIQNAME,FILENAME,FILEPATH,FILEHASH,ADDRESS".split(",");
+          const entitiesInternal = "false,false,true,true,false,true,false,false".split(",");
+          const entitiesSuspicious = "true,true,false,false,true,false,true,false".split(",");
+          const entitiesPivot = "false,true,false,false,true,false,true,false".split(",");
+          const entitiesManual = "false,false,false,false,true,false,false,false".split(",");
+          const secopsUrl = "https://changeme.backstory.chronicle.security";
+          const timestampMilis = new Date().getTime();
+          return entitiesIdentifier.map((id, i) => ({
+              EntityCards: {
+                Identifier: id.trim(), IsInternalAsset: entitiesInternal[i] === "true", IsPivot: entitiesPivot[i] === "true",
+                IsSuspicious: entitiesSuspicious[i] === "true", Type: entitiesType[i].trim(), SourceSystemUrl: secopsUrl,
+                IsManuallyCreated: entitiesManual[i] === "true",
+              }, CreationTime: timestampMilis,
+          })).filter(item => !filter.includes(item.EntityCards.Type));
+        }
+
+          function buildJsonObject(filter) {
+            const entitiesIdentifier =
+              String.raw`[Entity.Identifier]`.split(
+                ","
+              );
+            const entitiesType =
+              "[Entity.Type]".split(
+                ","
+              );
+            const entitiesInternal = "[Entity.IsInternalAsset]".split(
+              ","
+            );
+            const entitiesSuspicious =
+              "[Entity.IsSuspicious]".split(",");
+            const entitiesPivot = "[Entity.IsPivot]".split(
+              ","
+            );
+            const entitiesManual = "[Entity.IsManuallyCreated]".split(
+              ","
+            );
+            const secopsUrl = "https://gglsjd.backstory.chronicle.security";
+    
+            const date = new Date("[Alert.CreationTime]");
+    
+            // Get the timestamp in milliseconds
+            const timestampMilis = date.getTime(); //* 1000;
+    
+            return entitiesIdentifier
+              .map((identifier, index) => ({
+                EntityCards: {
+                  Identifier: identifier,
+                  IsInternalAsset: entitiesInternal[index],
+                  IsPivot: entitiesPivot[index],
+                  IsSuspicious: entitiesSuspicious[index],
+                  Type: entitiesType[index],
+                  SourceSystemUrl: secopsUrl,
+                  IsManuallyCreated: entitiesManual[index],
+                },
+                CreationTime: timestampMilis,
+              }))
+              .filter((item) => !filter.includes(item.EntityCards.Type));
+          }
+        const filter = ["THREAT", "THREATSIGNATURE", "EMAILSUBJECT", "DEPLOYMENT", "PhoneNumber"];
+        const tableData = buildJsonObject(filter);
+
+
+        const tableBody = document.getElementById("entity-table-body");
+        const tableHead = document.querySelector("thead");
+        const getSelectedRowsButton = document.getElementById("get-selected-rows");
+        const logicDropdownButton = document.getElementById('logic-dropdown-button');
+        const logicDropdownMenu = document.getElementById('logic-dropdown-menu');
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const selectionCounter = document.getElementById('selection-counter');
+        const helpButton = document.getElementById('help-button');
+        const helpModal = document.getElementById('help-modal');
+        const closeModalButton = document.getElementById('close-modal-button');
+
+        const sortIcons = {
+            asc: `<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>`,
+            desc: `<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`,
+            none: `<svg class="h-4 w-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" /></svg>`
+        };
+        const externalLinkIcon = `<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M17.444 17.444H6.555V6.556H12V5H6.555C5.692 5 5 5.7 5 6.556v10.888C5 18.3 5.692 19 6.555 19h10.889c.855 0 1.555-.7 1.555-1.556V12h-1.555v5.444z"></path><path d="M13.556 5v1.556h2.792L8.703 14.2l1.096 1.097 7.646-7.646v2.792H19V5h-5.444z"></path></svg>`;
+        let currentSort = { key: null, direction: 'none' };
+
+        function getNestedValue(obj, path) {
+            return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+        }
+
+        function sortData() {
+            const { key, direction } = currentSort;
+            if (direction === 'none' || !key) return;
+            
+            tableData.sort((a, b) => {
+                const valA = getNestedValue(a, key);
+                const valB = getNestedValue(b, key);
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+        
+        function updateSortIcons() {
+            document.querySelectorAll('.sortable').forEach(header => {
+                const key = header.dataset.sortBy;
+                const iconSpan = header.querySelector('.sort-icon');
+                if (key === currentSort.key) {
+                    iconSpan.innerHTML = sortIcons[currentSort.direction];
+                } else {
+                    iconSpan.innerHTML = sortIcons.none;
+                }
+            });
+        }
+        
+        function getQuery(id, type) {
+          const templates = { ADDRESS: "ip = {{id}} nocase", DOMAIN: "domain = {{id}} nocase", HOSTNAME: "hostname = {{id}} nocase", USERUNIQNAME: "( user = {{id}} nocase OR email = {{id}} nocase )", PROCESS: "process_id = {{id}} nocase", FILENAME: "file_path = {{id}} nocase", FILEPATH: "file_path = {{id}} nocase", FILEHASH: "hash = {{id}} nocase" };
+          return templates[type] ? templates[type].replace(/\{\{id\}\}/g, JSON.stringify(id)) : null;
+        }
+
+        function convertTimestamps(ts) {
+          const date = new Date(ts), start = new Date(date), end = new Date(date), now = new Date();
+          start.setDate(date.getDate() - 1); end.setDate(date.getDate() + 1);
+          return { startTimeIso: start.toISOString(), endTimeIso: (end > now ? now : end).toISOString() };
+        }
+        
+        function createSearchLink(rowData, type) {
+          const { CreationTime, EntityCards: { SourceSystemUrl, Identifier, Type } } = rowData;
+          const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime);
+          let query, btnClass;
+          if (type === 'udm') {
+            query = getQuery(Identifier, Type); btnClass = 'bg-success hover:bg-success-hover';
+          } else {
+            query = `raw = /${JSON.stringify(Identifier).slice(1, -1).replace(/\\/g, '\\\\')}/ nocase`; btnClass = 'bg-info hover:bg-info-hover';
+          }
+          if (!query) return document.createTextNode('');
+          const url = `${SourceSystemUrl}/search?query=${encodeURIComponent(query)}&startTime=${startTimeIso}&endTime=${endTimeIso}`;
+          const link = document.createElement("a");
+          link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
+          link.className = `inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${btnClass}`;
+          link.innerHTML = `Run ${externalLinkIcon}`;
+          return link;
+        }
+
+        function createCompoundSearchLink(selectedRows, logic) {
+          const validRows = selectedRows.filter(row => getQuery(row.EntityCards.Identifier, row.EntityCards.Type));
+          if (validRows.length === 0) return;
+          const queryParams = validRows.map(row => getQuery(row.EntityCards.Identifier, row.EntityCards.Type));
+          const combinedQuery = queryParams.join(` ${logic} `);
+          const { CreationTime, EntityCards: { SourceSystemUrl } } = validRows[0];
+          const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime);
+          const url = `${SourceSystemUrl}/search?query=${encodeURIComponent(combinedQuery)}&startTime=${startTimeIso}&endTime=${endTimeIso}`;
+          window.open(url, "_blank");
+        }
+
+        function renderTable() {
+          tableBody.innerHTML = "";
+          tableData.forEach(rowData => {
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-accent";
+            tr.dataset.rowData = JSON.stringify(rowData); 
+            
+            const tags = [
+                rowData.EntityCards.IsSuspicious && { text: 'Suspicious', class: 'bg-red-100 text-red-800' },
+                rowData.EntityCards.IsPivot && { text: 'Pivot', class: 'bg-yellow-100 text-yellow-800' },
+                rowData.EntityCards.IsInternalAsset && { text: 'Internal', class: 'bg-blue-100 text-blue-800' },
+                rowData.EntityCards.IsManuallyCreated && { text: 'Manual', class: 'bg-gray-100 text-gray-800' }
+            ].filter(Boolean);
+
+            tr.innerHTML = `
+              <td class="p-3"><input type="checkbox" class="row-checkbox h-4 w-4 rounded border-input text-primary focus:ring-primary/50"></td>
+              <td class="p-3 text-card-foreground font-mono">
+                <div class="truncate max-w-xs" title="${rowData.EntityCards.Identifier}">${rowData.EntityCards.Identifier}</div>
+              </td>
+              <td class="p-3 text-muted-foreground">
+                  <span class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
+                      ${rowData.EntityCards.Type}
+                  </span>
+              </td>
+              <td class="p-3 text-center"></td>
+              <td class="p-3 text-center"></td>
+              <td class="p-3">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  ${tags.map(tag => `<span class="text-xs font-medium me-2 px-2.5 py-0.5 rounded ${tag.class}">${tag.text}</span>`).join('')}
+                </div>
+              </td>
+            `;
+            tr.children[3].appendChild(createSearchLink(rowData, 'udm'));
+            tr.children[4].appendChild(createSearchLink(rowData, 'rls'));
+            tableBody.appendChild(tr);
+          });
+        }
+
+        function updateCompoundControls() {
+            const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
+            getSelectedRowsButton.disabled = selectedCount < 2;
+            selectionCounter.textContent = selectedCount > 0 ? `${selectedCount} selected` : '';
+        }
+
+        // --- EVENT LISTENERS ---
+        getSelectedRowsButton.addEventListener("click", () => {
+          const selectedRowsData = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => JSON.parse(cb.closest('tr').dataset.rowData));
+          createCompoundSearchLink(selectedRowsData, logicDropdownButton.textContent.trim());
+        });
+
+        logicDropdownButton.addEventListener('click', () => logicDropdownMenu.classList.toggle('hidden'));
+        dropdownItems.forEach(item => {
+          item.addEventListener('click', e => {
+            e.preventDefault();
+            logicDropdownButton.childNodes[0].nodeValue = `${e.target.dataset.logic} `;
+            logicDropdownMenu.classList.add('hidden');
+          });
+        });
+        document.addEventListener('click', e => {
+          if (!logicDropdownButton.contains(e.target) && !logicDropdownMenu.contains(e.target)) {
+            logicDropdownMenu.classList.add('hidden');
+          }
+        });
+        selectAllCheckbox.addEventListener('change', e => {
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = e.target.checked);
+            updateCompoundControls();
+        });
+        tableBody.addEventListener('change', e => {
+            if (e.target.classList.contains('row-checkbox')) {
+                updateCompoundControls();
+            }
+        });
+
+        tableHead.addEventListener('click', e => {
+            const header = e.target.closest('.sortable');
+            if (!header) return;
+            const key = header.dataset.sortBy;
+            if (currentSort.key === key) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.key = key;
+                currentSort.direction = 'asc';
+            }
+            sortData();
+            renderTable();
+            updateSortIcons();
+        });
+        
+        helpButton.addEventListener('click', () => helpModal.classList.remove('hidden'));
+        closeModalButton.addEventListener('click', () => helpModal.classList.add('hidden'));
+        helpModal.addEventListener('click', e => {
+            if (e.target === helpModal) {
+                 helpModal.classList.add('hidden');
+            }
+        });
+        
+        // --- INITIALIZE ---
+        renderTable();
+        updateCompoundControls();
+        updateSortIcons();
+      });
+    </script>
+
+</body>
+</html>
+
