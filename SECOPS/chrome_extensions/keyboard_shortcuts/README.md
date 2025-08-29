@@ -8,13 +8,14 @@ This extension is designed for SecOps users who prefer keyboard-based navigation
 
 A key feature is an on-demand, searchable modal that provides a quick reference for all available shortcuts.
 
+![SecOps Keyboard Shortcuts](screenshot.png)
+
 ## Features
 
 - **Keyboard Shortcuts**: A rich set of `Alt+Shift+<Key>` shortcuts for navigation and UI interaction.
 - **Shortcut Helper Modal**: Press `Alt+Shift+?` at any time to open a modal listing all available shortcuts.
 - **Searchable List**: The shortcut modal includes a search bar to quickly find the command you need.
 - **UI Integration**: Adds a convenient shortcut icon to the main SecOps header for easy mouse access.
-- **Dynamic Theming**: The shortcut modal automatically adapts to the SecOps light or dark theme.
 
 ## How to Use
 
@@ -65,11 +66,10 @@ A key feature is an on-demand, searchable modal that provides a quick reference 
 ### For Development
 
 1.  Clone or download this repository.
-2.  (If you have made changes to the CSS) Ensure you have Node.js and npm installed, then run `npm install` and `npm run build:css` to build the stylesheet.
-3.  Open Google Chrome and navigate to `chrome://extensions`.
-4.  Enable "Developer mode" using the toggle in the top-right corner.
-5.  Click the "Load unpacked" button.
-6.  Select the directory where you cloned the repository.
+2.  Open Google Chrome and navigate to `chrome://extensions`.
+3.  Enable "Developer mode" using the toggle in the top-right corner.
+4.  Click the "Load unpacked" button.
+5.  Select the directory where you cloned the repository.
 
 ## Disclaimer
 
