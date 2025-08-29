@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Entity Risk Score Widget</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'background': 'var(--widget-bg-color)',
+                        'foreground': 'var(--widget-foreground-color)',
+                        'card': 'var(--widget-card-color)',
+                        'card-foreground': 'var(--widget-card-foreground-color)',
+                        'primary': 'var(--widget-primary-color)',
+                        'primary-foreground': 'var(--widget-primary-foreground-color)',
+                        'secondary': 'var(--widget-secondary-color)',
+                        'secondary-foreground': 'var(--widget-secondary-foreground-color)',
+                        'muted': 'var(--widget-muted-color)',
+                        'muted-foreground': 'var(--widget-muted-foreground-color)',
+                        'accent': 'var(--widget-accent-color)',
+                        'accent-foreground': 'var(--widget-accent-foreground-color)',
+                        'border': 'var(--widget-border-color)',
+                        'input': 'var(--widget-input-color)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Define Light Theme variables as default */
+            --widget-bg-color: #f9fafb; /* gray-50 */
+            --widget-foreground-color: #020817; /* slate-950 */
+            --widget-card-color: #ffffff; /* white */
+            --widget-card-foreground-color: #020817; /* slate-950 */
+            --widget-primary-color: #2563eb; /* blue-600 */
+            --widget-primary-foreground-color: #f8fafc; /* slate-50 */
+            --widget-secondary-color: #f1f5f9; /* slate-100 */
+            --widget-secondary-foreground-color: #0f172a; /* slate-900 */
+            --widget-muted-color: #f1f5f9; /* slate-100 */
+            --widget-muted-foreground-color: #64748b; /* slate-500 */
+            --widget-border-color: #e2e8f0; /* slate-200 */
+            --widget-input-color: #e2e8f0; /* slate-200 */
+            --widget-chart-line-color: 'rgb(59, 130, 246)';
+            --widget-chart-bg-color: 'rgba(59, 130, 246, 0.1)';
+            --widget-chart-grid-color: '#e2e8f0';
+            --widget-chart-tick-color: '#64748b';
+
+            /* Apply base styles using Tailwind utilities */
+            @apply bg-background text-foreground;
+        }
+        .risk-circle-bg {
+            stroke: var(--widget-border-color);
+            fill: none;
+        }
+        .risk-circle-progress {
+            fill: none;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.8s ease-out, stroke 0.5s;
+        }
+        .detections-table-container, .detections-summary-table-container {
+            transition: max-height 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="p-4 md:p-6">
+    <div class="w-full bg-card shadow-lg rounded-xl border border-border">
+        <div class="p-6 md:p-8">
+            <h1 class="text-2xl font-bold text-card-foreground mb-4 flex items-center">            
+              <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    fill="none" 
+    viewBox="0 0 24 24" 
+    stroke-width="1.5" 
+    stroke="currentColor" 
+    class="w-6 h-6 mr-2 text-yellow-500">
+    <path 
+      stroke-linecap="round" 
+      stroke-linejoin="round" 
+      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+  </svg>Entity Risk Score (ERS)</h1>
+            <div id="tabs-container" class="border-b border-border mb-6">
+            </div>
+            <div id="tab-content-container">
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="entity-template">
+    <div class="tab-panel space-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <div class="md:col-span-1 flex flex-col items-center justify-center bg-muted rounded-xl p-6">
+                <div class="relative w-40 h-40">
+                    <svg class="w-full h-full" viewBox="0 0 100 100">
+                        <circle class="risk-circle-bg" cx="50" cy="50" r="45" stroke-width="10"></circle>
+                        <circle class="risk-circle-progress" cx="50" cy="50" r="45" stroke-width="10"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="riskScore text-4xl font-bold text-card-foreground">...</span>
+                        <span class="text-sm text-muted-foreground">/ 1000</span>
+                    </div>
+                </div>
+                <p class="mt-4 text-lg font-semibold text-card-foreground">Overall Risk Score</p>
+                <div class="risk-trend-container mt-2 h-6"></div>
+            </div>
+
+            <div class="md:col-span-2 grid grid-cols-2 gap-x-8 gap-y-6">
+                <div>
+                    <p class="text-sm font-medium text-muted-foreground">Entity</p>
+                    <p class="entity text-lg font-semibold text-card-foreground break-words">...</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-muted-foreground">Type</p>
+                    <p class="type text-lg font-semibold text-card-foreground">...</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-muted-foreground">Related Events</p>
+                    <p class="detectionsCount text-lg font-semibold text-card-foreground">...</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-muted-foreground">Total Detections</p>
+                    <p class="totalDetections text-lg font-semibold text-card-foreground">...</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="text-sm font-medium text-muted-foreground">Total Risk Windows</p>
+                    <p class="totalRiskWindows text-lg font-semibold text-card-foreground">...</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-muted-foreground">Risk Window Start Time</p>
+                    <p class="firstSeen text-lg font-semibold text-card-foreground">...</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-muted-foreground">Risk Window End Time</p>
+                    <p class="lastSeen text-lg font-semibold text-card-foreground">...</p>
+                </div>
+            </div>
+
+        </div> <div class="pt-6 border-t border-border">
+            <h2 class="text-lg font-semibold text-card-foreground mb-4">Risk Score Over Time</h2>
+            <div class="bg-muted p-4 rounded-xl h-64">
+                <canvas class="riskChart"></canvas>
+            </div>
+        </div>
+
+        <div class="pt-6 border-t border-border">
+            <button class="toggle-summary-btn w-full flex justify-between items-center text-left text-lg font-semibold text-card-foreground hover:text-primary focus:outline-none py-2">
+                <span>Associated Detections</span>
+                <svg class="summary-chevron w-6 h-6 transform transition-transform duration-300 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div class="detections-summary-table-container mt-4 overflow-x-auto">
+                <table class="min-w-full bg-card border border-border rounded-lg">
+                    <thead class="bg-muted">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Alert</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Rule</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Severity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Risk Score</th>
+                        </tr>
+                    </thead>
+                    <tbody class="detections-summary-tbody divide-y divide-border">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="pt-6 border-t border-border">
+            <button class="toggle-detections-btn w-full flex justify-between items-center text-left text-lg font-semibold text-card-foreground hover:text-primary focus:outline-none py-2">
+                <span>Related UDM Events</span>
+                <svg class="detections-chevron w-6 h-6 transform transition-transform duration-300 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div class="detections-table-container mt-4 overflow-x-auto hidden">
+                <table class="min-w-full bg-card border border-border rounded-lg">
+                    <thead class="bg-muted">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Timestamp</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Log Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Event Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Vendor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Product Event Type</th>
+                        </tr>
+                    </thead>
+                    <tbody class="detections-tbody divide-y divide-border"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</template>
+
+
+<script>
+    // --- THEME DEFINITIONS & LOGIC ---
+    const themes = {
+        light: {
+            '--widget-bg-color': '#f9fafb',
+            '--widget-foreground-color': '#020817',
+            '--widget-card-color': '#ffffff',
+            '--widget-card-foreground-color': '#020817',
+            '--widget-primary-color': '#2563eb',
+            '--widget-primary-foreground-color': '#f8fafc',
+            '--widget-secondary-color': '#f1f5f9',
+            '--widget-secondary-foreground-color': '#0f172a',
+            '--widget-muted-color': '#f1f5f9',
+            '--widget-muted-foreground-color': '#64748b',
+            '--widget-border-color': '#e2e8f0',
+            '--widget-input-color': '#e2e8f0',
+            '--widget-chart-line-color': 'rgb(59, 130, 246)',
+            '--widget-chart-bg-color': 'rgba(59, 130, 246, 0.1)',
+            '--widget-chart-grid-color': '#e2e8f0',
+            '--widget-chart-tick-color': '#64748b',
+        },
+        dark: {
+            '--widget-bg-color': '#020817',
+            '--widget-foreground-color': '#f8fafc',
+            '--widget-card-color': '#0f172a',
+            '--widget-card-foreground-color': '#f8fafc',
+            '--widget-primary-color': '#60a5fa',
+            '--widget-primary-foreground-color': '#020817',
+            '--widget-secondary-color': '#1e293b',
+            '--widget-secondary-foreground-color': '#f8fafc',
+            '--widget-muted-color': '#1e293b',
+            '--widget-muted-foreground-color': '#94a3b8',
+            '--widget-border-color': '#334155',
+            '--widget-input-color': '#334155',
+            '--widget-chart-line-color': 'rgb(96, 165, 250)',
+            '--widget-chart-bg-color': 'rgba(96, 165, 250, 0.1)',
+            '--widget-chart-grid-color': '#334155',
+            '--widget-chart-tick-color': '#94a3b8',
+        }
+    };
+
+    function applyTheme(themeObject) {
+        for (const [key, value] of Object.entries(themeObject)) {
+            document.body.style.setProperty(key, value);
+        }
+    }
+
+    function isColorDark(hexColor) {
+        if (!hexColor || hexColor.length < 4) return false;
+        let hex = hexColor.replace('#', '');
+        if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return (0.299 * r + 0.587 * g + 0.114 * b) < 140;
+    }
+
+    onmessage = evt => {
+        console.log("Message received from SOAR:", evt.data);
+        if (evt.data && evt.data.background) {
+            const isDark = isColorDark(evt.data.background);
+            const themeMode = isDark ? 'dark' : 'light';
+            console.log(`Theme detected as: ${themeMode}`);
+            applyTheme(themes[themeMode]);
+            updateAllCharts(themeMode);
+        }
+    }
+
+    function simulateSoarMessage(mode) {
+        const message = { data: { background: mode === 'dark' ? '#2f3d5c' : '#bdc1c6' } };
+        if (window.onmessage) window.onmessage(message);
+    }
+    // --- END THEME LOGIC ---
+
+
+    // --- WIDGET APPLICATION LOGIC ---
+    const jsonData = {"entities":[[SECOPS_ERS_BLOCK_1.GET_FINAL_RESULTS_JSON.ScriptResult]]}
+
+    const chartInstances = {};
+
+    /**
+     * Formats a date string into 'YYYY-MM-DD HH:MM:SS UTC'.
+     * @param {string} dateString - The date string to format.
+     * @returns {string} The formatted date string or 'N/A'.
+     */
+    function formatUTCDate(dateString) {
+        if (!dateString) return 'N/A';
+        try {
+            const date = new Date(dateString);
+            const pad = (num) => num.toString().padStart(2, '0');
+            const year = date.getUTCFullYear();
+            const month = pad(date.getUTCMonth() + 1);
+            const day = pad(date.getUTCDate());
+            const hours = pad(date.getUTCHours());
+            const minutes = pad(date.getUTCMinutes());
+            const seconds = pad(date.getUTCSeconds());
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
+        } catch (e) {
+            console.error("Invalid date:", dateString, e);
+            return 'Invalid Date';
+        }
+    }
+    
+    /**
+     * Updates all active charts with the current theme's colors.
+     * @param {string} themeMode - 'light' or 'dark'.
+     */
+    function updateAllCharts(themeMode) {
+        const bodyStyles = document.body.style;
+        for (const chartId in chartInstances) {
+            const chart = chartInstances[chartId];
+            chart.data.datasets[0].borderColor = bodyStyles.getPropertyValue('--widget-chart-line-color');
+            chart.data.datasets[0].backgroundColor = bodyStyles.getPropertyValue('--widget-chart-bg-color');
+            chart.options.scales.y.grid.color = bodyStyles.getPropertyValue('--widget-chart-grid-color');
+            chart.options.scales.x.grid.color = bodyStyles.getPropertyValue('--widget-chart-grid-color');
+            chart.options.scales.y.ticks.color = bodyStyles.getPropertyValue('--widget-chart-tick-color');
+            chart.options.scales.x.ticks.color = bodyStyles.getPropertyValue('--widget-chart-tick-color');
+            chart.options.scales.y.title.color = bodyStyles.getPropertyValue('--widget-chart-tick-color');
+            chart.update();
+        }
+    }
+
+/**
+ * Creates a styled chip/badge for displaying severity or priority.
+ * @param {string} text The text to display (e.g., 'HIGH', 'MEDIUM').
+ * @param {string} type The type of data, either 'severity' or 'priority'.
+ * @returns {string} The HTML string for the chip.
+ */
+function createChip(text, type) {
+    if (!text || text === 'N/A') {
+        return '<span>N/A</span>';
+    }
+
+    const value = text.toLowerCase();
+    let colorClasses = '';
+
+    // Define color mappings
+    const severityColors = {
+        'critical': 'bg-red-200 text-red-800 border border-red-300',
+        'high': 'bg-orange-200 text-orange-800 border border-orange-300',
+        'medium': 'bg-yellow-200 text-yellow-800 border border-yellow-300',
+        'low': 'bg-blue-200 text-blue-800 border border-blue-300',
+    };
+
+    const priorityColors = {
+        'high': 'bg-red-200 text-red-800 border border-red-300',
+        'medium': 'bg-yellow-200 text-yellow-800 border border-yellow-300',
+        'low': 'bg-green-200 text-green-800 border border-green-300',
+    };
+
+    if (type === 'severity') {
+        colorClasses = severityColors[value] || 'bg-gray-200 text-gray-800 border border-gray-300';
+    } else if (type === 'priority') {
+        colorClasses = priorityColors[value] || 'bg-gray-200 text-gray-800 border border-gray-300';
+    }
+
+    // Combine base classes with color classes
+    const baseClasses = 'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold';
+    
+    return `<span class="${baseClasses} ${colorClasses}">${text}</span>`;
+}
+
+/**
+ * Calculates the overall risk trend and returns an HTML string for display.
+ * @param {Array} scores The array of entityRiskScores objects.
+ * @returns {string} The HTML string for the trend indicator.
+ */
+function getRiskTrend(scores) {
+    if (!scores || scores.length < 2) {
+        return ''; // Return empty string if no trend can be calculated
+    }
+
+    const firstScore = scores[0].riskScore;
+    const lastScore = scores[scores.length - 1].riskScore;
+    
+    // Handle cases where the score starts and ends at zero
+    if (firstScore === 0 && lastScore === 0) {
+         return `<span class="text-sm font-medium text-muted-foreground">No Change</span>`;
+    }
+
+    // Handle case where risk increases from a starting point of zero
+    if (firstScore === 0) {
+        return `<span class="flex items-center text-sm font-semibold text-red-500">
+                    <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>
+                    <span>Increased from Zero</span>
+                </span>`;
+    }
+
+    const percentageChange = ((lastScore - firstScore) / 1000) * 100;
+
+    // If change is negligible, show a neutral message
+    if (Math.abs(percentageChange) < 0.1) {
+        return `<span class="text-sm font-medium text-muted-foreground">No Significant Change</span>`;
+    }
+
+    const isIncrease = percentageChange > 0;
+    const colorClass = isIncrease ? 'text-red-500' : 'text-green-500';
+    const upArrow = '<svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>';
+    const downArrow = '<svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>';
+    
+    return `<div class="flex items-center text-sm font-semibold ${colorClass}">
+                ${isIncrease ? upArrow : downArrow}
+                <span>${Math.abs(percentageChange.toFixed(0))}% ${isIncrease ? 'Increase' : 'Decrease'}</span>
+            </div>`;
+}
+
+function renderEntityData(panel, entityData) {
+    // Destructure properties from the main entity object
+    const scores = entityData.entityRiskScores;
+    const alertContainer = entityData.detections?.find(item => item && item.alerts);
+    const detections = alertContainer?.alerts?.alerts || [];
+    const detectionsCounts = entityData.detectionsCounts; // Array with aggregated counts
+
+    if (scores && scores.length > 0) {
+        const firstRecord = scores[0];
+        const type = firstRecord.entity.metadata.entityType || 'N/A';
+        const entityIndicatorValue = firstRecord.entityIndicator ? Object.values(firstRecord.entityIndicator)[0] : 'N/A';
+        const latestScoreData = [...scores].sort((a, b) => new Date(b.riskWindow.startTime) - new Date(a.riskWindow.startTime))[0];
+        const riskScore = latestScoreData.riskScore || 0;
+        
+        const uniqueDetectionIds = new Set(scores.map(s => s.entity?.metadata?.eventMetadata?.id).filter(Boolean));
+        const detectionsCount = uniqueDetectionIds.size;
+        
+        const totalRiskWindows = scores.length;
+        const startTimes = scores.map(s => new Date(s.riskWindow.startTime));
+        const dateFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        const firstSeen = new Date(Math.min(...startTimes)).toLocaleDateString(undefined, dateFormatOptions);
+        const lastSeen = new Date(Math.max(...startTimes)).toLocaleDateString(undefined, dateFormatOptions);
+
+        panel.querySelector('.type').textContent = type;
+        panel.querySelector('.entity').textContent = entityIndicatorValue;
+        panel.querySelector('.riskScore').textContent = riskScore;
+        panel.querySelector('.detectionsCount').textContent = detectionsCount;
+        panel.querySelector('.totalRiskWindows').textContent = totalRiskWindows;
+        panel.querySelector('.firstSeen').textContent = firstSeen;
+        panel.querySelector('.lastSeen').textContent = lastSeen;
+
+        const progressCircle = panel.querySelector('.risk-circle-progress');
+        const radius = progressCircle.r.baseVal.value;
+        const circumference = 2 * Math.PI * radius;
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressCircle.style.strokeDashoffset = circumference - (riskScore / 1000) * circumference;
+        let progressColor = 'stroke-green-500';
+        if (riskScore > 333 && riskScore <= 666) progressColor = 'stroke-yellow-500';
+        else if (riskScore > 666) progressColor = 'stroke-red-500';
+        progressCircle.setAttribute('class', `risk-circle-progress ${progressColor}`);
+
+        const trendHtml = getRiskTrend(scores);
+        const trendContainer = panel.querySelector('.risk-trend-container');
+        if (trendContainer) {
+            trendContainer.innerHTML = trendHtml;
+        }
+
+        const riskChartCanvas = panel.querySelector('.riskChart');
+        const chartId = `chart-${panel.id}`;
+        if (chartInstances[chartId]) chartInstances[chartId].destroy();
+        
+        const chartData = scores.map(s => ({ time: new Date(s.riskWindow.startTime), score: s.riskScore })).sort((a, b) => a.time - b.time);
+        const chartLabels = chartData.map(d => d.time.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit' }));
+        const chartScores = chartData.map(d => d.score);
+        
+        const bodyStyles = getComputedStyle(document.body);
+        const lineColor = bodyStyles.getPropertyValue('--widget-chart-line-color').trim();
+        const bgColor = bodyStyles.getPropertyValue('--widget-chart-bg-color').trim();
+        const gridColor = bodyStyles.getPropertyValue('--widget-chart-grid-color').trim();
+        const tickColor = bodyStyles.getPropertyValue('--widget-chart-tick-color').trim();
+        
+        chartInstances[chartId] = new Chart(riskChartCanvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Risk Score',
+                    data: chartScores,
+                    borderColor: lineColor,
+                    backgroundColor: bgColor,
+                    tension: 0.2,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true, max: 1000,
+                        title: { display: true, text: 'Risk Score', color: tickColor },
+                        grid: { color: gridColor },
+                        ticks: { color: tickColor }
+                    },
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { color: tickColor }
+                    }
+                },
+                plugins: { legend: { display: false } },
+            }
+        });
+
+        const detectionsTbody = panel.querySelector('.detections-tbody');
+        detectionsTbody.innerHTML = '';
+        const uniqueUdmEventsMap = new Map();
+        scores.forEach(score => {
+            const metadata = score.entity?.metadata?.eventMetadata;
+            if (metadata && metadata.id) uniqueUdmEventsMap.set(metadata.id, score);
+        });
+
+        const sortedUdmEvents = Array.from(uniqueUdmEventsMap.values())
+            .sort((a, b) => {
+                const timeA = a.entity?.metadata?.eventMetadata?.eventTimestamp;
+                const timeB = b.entity?.metadata?.eventMetadata?.eventTimestamp;
+                return new Date(timeB) - new Date(timeA);
+            });
+
+        sortedUdmEvents.forEach(score => {
+            const metadata = score.entity.metadata.eventMetadata;
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-muted';
+            const timestamp = formatUTCDate(metadata.eventTimestamp);
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">${timestamp}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">${metadata.logType || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">${metadata.eventType || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">${metadata.vendorName || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">${metadata.productName || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">${metadata.productEventType || 'N/A'}</td>`;
+            detectionsTbody.appendChild(row);
+        });
+    }
+    
+    // --- NEW LOGIC FOR TOTAL DETECTIONS ---
+    // Calculate total detections by summing counts from the detectionsCounts array
+    const totalDetectionsAggregate = (detectionsCounts && Array.isArray(detectionsCounts))
+        ? detectionsCounts.reduce((sum, item) => sum + (parseInt(item.detectionsCount, 10) || 0), 0)
+        : 0; // Fallback to 0 if the array doesn't exist
+
+    panel.querySelector('.totalDetections').textContent = totalDetectionsAggregate;
+    // --- END OF NEW LOGIC ---
+
+    const detectionsSummaryTbody = panel.querySelector('.detections-summary-tbody');
+    detectionsSummaryTbody.innerHTML = '';
+    if (detections && detections.length > 0) {
+        const sortedDetections = [...detections].sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+        
+        sortedDetections.forEach(det => {
+            const detectionDetails = det.detection?.[0] || {};
+            const feedback = det.feedbackSummary || {};
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-muted';
+            const ruleName = detectionDetails.ruleName || 'N/A';
+            const ruleId = detectionDetails.ruleId || 'N/A';
+            const detectionId = det.id || 'N/A';
+            const createdTime = formatUTCDate(det.createdTime);
+
+            // Get severity and priority values
+            const severity = feedback.severityDisplay || 'N/A';
+            const priority = feedback.priorityDisplay || 'N/A';
+
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">${createdTime}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">${det.type || 'N/A'}</td>
+                <td class="px-6 py-4 text-sm text-card-foreground">
+                    <div class="font-semibold break-words max-w-xs">${ruleName}</div>
+                    <div class="text-xs text-muted-foreground">Rule ID: ${ruleId}</div>
+                    <div class="text-xs text-muted-foreground">Detection ID: ${detectionId}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
+                    ${createChip(severity, 'severity')}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
+                    ${createChip(priority, 'priority')}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">${feedback.riskScore || 'N/A'}</td>`;
+            detectionsSummaryTbody.appendChild(row);
+        });
+    } else {
+         detectionsSummaryTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted-foreground py-4">No associated detections found.</td></tr>`;
+    }
+
+    const toggleSummaryBtn = panel.querySelector('.toggle-summary-btn');
+    const summaryTableContainer = panel.querySelector('.detections-summary-table-container');
+    const summaryChevron = panel.querySelector('.summary-chevron');
+    summaryChevron.classList.add('rotate-180'); // Default to open
+    toggleSummaryBtn.addEventListener('click', () => {
+        const isHidden = summaryTableContainer.classList.contains('hidden');
+        summaryTableContainer.classList.toggle('hidden', !isHidden);
+        summaryChevron.classList.toggle('rotate-180', isHidden);
+    });
+
+    const toggleBtn = panel.querySelector('.toggle-detections-btn');
+    const tableContainer = panel.querySelector('.detections-table-container');
+    const chevron = panel.querySelector('.detections-chevron');
+    toggleBtn.addEventListener('click', () => {
+        const isHidden = tableContainer.classList.contains('hidden');
+        tableContainer.classList.toggle('hidden', !isHidden);
+        chevron.classList.toggle('rotate-180', isHidden);
+    });
+}
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const entities = jsonData.entities;
+        if (!Array.isArray(entities) || entities.length === 0) return;
+
+        const tabsContainer = document.getElementById('tabs-container');
+        const contentContainer = document.getElementById('tab-content-container');
+        const template = document.getElementById('entity-template');
+        let isFirst = true;
+
+        entities.forEach((entity, index) => {
+            const entityScores = entity.entityRiskScores;
+            const detections = entity.detections;
+            if ((!entityScores || entityScores.length === 0) && (!detections || detections.length === 0)) return;
+
+            let entityIndicator = 'Unknown';
+            if (entityScores && entityScores.length > 0) {
+                    entityIndicator = entityScores[0]?.entityIndicator ? Object.values(entityScores[0].entityIndicator)[0] : 'Unknown';
+            } else if (detections && detections.length > 0) {
+                    const firstDetection = detections[0].detection?.[0];
+                    entityIndicator = firstDetection?.detectionFields?.[0]?.value || 'Unknown';
+            }
+            
+            const tabButton = document.createElement('button');
+            tabButton.textContent = entityIndicator;
+            tabButton.dataset.target = `panel-${index}`;
+            const activeClasses = 'text-primary border-primary';
+            const inactiveClasses = 'text-muted-foreground border-transparent hover:text-foreground hover:border-border';
+            tabButton.className = `py-3 px-4 -mb-px font-semibold border-b-2 ${isFirst ? activeClasses : inactiveClasses}`;
+            tabsContainer.appendChild(tabButton);
+
+            const panelFragment = template.content.cloneNode(true);
+            const panel = panelFragment.querySelector('.tab-panel');
+            panel.id = `panel-${index}`;
+            if (!isFirst) panel.classList.add('hidden');
+            contentContainer.appendChild(panel);
+            
+            // MODIFICATION: Pass the entire 'entity' object instead of its properties separately
+            renderEntityData(panel, entity); 
+            
+            isFirst = false;
+        });
+        
+        if (isFirst) {
+             contentContainer.innerHTML = `<p class="text-center text-muted-foreground py-8">No valid entity data to display.</p>`;
+        }
+
+        tabsContainer.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') return;
+
+            Array.from(tabsContainer.children).forEach(tab => {
+                tab.className = 'py-3 px-4 -mb-px font-semibold border-b-2 text-muted-foreground border-transparent hover:text-foreground hover:border-border';
+            });
+            Array.from(contentContainer.children).forEach(panel => panel.classList.add('hidden'));
+
+            e.target.className = 'py-3 px-4 -mb-px font-semibold border-b-2 text-primary border-primary';
+            document.getElementById(e.target.dataset.target).classList.remove('hidden');
+        });
+    });
+</script>
+</body>
+</html>
