@@ -6,8 +6,6 @@ This HTML widget provides a user interface for exploring and acting upon UDM (Un
 
 ## How it Works
 
-The widget is a single, self-contained HTML file that uses vanilla JavaScript and Tailwind CSS for styling. It's designed to be embedded within another application or used as a standalone component.
-
 ### Data
 
 The widget is designed to receive entity data and render it in a table. The data is expected to be an array of JSON objects, where each object represents an entity and contains the following information:
@@ -18,10 +16,8 @@ The widget is designed to receive entity data and render it in a table. The data
 *   `EntityCards.IsPivot`: A boolean indicating if the entity is a pivot entity.
 *   `EntityCards.IsSuspicious`: A boolean indicating if the entity is suspicious.
 *   `EntityCards.IsManuallyCreated`: A boolean indicating if the entity was manually created.
-*   `CreationTime`: The creation time of the alert, used to define the time range for searches.
 *   `SourceSystemUrl`: The base URL for the Google SecOps instance.
 
-The widget contains two placeholder functions, `buildJsonObject` and `buildJsonObject1`, which generate sample data. In a real-world scenario, this data would be dynamically populated by a backend system. The `buildJsonObject` function contains placeholders like `[Entity.Identifier]`, which are intended to be replaced by a templating engine.
 
 ### Theming
 
@@ -38,6 +34,5 @@ The widget supports both light and dark themes. It automatically detects the app
 ## How to Use
 
 1.  **Integration**: Embed the `widget.html` file into your application.
-2.  **Data Population**: Modify the `buildJsonObject` function or replace it with your own data-loading mechanism to populate the table with real entity data. If you are using a templating engine, you can replace the placeholders in the `buildJsonObject` function with your template variables.
-3.  **Theming**: The widget will automatically adapt to the background color of the parent application.
+2.  **Theming**: The widget will automatically adapt to the background color of the parent application.
 
