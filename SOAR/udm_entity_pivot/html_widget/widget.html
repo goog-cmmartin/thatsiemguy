@@ -233,7 +233,7 @@
           })).filter(item => !filter.includes(item.EntityCards.Type));
         }
 
-        function buildJsonObject(filter) {
+function buildJsonObject(filter) {
           const entitiesIdentifier =
             String.raw`[Entity.Identifier]`.split(
               ","
@@ -253,7 +253,9 @@
           const entitiesManual = "[Entity.IsManuallyCreated]".split(
             ","
           );
-          const secopsUrl = "https://gglsjd.backstory.chronicle.security";
+          const secopsUrl = "[General.HostUrl]".slice(0, -1);
+          // Alternativelly, manually set a Frontend path URL 
+          #const secopsUrl = "https://custom-frontend-url.backstory.chronicle.security";
   
           const date = new Date("[Alert.CreationTime]");
   
@@ -264,6 +266,7 @@
             .map((identifier, index) => ({
               EntityCards: {
                 Identifier: identifier,
+                // CORRECTED: Explicitly convert the string values to booleans
                 IsInternalAsset: entitiesInternal[index] === "True",
                 IsPivot: entitiesPivot[index] === "True",
                 IsSuspicious: entitiesSuspicious[index] === "True",
@@ -368,20 +371,9 @@
           window.open(url, "_blank");
         }
 
-function renderTable() {
+        function renderTable() {
           tableBody.innerHTML = "";
           tableData.forEach(rowData => {
-            // Log the entire rowData object for a complete overview of the data
-            console.log('Processing rowData:', rowData);
-            
-            // Log the specific boolean values that determine the tags
-            console.log(
-                `Entity: ${rowData.EntityCards.Identifier}`,
-                `Suspicious: ${rowData.EntityCards.IsSuspicious}`,
-                `Pivot: ${rowData.EntityCards.IsPivot}`,
-                `Internal: ${rowData.EntityCards.IsInternalAsset}`,
-                `Manual: ${rowData.EntityCards.IsManuallyCreated}`
-            );
 
             const tr = document.createElement("tr");
             tr.className = "hover:bg-accent";
