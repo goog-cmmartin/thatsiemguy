@@ -233,48 +233,48 @@
           })).filter(item => !filter.includes(item.EntityCards.Type));
         }
 
-          function buildJsonObject(filter) {
-            const entitiesIdentifier =
-              String.raw`[Entity.Identifier]`.split(
-                ","
-              );
-            const entitiesType =
-              "[Entity.Type]".split(
-                ","
-              );
-            const entitiesInternal = "[Entity.IsInternalAsset]".split(
+        function buildJsonObject(filter) {
+          const entitiesIdentifier =
+            String.raw`[Entity.Identifier]`.split(
               ","
             );
-            const entitiesSuspicious =
-              "[Entity.IsSuspicious]".split(",");
-            const entitiesPivot = "[Entity.IsPivot]".split(
+          const entitiesType =
+            "[Entity.Type]".split(
               ","
             );
-            const entitiesManual = "[Entity.IsManuallyCreated]".split(
-              ","
-            );
-            const secopsUrl = "https://gglsjd.backstory.chronicle.security";
-    
-            const date = new Date("[Alert.CreationTime]");
-    
-            // Get the timestamp in milliseconds
-            const timestampMilis = date.getTime(); //* 1000;
-    
-            return entitiesIdentifier
-              .map((identifier, index) => ({
-                EntityCards: {
-                  Identifier: identifier,
-                  IsInternalAsset: entitiesInternal[index],
-                  IsPivot: entitiesPivot[index],
-                  IsSuspicious: entitiesSuspicious[index],
-                  Type: entitiesType[index],
-                  SourceSystemUrl: secopsUrl,
-                  IsManuallyCreated: entitiesManual[index],
-                },
-                CreationTime: timestampMilis,
-              }))
-              .filter((item) => !filter.includes(item.EntityCards.Type));
-          }
+          const entitiesInternal = "[Entity.IsInternalAsset]".split(
+            ","
+          );
+          const entitiesSuspicious =
+            "[Entity.IsSuspicious]".split(",");
+          const entitiesPivot = "[Entity.IsPivot]".split(
+            ","
+          );
+          const entitiesManual = "[Entity.IsManuallyCreated]".split(
+            ","
+          );
+          const secopsUrl = "https://gglsjd.backstory.chronicle.security";
+  
+          const date = new Date("[Alert.CreationTime]");
+  
+          // Get the timestamp in milliseconds
+          const timestampMilis = date.getTime(); //* 1000;
+  
+          return entitiesIdentifier
+            .map((identifier, index) => ({
+              EntityCards: {
+                Identifier: identifier,
+                IsInternalAsset: entitiesInternal[index] === "True",
+                IsPivot: entitiesPivot[index] === "True",
+                IsSuspicious: entitiesSuspicious[index] === "True",
+                Type: entitiesType[index],
+                SourceSystemUrl: secopsUrl,
+                IsManuallyCreated: entitiesManual[index] === "True",
+              },
+              CreationTime: timestampMilis,
+            }))
+            .filter((item) => !filter.includes(item.EntityCards.Type));
+        }
         const filter = ["THREAT", "THREATSIGNATURE", "EMAILSUBJECT", "DEPLOYMENT", "PhoneNumber"];
         const tableData = buildJsonObject(filter);
 
@@ -368,14 +368,25 @@
           window.open(url, "_blank");
         }
 
-        function renderTable() {
+function renderTable() {
           tableBody.innerHTML = "";
           tableData.forEach(rowData => {
+            // Log the entire rowData object for a complete overview of the data
+            console.log('Processing rowData:', rowData);
+            
+            // Log the specific boolean values that determine the tags
+            console.log(
+                `Entity: ${rowData.EntityCards.Identifier}`,
+                `Suspicious: ${rowData.EntityCards.IsSuspicious}`,
+                `Pivot: ${rowData.EntityCards.IsPivot}`,
+                `Internal: ${rowData.EntityCards.IsInternalAsset}`,
+                `Manual: ${rowData.EntityCards.IsManuallyCreated}`
+            );
+
             const tr = document.createElement("tr");
             tr.className = "hover:bg-accent";
             tr.dataset.rowData = JSON.stringify(rowData);
             
-            // CORRECTED: Declare `tags` inside the loop to ensure it's specific to each row.
             const tags = [
                 rowData.EntityCards.IsSuspicious && { text: 'Suspicious', class: 'bg-red-100 text-red-800' },
                 rowData.EntityCards.IsPivot && { text: 'Pivot', class: 'bg-yellow-100 text-yellow-800' },
@@ -475,4 +486,3 @@
 
 </body>
 </html>
-
