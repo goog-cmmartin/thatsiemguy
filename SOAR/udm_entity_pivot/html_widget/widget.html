@@ -373,8 +373,9 @@
           tableData.forEach(rowData => {
             const tr = document.createElement("tr");
             tr.className = "hover:bg-accent";
-            tr.dataset.rowData = JSON.stringify(rowData); 
+            tr.dataset.rowData = JSON.stringify(rowData);
             
+            // CORRECTED: Declare `tags` inside the loop to ensure it's specific to each row.
             const tags = [
                 rowData.EntityCards.IsSuspicious && { text: 'Suspicious', class: 'bg-red-100 text-red-800' },
                 rowData.EntityCards.IsPivot && { text: 'Pivot', class: 'bg-yellow-100 text-yellow-800' },
@@ -405,6 +406,7 @@
             tableBody.appendChild(tr);
           });
         }
+
 
         function updateCompoundControls() {
             const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
