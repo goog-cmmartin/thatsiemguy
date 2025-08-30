@@ -254,8 +254,9 @@ function buildJsonObject(filter) {
             ","
           );
           const secopsUrl = "[General.HostUrl]".slice(0, -1);
-          // Alternativelly, manually set a Frontend path URL 
-          #const secopsUrl = "https://custom-frontend-url.backstory.chronicle.security";
+          
+          // Alternatively, manually set a Frontend path URL 
+          // const secopsUrl = "https://custom-frontend-url.backstory.chronicle.security";
   
           const date = new Date("[Alert.CreationTime]");
   
@@ -337,9 +338,32 @@ function buildJsonObject(filter) {
         }
 
         function convertTimestamps(ts) {
-          const date = new Date(ts), start = new Date(date), end = new Date(date), now = new Date();
-          start.setDate(date.getDate() - 1); end.setDate(date.getDate() + 1);
-          return { startTimeIso: start.toISOString(), endTimeIso: (end > now ? now : end).toISOString() };
+            // Check if the input is a valid number
+            if (typeof ts !== 'number' || isNaN(ts)) {
+                console.error('Error: Invalid timestamp provided. Expected a number in milliseconds.');
+                // Return a default or null value to prevent further errors
+                return { startTimeIso: null, endTimeIso: null };
+            }
+
+            const date = new Date(ts);
+
+            // Validate if the Date object is valid
+            if (isNaN(date.getTime())) {
+                console.error('Error: The provided timestamp cannot be converted to a valid date.');
+                return { startTimeIso: null, endTimeIso: null };
+            }
+
+            const start = new Date(date);
+            const end = new Date(date);
+            const now = new Date();
+
+            start.setDate(date.getDate() - 1);
+            end.setDate(date.getDate() + 1);
+
+            return {
+                startTimeIso: start.toISOString(),
+                endTimeIso: (end > now ? now : end).toISOString()
+            };
         }
         
         function createSearchLink(rowData, type) {
