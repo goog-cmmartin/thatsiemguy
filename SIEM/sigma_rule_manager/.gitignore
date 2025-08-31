@@ -1,0 +1,4 @@
+# Ignore the nested Git repository
+SIEM/sigma_rule_manager/sigma_repos/SigmaHQ/
+SIEM/sigma_rule_manager/sigma_manager.db
+SIEM/sigma_rule_manager/venv
