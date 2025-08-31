@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGMA Rule Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/material-darker.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .table-cell { padding: 0.75rem; border-bottom-width: 1px; border-color: #374151; }
+        .modal-bg { background-color: rgba(0,0,0,0.5); }
+        pre {
+            background-color: #1f2937;
+            color: #d1d5db;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            max-height: 60vh;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .tab-button {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            border-color: #3b82f6; /* blue-500 */
+            color: #eff6ff; /* blue-50 */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .sub-tab-button {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .sub-tab-button.active {
+            border-color: #3b82f6; /* blue-500 */
+            color: #eff6ff; /* blue-50 */
+        }
+        .sub-tab-content {
+            display: none;
+        }
+        .sub-tab-content.active {
+            display: block;
+        }
+        .blur-background {
+            filter: blur(4px);
+            transition: filter 0.3s ease-out;
+        }
+        .sortable { cursor: pointer; }
+        .sortable:hover { color: #60a5fa; } /* blue-400 */
+        .sort-indicator {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        .sort-asc .sort-indicator {
+            border-bottom: 5px solid;
+        }
+        .sort-desc .sort-indicator {
+            border-top: 5px solid;
+        }
+       /* Custom PrismJS overrides to match your theme */
+        pre[class*="language-"] {
+            background: #1f2937 !important; /* bg-gray-800 */
+            border: 1px solid #374151; /* border-gray-700 */
+            font-family: 'Courier New', Courier, monospace !important;
+            font-size: 0.8rem !important;
+        }
+        .sort-desc .sort-indicator {
+            border-top: 5px solid;
+        }
+
+        /* Add this new rule for CodeMirror's height */
+        .CodeMirror {
+            height: 100%;
+        }             
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <div id="toast-container" class="fixed top-5 right-5 z-50"></div>
+
+    <div id="page-content" class="w-[95%] mx-auto p-6">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-white">SIGMA Rule Manager</h1>
+            <p class="text-gray-400">Manage the lifecycle of SIGMA rules in Google SecOps.</p>
+        </header>
+
+        <div class="mb-4 border-b border-gray-700">
+            <nav class="flex space-x-4" aria-label="Tabs">
+                <button class="tab-button active" data-tab="setup">Setup</button>
+                <button class="tab-button" data-tab="rules">Rules</button>
+            </nav>
+        </div>
+
+        <main>
+            <div id="setup" class="tab-content active space-y-8">
+                <!-- Section 1: Configuration -->
+                <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Tenant Management -->
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Manage Tenants</h2>
+                        <form id="tenant-form" class="space-y-4 mb-6">
+                            <input type="text" id="tenant-name" placeholder="Tenant Name" class="w-full bg-gray-700 text-white p-2 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="text" id="tenant-guid" placeholder="Customer GUID" class="w-full bg-gray-700 text-white p-2 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="text" id="tenant-region" placeholder="Region (e.g., us)" class="w-full bg-gray-700 text-white p-2 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="text" id="tenant-gcp-project-id" placeholder="GCP Project ID" class="w-full bg-gray-700 text-white p-2 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">Add Tenant</button>
+                        </form>
+                        <div id="tenants-list" class="space-y-2"></div>
+                    </div>
+
+                    <!-- Library Management -->
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Manage Libraries</h2>
+                        <form id="library-form" class="space-y-4 mb-6">
+                            <input type="text" id="library-name" placeholder="Library Name" class="w-full bg-gray-700 text-white p-2 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="text" id="library-source" placeholder="Git Repository URL" class="w-full bg-gray-700 text-white p-2 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">Add Library</button>
+                        </form>
+                        <div id="libraries-list" class="space-y-2"></div>
+                    </div>
+                </section>
+            </div>
+
+            <div id="rules" class="tab-content h-full">
+                <!-- Sub-tab navigation -->
+                <div class="mb-4 border-b border-gray-700">
+                    <nav class="flex space-x-4" aria-label="Sub-tabs">
+                        <button class="sub-tab-button active" data-sub-tab="sigma-rules-content">SIGMA Rules</button>
+                        <button class="sub-tab-button" data-sub-tab="yaral-rules-content">Converted YARA-L Rules</button>
+                        <button class="sub-tab-button" data-sub-tab="deployments-content">Deployments</button>
+                    </nav>
+                </div>
+
+                <!-- Sub-tab content -->
+                <div id="sigma-rules-content" class="sub-tab-content active h-full">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg h-full flex flex-col">
+                        <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">SIGMA Rules</h2>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-2">
+                                <select id="library-filter" class="bg-gray-700 p-2 rounded-md border border-gray-600 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    </select>
+                                <select id="status-filter" class="bg-gray-700 p-2 rounded-md border border-gray-600 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <option value="">All Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="success">Success</option>
+                                    <option value="failed">Failed</option>
+                                </select>
+                                <div class="relative">
+                                    <input type="text" id="search-input" placeholder="Search..." class="bg-gray-700 text-white p-2 pl-8 rounded-md border border-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                                <div class="relative" id="column-selector-container">
+                                    <button id="column-selector-btn" class="flex items-center space-x-2 bg-gray-700 p-2 rounded-md border border-gray-600 text-sm hover:bg-gray-600">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m3 8H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2z"></path></svg>
+                                        <span>Columns</span>
+                                    </button>
+                                    <div id="column-selector-dropdown" class="hidden absolute z-10 mt-2 w-56 rounded-md shadow-lg bg-gray-700 ring-1 ring-black ring-opacity-5">
+                                        <div class="py-1" id="column-options">
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="convert-btn" class="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5"></path></svg>
+                                    <span>Convert</span>
+                                </button>
+                                <button id="convert-ai-btn" class="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                    <span>Convert with AI</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-auto flex-grow">
+                            <table class="w-full text-left">
+                                <thead id="sigma-rules-table-head" class="sticky top-0 bg-gray-800">
+                                    <!-- JS will populate this -->
+                                </thead>
+                                <tbody id="sigma-rules-table-body">
+                                    <!-- JS will populate this -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="yaral-rules-content" class="sub-tab-content h-full">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg h-full flex flex-col">
+                        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                            <h2 class="text-2xl font-semibold">Converted YARA-L Rules</h2>
+                            
+                            <div class="flex items-center space-x-2">
+                                <div class="relative">
+                                    <input type="text" id="yaral-search-input" placeholder="Search by title..." class="bg-gray-700 text-white p-2 pl-8 rounded-md border border-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                                <button id="refresh-yaral-btn" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold py-2 px-3 rounded-md transition duration-300">
+                                    <span>Refresh</span>
+                                </button>
+                            </div>
+                        </div>
+                         <div class="overflow-auto flex-grow">
+                            <table class="w-full text-left">
+                                <thead class="sticky top-0 bg-gray-800">
+                                    <tr>
+                                        <th class="table-cell">Title</th>
+                                        <th class="table-cell">Source</th>
+                                        <th class="table-cell text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="yaral-rules-table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="deployments-content" class="sub-tab-content h-full">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg h-full flex flex-col">
+                        <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Deployments</h2>
+                         <div class="overflow-auto flex-grow">
+                            <table class="w-full text-left">
+                                <thead class="sticky top-0 bg-gray-800">
+                                    <tr>
+                                        <th class="table-cell">Rule</th>
+                                        <th class="table-cell">Tenant</th>
+                                        <th class="table-cell">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="deployments-table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- View YARA-L Rule Modal -->
+    <div id="view-modal" class="fixed inset-0 modal-bg items-center justify-center hidden">
+        <div class="bg-gray-900 border border-gray-700 p-6 rounded-lg shadow-2xl w-[90%] flex flex-col h-[90vh]">
+            
+            <div class="flex justify-between items-start mb-4 flex-shrink-0">
+                <div>
+                    <h2 id="modal-yaral-title" class="text-xl font-bold text-gray-100">Converted YARA-L Rule</h2>
+                    <p id="modal-yaral-description" class="text-sm text-gray-400 mt-1"></p>
+                </div>
+                <button id="modal-view-close-btn" class="text-gray-500 hover:text-white text-2xl">&times;</button>
+            </div>
+
+            <div class="overflow-y-auto pr-2 flex-grow flex flex-col">
+                <div id="modal-yaral-metadata-container" class="mb-6 flex-shrink-0">
+                    </div>
+
+                <div class="flex-grow relative flex flex-col">
+                    <h3 class="text-xs uppercase text-gray-500 font-bold mb-2 border-t border-gray-800 pt-4 flex-shrink-0">Rule Content</h3>
+                    <div id="modal-yaral-editor-container" class="flex-grow"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-800 flex-shrink-0">
+                <span id="modal-yaral-status-text" class="text-sm text-gray-500">Read-only mode</span>
+                <div class="flex space-x-2">
+                    <button id="modal-yaral-edit-btn" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Edit</button>
+                    <button id="modal-yaral-save-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded hidden">Save Changes</button>
+                    <button id="modal-view-close-btn-2" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Sigma Rule Modal -->
+    <div id="view-sigma-rule-modal" class="fixed inset-0 modal-bg items-center justify-center hidden">
+        <div class="bg-gray-900 p-8 rounded-lg shadow-2xl w-[90%] flex flex-col max-h-[90vh]">
+            
+            <div class="flex justify-between items-start mb-4 flex-shrink-0">
+                <div>
+                    <div id="modal-title-container" class="flex items-center space-x-3">
+                        <h2 class="text-xl font-bold text-gray-100"></h2> 
+                    </div>
+                    <p id="modal-description-container" class="text-sm text-gray-400 mt-1"></p>
+                </div>
+                <button id="modal-sigma-rule-close-btn" class="text-gray-500 hover:text-white text-2xl">&times;</button>
+            </div>
+
+            <div class="overflow-y-auto pr-2">
+                <div class="mb-4">
+                    <h3 class="text-xs uppercase text-gray-500 font-bold mb-2">Tags</h3>
+                    <div id="modal-tags-container" class="flex flex-wrap gap-2">
+                        </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xs uppercase text-gray-500 font-bold mb-2 border-t border-gray-800 pt-4">Details</h3>
+                    <div id="modal-metadata-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+                        </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs uppercase text-gray-500 font-bold mb-2 border-t border-gray-800 pt-4">Raw Content</h3>
+                    <div id="modal-raw-content-container">
+                        </div>
+                </div>
+
+                <div id="modal-conversion-details-container" class="mt-6">
+                    <!-- JS will populate this -->
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-6 pt-4 border-t border-gray-800 flex-shrink-0">
+                <button id="modal-sigma-rule-close-btn-2" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Rule Modal -->
+    <div id="test-rule-modal" class="fixed inset-0 modal-bg items-center justify-center hidden">
+        <div class="bg-gray-800 border border-gray-700 p-6 rounded-lg shadow-2xl w-3/4 lg:w-2/3 flex flex-col max-h-[90vh]">
+            
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-xl font-bold text-gray-100">Test Rule Results</h2>
+                <button id="modal-test-rule-close-btn" class="text-gray-500 hover:text-white text-2xl">&times;</button>
+            </div>
+
+            <div class="mb-4 flex-shrink-0">
+                <div class="flex justify-between mb-1">
+                    <span id="modal-test-status-text" class="text-sm font-medium text-gray-300">Initializing...</span>
+                    <span id="modal-test-progress-percent" class="text-sm font-medium text-gray-300">0%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                    <div id="modal-test-progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="overflow-y-auto pr-2 bg-gray-900/50 p-4 rounded-md flex-grow">
+                <div id="modal-test-rule-content" class="space-y-3">
+                    </div>
+            </div>
+
+            <div class="flex justify-end mt-6 pt-4 border-t border-gray-800 flex-shrink-0">
+                <button id="modal-test-rule-close-btn-2" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Verify Rule Modal -->
+    <div id="verify-rule-modal" class="fixed inset-0 modal-bg items-center justify-center hidden">
+        <div class="bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-2xl font-semibold">Verification Result</h2>
+                <button id="modal-verify-rule-close-btn" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+
+            <div class="overflow-y-auto">
+                <div id="modal-verify-rule-content"></div>
+            </div>
+
+            <div class="flex justify-end mt-6 flex-shrink-0">
+                <button id="modal-verify-rule-close-btn-2" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deployment Modal -->
+    <div id="deploy-modal" class="fixed inset-0 modal-bg items-center justify-center hidden">
+        <div class="bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 class="text-2xl font-semibold mb-4">Deploy Rule</h2>
+            <p class="mb-2">Deploying rule: <strong id="modal-rule-title"></strong></p>
+            <div class="space-y-4">
+                <label for="modal-tenant-select" class="block">Select a tenant:</label>
+                <select id="modal-tenant-select" class="w-full bg-gray-700 p-2 rounded border border-gray-600"></select>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancel</button>
+                    <button id="modal-confirm-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Confirm Deploy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const API_BASE_URL = 'http://127.0.0.1:8001';
+
+        let currentSigmaRules = [];
+        let sigmaRuleSort = {
+            key: 'title',
+            direction: 'asc'
+        };
+        let debounceTimer;
+
+        // --- Tab Handling ---
+        const tabs = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const subTabs = document.querySelectorAll('.sub-tab-button');
+        const subTabContents = document.querySelectorAll('.sub-tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = document.getElementById(tab.dataset.tab);
+
+                tabContents.forEach(tc => {
+                    tc.classList.remove('active');
+                });
+                target.classList.add('active');
+
+                tabs.forEach(t => {
+                    t.classList.remove('active');
+                });
+                tab.classList.add('active');
+            });
+        });
+
+        subTabs.forEach(subTab => {
+            subTab.addEventListener('click', () => {
+                const target = document.getElementById(subTab.dataset.subTab);
+
+                subTabContents.forEach(stc => {
+                    stc.classList.remove('active');
+                });
+                target.classList.add('active');
+
+                subTabs.forEach(st => {
+                    st.classList.remove('active');
+                });
+                subTab.classList.add('active');
+            });
+        });
+
+        // --- Element Selectors ---
+        const tenantForm = document.getElementById('tenant-form');
+        const tenantsList = document.getElementById('tenants-list');
+        const libraryForm = document.getElementById('library-form');
+        const librariesList = document.getElementById('libraries-list');
+        const sigmaRulesTableHead = document.getElementById('sigma-rules-table-head');
+        const sigmaRulesTableBody = document.getElementById('sigma-rules-table-body');
+        const yaralRulesTable = document.getElementById('yaral-rules-table');
+        const deploymentsTable = document.getElementById('deployments-table');
+        const convertBtn = document.getElementById('convert-btn');
+        const convertAIBtn = document.getElementById('convert-ai-btn');
+        const libraryFilter = document.getElementById('library-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const columnSelectorBtn = document.getElementById('column-selector-btn');
+        const columnSelectorDropdown = document.getElementById('column-selector-dropdown');
+        const columnOptions = document.getElementById('column-options');
+        
+        // Deploy Modal elements
+        const deployModal = document.getElementById('deploy-modal');
+        const modalRuleTitle = document.getElementById('modal-rule-title');
+        const modalTenantSelect = document.getElementById('modal-tenant-select');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+        let currentYaralRuleId = null;
+
+        // View Modal elements
+        const viewModal = document.getElementById('view-modal');
+        const modalYaralContent = document.getElementById('modal-yaral-content');
+        const modalViewCloseBtn = document.getElementById('modal-view-close-btn');
+        const modalViewCloseBtn2 = document.getElementById('modal-view-close-btn-2');
+
+        // View Sigma Rule Modal elements
+        const viewSigmaRuleModal = document.getElementById('view-sigma-rule-modal');
+        const modalSigmaRuleContent = document.getElementById('modal-sigma-rule-content');
+        const modalSigmaRuleCloseBtn = document.getElementById('modal-sigma-rule-close-btn');
+        const modalSigmaRuleCloseBtn2 = document.getElementById('modal-sigma-rule-close-btn-2');
+
+        // Test Rule Modal elements
+        const testRuleModal = document.getElementById('test-rule-modal');
+        const modalTestRuleContent = document.getElementById('modal-test-rule-content');
+        const modalTestRuleCloseBtn = document.getElementById('modal-test-rule-close-btn');
+        const modalTestRuleCloseBtn2 = document.getElementById('modal-test-rule-close-btn-2');
+
+        // Verify Rule Modal elements
+        const verifyRuleModal = document.getElementById('verify-rule-modal');
+        const modalVerifyRuleContent = document.getElementById('modal-verify-rule-content');
+        const modalVerifyRuleCloseBtn = document.getElementById('modal-verify-rule-close-btn');
+        const modalVerifyRuleCloseBtn2 = document.getElementById('modal-verify-rule-close-btn-2');
+
+
+        // --- Column Management ---
+        const sigmaRuleColumns = {
+            title: { title: 'Title', default: true },
+            file_path: { title: 'File Path', default: true },
+            conversion_status: { title: 'Status', default: true },
+            author: { title: 'Author', default: false },
+            level: { title: 'Level', default: false },
+            date: { title: 'Date', default: false },
+            modified: { title: 'Modified', default: false },
+            logsource_product: { title: 'Product', default: false },
+            logsource_category: { title: 'Category', default: false },
+        };
+
+        let selectedColumns = JSON.parse(localStorage.getItem('selectedSigmaColumns')) || Object.keys(sigmaRuleColumns).filter(key => sigmaRuleColumns[key].default);
+
+        const saveSelectedColumns = () => {
+            localStorage.setItem('selectedSigmaColumns', JSON.stringify(selectedColumns));
+        };
+
+        const renderColumnSelector = () => {
+            columnOptions.innerHTML = Object.keys(sigmaRuleColumns).map(key => `
+                <label class="flex items-center px-4 py-2 text-sm text-gray-200 hover:bg-gray-600">
+                    <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500 column-selector-cb" data-key="${key}" ${selectedColumns.includes(key) ? 'checked' : ''}>
+                    <span class="ml-2">${sigmaRuleColumns[key].title}</span>
+                </label>
+            `).join('');
+        };
+
+        // --- Toast Notifications ---
+        const showToast = (message, type = 'info') => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let bgColor = 'bg-blue-500';
+            if (type === 'success') bgColor = 'bg-green-500';
+            if (type === 'error') bgColor = 'bg-red-500';
+            
+            toast.className = `p-4 rounded-lg text-white shadow-md mb-2 ${bgColor} animate-pulse`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        };
+
+        const openModal = (modal) => {
+            modal.style.display = 'flex';
+            // Change 'main' to '#page-content'
+            document.getElementById('page-content').classList.add('blur-background');
+        };
+
+        const closeModal = (modal) => {
+            modal.style.display = 'none';
+            // Change 'main' to '#page-content'
+            document.getElementById('page-content').classList.remove('blur-background');
+        };
+
+        // --- API Fetch Functions ---
+        const fetchData = async (endpoint) => {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                showToast(`Failed to fetch data from ${endpoint}`, 'error');
+                return [];
+            }
+        };
+
+        const postData = async (endpoint, data) => {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                     const errorData = await response.json();
+                     throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error posting to ${endpoint}:`, error);
+                showToast(`Operation failed: ${error.message}`, 'error');
+                throw error; // Re-throw to handle in caller
+            }
+        };
+
+        // --- Render Functions ---
+        const renderTenants = (tenants) => {
+            tenantsList.innerHTML = tenants.map(t => `<div class="bg-gray-700 p-2 rounded"><strong>${t.name}</strong> (${t.guid})</div>`).join('');
+            // Also populate deploy modal dropdown
+            modalTenantSelect.innerHTML = tenants.map(t => `<option value="${t.tenant_id}">${t.name}</option>`).join('');
+        };
+        
+        const renderLibraries = (libraries) => {
+            librariesList.innerHTML = libraries.map(l => `
+                <div class="bg-gray-700 p-2 rounded flex justify-between items-center">
+                    <span><strong>${l.name}</strong></span>
+                    <button data-id="${l.library_id}" class="sync-btn bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-1 px-3 rounded">Sync</button>
+                </div>`).join('');
+            
+            libraryFilter.innerHTML = '<option value="">All Libraries</option>' + libraries.map(l => `<option value="${l.library_id}">${l.name}</option>`).join('');
+        };
+        
+        const renderSigmaRules = (rules) => {
+            // Sort the rules before rendering
+            rules.sort((a, b) => {
+                const valA = a[sigmaRuleSort.key] || '';
+                const valB = b[sigmaRuleSort.key] || '';
+                const comparison = valA.localeCompare(valB, undefined, { numeric: true });
+                return sigmaRuleSort.direction === 'asc' ? comparison : -comparison;
+            });
+
+            // Render Header with sort indicators
+            let headerHtml = '<tr><th class="table-cell w-10"><input type="checkbox" id="select-all-sigma"></th>';
+            selectedColumns.forEach(key => {
+                const isSorted = sigmaRuleSort.key === key;
+                const sortClass = isSorted ? `sort-${sigmaRuleSort.direction}` : '';
+                headerHtml += `
+                    <th class="table-cell sortable ${sortClass}" data-sort-key="${key}">
+                        ${sigmaRuleColumns[key].title}
+                        <span class="sort-indicator"></span>
+                    </th>
+                `;
+            });
+            headerHtml += '</tr>';
+            sigmaRulesTableHead.innerHTML = headerHtml;
+
+            // Render Body
+            let bodyHtml = '';
+            rules.forEach(r => {
+                bodyHtml += `<tr class="hover:bg-gray-700/50">`; 
+                bodyHtml += `<td class="table-cell"><input type="checkbox" class="sigma-checkbox" data-id="${r.rule_id}"></td>`;
+                selectedColumns.forEach(key => {
+                    let cellValue = r[key] || 'None';
+                    if (key === 'title') {
+                        cellValue = `
+                            <span class="flex items-center">
+                                ${r.title}
+                                
+                                <svg data-id="${r.rule_id}" class="view-sigma-rule-btn h-5 w-5 ml-2 cursor-pointer text-gray-400 hover:text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                </svg>
+
+                                <svg data-id="${r.rule_id}" class="copy-sigma-rule-btn h-5 w-5 ml-1.5 cursor-pointer text-gray-400 hover:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                                </svg>
+                            </span>`;
+                    } else if (key === 'conversion_status') {
+                        const statusColors = {
+                            success: 'bg-green-900 text-green-300',
+                            failed: 'bg-red-900 text-red-300',
+                            pending: 'bg-gray-700 text-gray-300'
+                        };
+                        const color = statusColors[r.conversion_status] || 'bg-gray-700 text-gray-300';
+                        cellValue = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-s font-medium uppercase ${color}">${r.conversion_status}</span>`;
+                    } else if (key === 'level') {
+                        const levelColors = {
+                            low: 'bg-blue-900 text-blue-300',
+                            medium: 'bg-yellow-900 text-yellow-300',
+                            high: 'bg-orange-900 text-orange-300',
+                            critical: 'bg-red-900 text-red-300',
+                        };
+                        const color = levelColors[r.level] || 'bg-gray-700 text-gray-300';
+                        cellValue = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-s font-medium uppercase ${color}">${r.level}</span>`;
+                    }
+                    bodyHtml += `<td class="table-cell">${cellValue}</td>`;
+                });
+                bodyHtml += '</tr>';
+            });
+            sigmaRulesTableBody.innerHTML = bodyHtml;
+
+            // Re-add event listener for the new select-all checkbox
+            document.getElementById('select-all-sigma').addEventListener('change', (e) => {
+                document.querySelectorAll('.sigma-checkbox').forEach(cb => cb.checked = e.target.checked);
+                updateConvertButtonState();
+            });
+        };
+
+        // Add a new timer variable for the new search box
+        let yaralDebounceTimer;
+
+        // Add a selector for the new search input
+        const yaralSearchInput = document.getElementById('yaral-search-input');
+
+        // Update the refreshYaraLRules function to include the search term
+        const refreshYaraLRules = async () => {
+            // 1. Get the search value
+            const search = yaralSearchInput.value;
+            let url = '/api/yaral-rules?';
+            if (search) {
+                url += `search=${encodeURIComponent(search)}`;
+            }
+            
+            // 2. Fetch and render the filtered data
+            const yaralRulesData = await fetchData(url);
+            const sigmaRules = await fetchData('/api/sigma-rules'); // Still needed for titles
+
+            const enrichedYaralRules = yaralRulesData.map(y => ({
+                ...y,
+                sigma_rule: sigmaRules.find(s => s.rule_id === y.sigma_rule_id)
+            }));
+            
+            renderYaraLRules(enrichedYaralRules);
+        };
+
+        // Add a new event listener for the YARA-L search input
+        yaralSearchInput.addEventListener('input', () => {
+            clearTimeout(yaralDebounceTimer);
+            yaralDebounceTimer = setTimeout(() => {
+                refreshYaraLRules();
+            }, 300); // 300ms delay
+        });
+
+        // --- Add a selector for the new button ---
+        const refreshYaraLBtn = document.getElementById('refresh-yaral-btn');
+
+        // --- Add the click event listener for the button ---
+        refreshYaraLBtn.addEventListener('click', async () => {
+            const icon = refreshYaraLBtn.querySelector('svg');
+            
+            // Add visual feedback
+            icon.classList.add('animate-spin');
+            refreshYaraLBtn.disabled = true;
+
+            // Call the dedicated refresh function
+            await refreshYaraLRules();
+            showToast('YARA-L rules refreshed!', 'success');
+
+            // Remove visual feedback
+            icon.classList.remove('animate-spin');
+            refreshYaraLBtn.disabled = false;
+        });
+
+        const renderYaraLRules = (rules) => {
+            yaralRulesTable.innerHTML = rules.map(r => `
+                <tr>
+                    <td class="table-cell">
+                        <span class="flex items-center">
+                            ${r.sigma_rule ? r.sigma_rule.title : 'N/A'}
+
+                            <svg data-id="${r.yaral_rule_id}" class="view-yaral-btn h-5 w-5 ml-2 cursor-pointer text-gray-400 hover:text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+
+                            <svg data-id="${r.yaral_rule_id}" class="copy-yaral-rule-btn h-5 w-5 ml-1.5 cursor-pointer text-gray-400 hover:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                            </svg>
+                        </span>
+                    </td>
+                    <td class="table-cell">${r.source}</td>
+                    <td class="table-cell text-center">
+                        <button data-id="${r.yaral_rule_id}" class="verify-yaral-btn bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold py-1 px-3 rounded">Verify</button>
+                        <button data-id="${r.yaral_rule_id}" class="test-yaral-btn bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-bold py-1 px-3 rounded">Test</button>
+                        <button data-id="${r.yaral_rule_id}" data-title="${r.sigma_rule ? r.sigma_rule.title : 'N/A'}" class="deploy-btn bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-1 px-3 rounded">Deploy</button>
+                    </td>
+                </tr>`).join('');
+        };
+        
+        const renderDeployments = (deployments) => {
+            deploymentsTable.innerHTML = deployments.map(d => `
+                <tr>
+                    <td class="table-cell">${d.yaral_rule && d.yaral_rule.sigma_rule ? d.yaral_rule.sigma_rule.title : 'N/A'}</td>
+                    <td class="table-cell">${d.tenant ? d.tenant.name : 'N/A'}</td>
+                    <td class="table-cell">
+                         <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+                            d.status === 'live' ? 'bg-green-200 text-green-800' :
+                            d.status === 'error' ? 'bg-red-200 text-red-800' :
+                             d.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
+                            'bg-gray-200 text-gray-800'
+                        }">${d.status}</span>
+                    </td>
+                </tr>`).join('');
+        };
+
+
+        // --- Data Loading and Refreshing ---
+        const refreshAllData = async () => {
+            const tenants = await fetchData('/api/tenants');
+            const libraries = await fetchData('/api/libraries');
+            const yaralRulesData = await fetchData('/api/yaral-rules');
+            const deploymentsData = await fetchData('/api/deployments');
+            
+            // For YARA-L and Deployments, we need to enrich the data
+            const sigmaRules = await fetchData('/api/sigma-rules');
+            const enrichedYaralRules = yaralRulesData.map(y => ({
+                ...y,
+                sigma_rule: sigmaRules.find(s => s.rule_id === y.sigma_rule_id)
+            }));
+            const enrichedDeployments = deploymentsData.map(d => ({
+                ...d,
+                yaral_rule: enrichedYaralRules.find(y => y.yaral_rule_id === d.yaral_rule_id),
+                tenant: tenants.find(t => t.tenant_id === d.tenant_id)
+            }));
+
+            renderTenants(tenants);
+            renderLibraries(libraries);
+            renderYaraLRules(enrichedYaralRules);
+            renderDeployments(enrichedDeployments);
+            
+            // Refresh sigma rules separately for filtering
+            refreshSigmaRules();
+        };
+        
+        const refreshSigmaRules = async () => {
+            // Show a loading state before fetching data
+            const loadingHtml = `
+                <tr>
+                    <td colspan="${selectedColumns.length + 1}" class="text-center p-8 text-gray-400">
+                        <div class="flex justify-center items-center space-x-2">
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Loading Rules...</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            sigmaRulesTableBody.innerHTML = loadingHtml;            
+            const libraryId = libraryFilter.value;
+            const status = statusFilter.value;
+            const search = document.getElementById('search-input').value;
+            let url = '/api/sigma-rules?';
+            if (libraryId) url += `library_id=${libraryId}&`;
+            if (status) url += `status=${status}&`;
+            if (search) url += `search=${encodeURIComponent(search)}&`;
+            
+            // Store the fetched rules in the state variable
+            currentSigmaRules = await fetchData(url);
+            // Render using the state variable
+            renderSigmaRules(currentSigmaRules);
+        };
+
+        // --- Event Handlers ---
+        tenantForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('tenant-name').value,
+                guid: document.getElementById('tenant-guid').value,
+                region: document.getElementById('tenant-region').value,
+                gcp_project_id: document.getElementById('tenant-gcp-project-id').value,
+            };
+            await postData('/api/tenants', data);
+            showToast('Tenant created successfully!', 'success');
+            tenantForm.reset();
+            refreshAllData();
+        });
+        
+        libraryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('library-name').value,
+                source_path: document.getElementById('library-source').value
+            };
+            await postData('/api/libraries', data);
+            showToast('Library created successfully!', 'success');
+            libraryForm.reset();
+            refreshAllData();
+        });
+
+        librariesList.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('sync-btn')) {
+                const id = e.target.dataset.id;
+                await postData(`/api/libraries/${id}/sync`, {});
+                showToast(`Sync started for library ${id}. This may take a few minutes.`, 'info');
+            }
+        });
+
+        convertBtn.addEventListener('click', async () => {
+            const selectedIds = Array.from(document.querySelectorAll('.sigma-checkbox:checked')).map(cb => parseInt(cb.dataset.id));
+            console.log('Selected sigma rule IDs:', selectedIds);
+            if(selectedIds.length === 0) return;
+            
+            try {
+                await postData('/api/sigma-rules/convert', { sigma_rule_ids: selectedIds });
+                showToast(`Conversion started for ${selectedIds.length} rules.`, 'info');
+                
+                // Uncheck all after starting
+                document.getElementById('select-all-sigma').checked = false;
+                document.querySelectorAll('.sigma-checkbox').forEach(cb => cb.checked = false);
+                updateConvertButtonState();
+
+                // Start polling for conversion status
+                pollConversionStatus(selectedIds);
+
+            } catch (error) {
+                // Error is already handled by postData
+            }
+        });
+
+        convertAIBtn.addEventListener('click', async () => {
+            const selectedIds = Array.from(document.querySelectorAll('.sigma-checkbox:checked')).map(cb => parseInt(cb.dataset.id));
+            console.log('Selected sigma rule IDs for AI conversion:', selectedIds);
+            if(selectedIds.length === 0) return;
+            
+            try {
+                await postData('/api/sigma-rules/convert-with-ai', { sigma_rule_ids: selectedIds });
+                showToast(`AI conversion started for ${selectedIds.length} rules.`, 'info');
+                
+                // Uncheck all after starting
+                document.getElementById('select-all-sigma').checked = false;
+                document.querySelectorAll('.sigma-checkbox').forEach(cb => cb.checked = false);
+                updateConvertButtonState();
+
+                // Start polling for conversion status
+                pollConversionStatus(selectedIds);
+
+            } catch (error) {
+                // Error is already handled by postData
+            }
+        });
+
+        const pollConversionStatus = (ruleIds) => {
+            const poll = async () => {
+                const url = `/api/sigma-rules?rule_ids=${ruleIds.join(',')}`;
+                console.log("Polling for conversion status:", url);
+                const rules = await fetchData(url);
+                console.log("Fetched rules for polling:", rules);
+                
+                const pendingRules = rules.filter(r => r.conversion_status === 'pending');
+                console.log("Pending rules:", pendingRules);
+
+                if (pendingRules.length === 0) {
+                    // All rules have been processed
+                    const failedRules = rules.filter(r => r.conversion_status === 'failed');
+                    console.log("Failed rules:", failedRules);
+
+                    if (failedRules.length > 0) {
+                        showToast(`Conversion finished with ${failedRules.length} error(s).`, 'error');
+                        // Optionally, list the errors in the console
+                        failedRules.forEach(rule => {
+                            console.error(`Conversion failed for rule: ${rule.title}`, rule.conversion_error);
+                        });
+                    } else {
+                        showToast('Conversion successful for all selected rules!', 'success');
+                    }
+                    refreshAllData(); // Refresh all data to show the new statuses
+                } else {
+                    // Some rules are still pending, continue polling
+                    setTimeout(poll, 5000); // Poll every 5 seconds
+                }
+            };
+            setTimeout(poll, 5000); // Start polling after 5 seconds
+        };
+
+        // Add a new helper function for PUT requests
+        const putData = async (endpoint, data) => {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error putting to ${endpoint}:`, error);
+                showToast(`Update failed: ${error.message}`, 'error');
+                throw error;
+            }
+        };
+
+        // Add a state variable for the CodeMirror instance
+        let yaralEditorInstance = null;
+
+        // Delegate event for viewing YARA-L rule
+        yaralRulesTable.addEventListener('click', async e => {
+            
+            // --- View/Edit/Save Logic ---
+            const viewButton = e.target.closest('.view-yaral-btn');
+            if (viewButton) {
+                const id = viewButton.dataset.id;
+                const rule = await fetchData(`/api/yaral-rules/${id}`);
+                const originalTitle = viewButton.closest('tr').querySelector('td').textContent.trim();
+
+                const titleEl = document.getElementById('modal-yaral-title');
+                const descriptionEl = document.getElementById('modal-yaral-description');
+                const metadataContainer = document.getElementById('modal-yaral-metadata-container');
+                const editorContainer = document.getElementById('modal-yaral-editor-container');
+                const statusText = document.getElementById('modal-yaral-status-text');
+                const editBtn = document.getElementById('modal-yaral-edit-btn');
+                const saveBtn = document.getElementById('modal-yaral-save-btn');
+                
+                editorContainer.innerHTML = '';
+                
+                titleEl.textContent = originalTitle !== 'N/A' ? originalTitle : 'Converted YARA-L Rule';
+                descriptionEl.textContent = "This rule was converted from its original Sigma source.";
+
+                metadataContainer.innerHTML = `
+                    <h3 class="text-xs uppercase text-gray-500 font-bold mb-2 pt-4">Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+                        <div><dt class="text-gray-500 font-medium">Conversion Source</dt><dd class="text-gray-200">${rule.source}</dd></div>
+                        <div><dt class="text-gray-500 font-medium">Created On</dt><dd class="text-gray-200">${new Date(rule.created_at).toLocaleString()}</dd></div>
+                        <div><dt class="text-gray-500 font-medium">Original Sigma Rule ID</dt><dd class="text-gray-200">${rule.sigma_rule_id}</dd></div>
+                    </div>`;
+
+                yaralEditorInstance = CodeMirror(editorContainer, {
+                    value: rule.converted_content,
+                    mode:  "application/json",
+                    theme: "material-darker",
+                    lineNumbers: true,
+                    readOnly: true,
+                    lineWrapping: true
+                });
+
+                editBtn.classList.remove('hidden');
+                saveBtn.classList.add('hidden');
+                statusText.textContent = "Read-only mode";
+                
+                editBtn.onclick = () => {
+                    yaralEditorInstance.setOption("readOnly", false);
+                    statusText.textContent = "Editing...";
+                    editBtn.classList.add('hidden');
+                    saveBtn.classList.remove('hidden');
+                    yaralEditorInstance.focus();
+                };
+
+                saveBtn.onclick = async () => {
+                    const updatedContent = yaralEditorInstance.getValue();
+                    try {
+                        await putData(`/api/yaral-rules/${id}`, { converted_content: updatedContent });
+                        showToast('Rule updated successfully!', 'success');
+                        yaralEditorInstance.setOption("readOnly", true);
+                        statusText.textContent = "Read-only mode";
+                        editBtn.classList.remove('hidden');
+                        saveBtn.classList.add('hidden');
+                        refreshAllData();
+                    } catch (error) {
+                        // Error toast is already shown by putData
+                    }
+                };
+
+                openModal(viewModal);
+                setTimeout(() => yaralEditorInstance.refresh(), 1);
+            }
+
+            // Copy button click
+            const copyButton = e.target.closest('.copy-yaral-rule-btn');
+            if (copyButton) {
+                try {
+                    // 1. Find the parent table row
+                    const row = copyButton.closest('tr');
+                    // 2. Find the title cell (the 1st `td` in the row) and get its text
+                    const title = row.querySelector('td:first-child').textContent.trim();
+                    // 3. Write the title to the clipboard
+                    await navigator.clipboard.writeText(title);
+                    showToast('Rule title copied to clipboard!', 'success');
+                } catch (error) {
+                    console.error('Failed to copy YARA-L rule title:', error);
+                    showToast('Could not copy title.', 'error');
+                }
+            }
+
+            // --- Verify Rule Logic  ---
+            if (e.target.classList.contains('verify-yaral-btn')) {
+                const id = e.target.dataset.id;
+                modalVerifyRuleContent.innerHTML = '<p>Verifying rule syntax...</p>';
+                openModal(verifyRuleModal);
+
+                try {
+                    const result = await postData(`/api/yaral-rules/${id}/verify`, {});
+                    let resultHtml = '';
+                    if (result.success) {
+                        resultHtml = `
+                            <div class="p-4 rounded-md bg-green-900/50 text-green-300">
+                                <h3 class="font-bold">✅ Rule is valid!</h3>
+                                <p class="text-sm mt-1">The YARA-L syntax is correct.</p>
+                            </div>
+                        `;
+                    } else {
+                        let positionInfo = '';
+                        if (result.position) {
+                            positionInfo = `<p class="text-sm mt-1">Error at Line ${result.position.startLine}, Column ${result.position.startColumn}</p>`;
+                        }
+                        resultHtml = `
+                            <div class="p-4 rounded-md bg-red-900/50 text-red-300">
+                                <h3 class="font-bold">❌ Rule is invalid!</h3>
+                                <pre class="text-xs mt-2 p-2 bg-gray-900 rounded">${result.message || 'No error message provided.'}</pre>
+                                ${positionInfo}
+                            </div>
+                        `;
+                    }
+                    modalVerifyRuleContent.innerHTML = resultHtml;
+                } catch (error) {
+                    modalVerifyRuleContent.innerHTML = `<p class="text-red-400">An unexpected error occurred: ${error.message}</p>`;
+                }
+            }
+
+            // --- Deploy Logic ---
+            if (e.target.classList.contains('deploy-btn')) {
+                currentYaralRuleId = parseInt(e.target.dataset.id);
+                modalRuleTitle.textContent = e.target.dataset.title;
+                openModal(deployModal);
+            }
+
+            // --- Test Logic ---
+            if (e.target.classList.contains('test-yaral-btn')) {
+                const id = e.target.dataset.id;
+                const modalContent = document.getElementById('modal-test-rule-content');
+                const statusBar = document.getElementById('modal-test-progress-bar');
+                const statusText = document.getElementById('modal-test-status-text');
+                const statusPercent = document.getElementById('modal-test-progress-percent');
+                let detectionCounter = 0;
+
+                modalContent.innerHTML = '<p class="text-gray-500 text-sm">Waiting for server response...</p>';
+                statusBar.style.width = '0%';
+                statusBar.classList.remove('bg-green-600', 'bg-red-600');
+                statusBar.classList.add('bg-blue-600');
+                statusText.textContent = 'Initializing...';
+                statusPercent.textContent = '0%';
+                openModal(testRuleModal);
+
+                const eventSource = new EventSource(`/api/yaral-rules/${id}/test`);
+                let isFirstMessage = true;
+
+                eventSource.onmessage = function(event) {
+                    if (isFirstMessage) {
+                        modalContent.innerHTML = '';
+                        isFirstMessage = false;
+                    }
+                    const data = JSON.parse(event.data);
+                    switch (data.type) {
+                        case 'progress':
+                            const percent = data.percentDone.toFixed(0);
+                            statusBar.style.width = `${percent}%`;
+                            statusPercent.textContent = `${percent}%`;
+                            statusText.textContent = 'Searching...';
+                            if (percent == 100) {
+                                statusText.textContent = `Search Complete. Found ${detectionCounter} detection(s).`;
+                                statusBar.classList.remove('bg-blue-600');
+                                statusBar.classList.add('bg-green-600');
+                                eventSource.close();
+                            }
+                            break;
+                        case 'detection':
+                            detectionCounter++;
+                            const detection = data.detection;
+                            let timestamp = "Unknown Time"; // Default fallback text
+                            if (detection.detectionTimestamp) {
+                                timestamp = new Date(detection.detectionTimestamp).toLocaleString();
+                            }
+                            const accordion = document.createElement('div');
+                            accordion.className = 'bg-gray-800 rounded-lg';
+                            accordion.innerHTML = `
+                                <button class="w-full flex justify-between items-center p-3 text-left text-sm font-medium text-gray-300 hover:bg-gray-700/50">
+                                    <span>Detection #${detectionCounter} at ${timestamp}</span>
+                                    <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                <div class="p-3 border-t border-gray-700 hidden">
+                                    <pre><code class="language-json">${JSON.stringify(detection, null, 2)}</code></pre>
+                                </div>
+                            `;
+                            modalContent.appendChild(accordion);
+                            const button = accordion.querySelector('button');
+                            const content = accordion.querySelector('div');
+                            const codeBlock = accordion.querySelector('code');
+                            button.addEventListener('click', () => {
+                                const isHidden = content.classList.toggle('hidden');
+                                button.querySelector('svg').classList.toggle('rotate-180', !isHidden);
+                                if (!isHidden) {
+                                    Prism.highlightElement(codeBlock);
+                                }
+                            });
+                            break;
+                        case 'error':
+                            statusText.textContent = 'Error during test!';
+                            statusBar.classList.remove('bg-blue-600');
+                            statusBar.classList.add('bg-red-600');
+                            const errorEl = document.createElement('div');
+                            errorEl.className = 'p-4 rounded-md bg-red-900/50 text-red-300';
+                            errorEl.innerHTML = `<h3 class="font-bold">❌ An error occurred</h3><p class="text-xs mt-1 font-mono">${data.message}</p>`;
+                            modalContent.appendChild(errorEl);
+                            eventSource.close();
+                            break;
+                    }
+                };
+                eventSource.onerror = function(err) {
+                    console.error("EventSource failed:", err);
+                    statusText.textContent = 'Connection Error!';
+                    statusBar.classList.remove('bg-blue-600');
+                    statusBar.classList.add('bg-red-600');
+                    const errorEl = document.createElement('div');
+                    errorEl.className = 'p-4 rounded-md bg-red-900/50 text-red-300';
+                    errorEl.innerHTML = `<h3 class="font-bold">❌ Connection Failed</h3><p class="text-xs mt-1">Could not connect to the server to stream test results. See console for details.</p>`;
+                    modalContent.appendChild(errorEl);
+                    eventSource.close();
+                };
+            }
+        });
+
+        // Delegate event for viewing Sigma rule
+        sigmaRulesTableBody.addEventListener('click', async e => {
+            const viewButton = e.target.closest('.view-sigma-rule-btn');
+            if (viewButton) {
+                const id = viewButton.dataset.id;
+                // This assumes your API endpoint returns the detailed rule object
+                const rule = await fetchData(`/api/sigma-rules/${id}`); 
+
+                // --- Get handles to the new containers ---
+                const titleAreaContainer = document.getElementById('modal-title-container');
+                const descriptionContainer = document.getElementById('modal-description-container');
+                const tagsContainer = document.getElementById('modal-tags-container');
+                const metadataGrid = document.getElementById('modal-metadata-grid');
+                const rawContentContainer = document.getElementById('modal-raw-content-container');
+                const conversionDetailsContainer = document.getElementById('modal-conversion-details-container');
+
+                // --- Clear previous content ---
+                titleAreaContainer.innerHTML = ''; 
+                descriptionContainer.textContent = '';
+                tagsContainer.innerHTML = '';
+                metadataGrid.innerHTML = '';
+                rawContentContainer.innerHTML = '';
+                conversionDetailsContainer.innerHTML = '';
+
+                // --- 1. Populate Header ---
+                let titleHTML = `<h2 class="text-xl font-bold text-gray-100">${rule.title}</h2>`;
+
+                // Create a colored level badge
+                if (rule.level) {
+                    const levelColors = {
+                        low: 'bg-green-900 text-green-300',
+                        medium: 'bg-yellow-900 text-yellow-300',
+                        high: 'bg-orange-900 text-orange-300',
+                        critical: 'bg-red-900 text-red-300',
+                    };
+                    const color = levelColors[rule.level.toLowerCase()] || 'bg-gray-700 text-gray-300';
+                    titleHTML += `<span class="text-xs font-medium px-2.5 py-0.5 rounded-full ${color}">${rule.level}</span>`;
+                }
+
+                titleAreaContainer.innerHTML = titleHTML;
+                descriptionContainer.textContent = rule.description;
+
+                // --- 2. Populate Tags ---
+                if (rule.tags && rule.tags.length > 0) {
+                    tagsContainer.innerHTML = rule.tags.map(tag => 
+                        `<span class="bg-blue-900/50 text-blue-300 text-xs font-medium px-3 py-1 rounded-full">${tag.name}</span>`
+                    ).join('');
+                } else {
+                    tagsContainer.innerHTML = `<span class="text-sm text-gray-500">No tags</span>`;
+                }
+
+                // --- 3. Populate Metadata Grid ---
+                const metadataToDisplay = {
+                    "Author": rule.author,
+                    "Status": rule.status,
+                    "Date": rule.date,
+                    "Modified": rule.modified,
+                    "Product": rule.logsource_product,
+                    "Category": rule.logsource_category,
+                    "Service": rule.logsource_service,
+                    "File Path": rule.file_path,
+                };
+
+                for (const [key, value] of Object.entries(metadataToDisplay)) {
+                    if (value) { // Only display if value exists
+                        const metaItem = `
+                            <div>
+                                <dt class="text-gray-500 font-medium">${key}</dt>
+                                <dd class="text-gray-200">${value}</dd>
+                            </div>
+                        `;
+                        metadataGrid.innerHTML += metaItem;
+                    }
+                }
+
+                // --- 4. Populate Raw Content ---
+                const pre = document.createElement('pre');
+                pre.innerHTML = `<code class="language-yaml">${rule.raw_content}</code>`;
+                rawContentContainer.appendChild(pre);
+
+                // --- 5. Populate Conversion Details ---
+                if (rule.conversion_status) {
+                    let statusHTML = `<h3 class="text-xs uppercase text-gray-500 font-bold mb-2 border-t border-gray-800 pt-4">Conversion</h3>`;
+                    statusHTML += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">`;
+                    statusHTML += `
+                        <div>
+                            <dt class="text-gray-500 font-medium">Status</dt>
+                            <dd class="text-gray-200">${rule.conversion_status}</dd>
+                        </div>
+                    `;
+                    if (rule.conversion_error) {
+                         statusHTML += `
+                            <div>
+                                <dt class="text-gray-500 font-medium">Error</dt>
+                                <dd class="text-red-400 font-mono text-xs">${rule.conversion_error}</dd>
+                            </div>
+                        `;
+                    }
+                    statusHTML += `</div>`;
+                    conversionDetailsContainer.innerHTML = statusHTML;
+                }
+
+                Prism.highlightAll();
+                openModal(viewSigmaRuleModal);
+            }
+            // Copy button click
+            const copyButton = e.target.closest('.copy-sigma-rule-btn');
+            if (copyButton) {
+                try {
+                    // 1. Find the parent table row
+                    const row = copyButton.closest('tr');
+                    // 2. Find the title cell (the 2nd `td` in the row) and get its text
+                    const title = row.querySelector('td:nth-child(2)').textContent.trim();
+                    // 3. Write the title to the clipboard
+                    await navigator.clipboard.writeText(title);
+                    showToast('Rule title copied to clipboard!', 'success');
+                } catch (error) {
+                    console.error('Failed to copy Sigma rule title:', error);
+                    showToast('Could not copy title.', 'error');
+                }
+            }          
+        });
+
+        // Modal event handlers
+        modalCancelBtn.addEventListener('click', () => {
+             closeModal(deployModal);
+             currentYaralRuleId = null;
+        });
+
+        modalConfirmBtn.addEventListener('click', async () => {
+            const tenantId = parseInt(modalTenantSelect.value);
+            if (!currentYaralRuleId || !tenantId) return;
+            
+            try {
+                await postData('/api/deployments', {
+                    yaral_rule_id: currentYaralRuleId,
+                    tenant_id: tenantId
+                });
+                showToast('Deployment process started!', 'info');
+                closeModal(deployModal);
+                
+                // Start polling for deployment status
+                const pollDeploymentStatus = () => {
+                    setTimeout(async () => {
+                        const deploymentsData = await fetchData('/api/deployments');
+                        const tenants = await fetchData('/api/tenants');
+                        const yaralRulesData = await fetchData('/api/yaral-rules');
+                        const sigmaRules = await fetchData('/api/sigma-rules');
+
+                        const enrichedYaralRules = yaralRulesData.map(y => ({
+                            ...y,
+                            sigma_rule: sigmaRules.find(s => s.rule_id === y.sigma_rule_id)
+                        }));
+                        const enrichedDeployments = deploymentsData.map(d => ({
+                            ...d,
+                            yaral_rule: enrichedYaralRules.find(y => y.yaral_rule_id === d.yaral_rule_id),
+                            tenant: tenants.find(t => t.tenant_id === d.tenant_id)
+                        }));
+
+                        renderDeployments(enrichedDeployments);
+
+                        const deployment = enrichedDeployments.find(d => d.yaral_rule_id === currentYaralRuleId && d.tenant_id === tenantId);
+                        if (deployment && (deployment.status === 'live' || deployment.status === 'error')) {
+                            // Stop polling
+                            showToast(`Deployment for rule ${deployment.yaral_rule.sigma_rule.title} finished with status: ${deployment.status}`, deployment.status === 'live' ? 'success' : 'error');
+                            currentYaralRuleId = null;
+                        } else {
+                            // Continue polling
+                            pollDeploymentStatus();
+                        }
+                    }, 5000); // Poll every 5 seconds
+                };
+                pollDeploymentStatus();
+
+            } catch (error) {
+                // Error is already handled by postData
+            }
+        });
+        
+        // View Modal Close Handlers
+        const closeViewModal = () => {
+            if (yaralEditorInstance) {
+                const editorContainer = document.getElementById('modal-yaral-editor-container');
+                editorContainer.innerHTML = '';
+                yaralEditorInstance = null;
+            }
+            closeModal(viewModal);
+        };
+        modalViewCloseBtn.addEventListener('click', closeViewModal);
+        modalViewCloseBtn2.addEventListener('click', closeViewModal);
+
+        // Sigma Rule Modal Close Handlers
+        const closeSigmaRuleModal = () => {
+            closeModal(viewSigmaRuleModal);
+            modalSigmaRuleContent.textContent = '';
+        };
+        modalSigmaRuleCloseBtn.addEventListener('click', closeSigmaRuleModal);
+        modalSigmaRuleCloseBtn2.addEventListener('click', closeSigmaRuleModal);
+
+        // Verify Rule Modal Close Handlers
+        const closeVerifyRuleModal = () => {
+            closeModal(verifyRuleModal);
+        };
+        modalVerifyRuleCloseBtn.addEventListener('click', closeVerifyRuleModal);
+        modalVerifyRuleCloseBtn2.addEventListener('click', closeVerifyRuleModal);
+
+        // Test Rule Modal Close Handlers
+        const closeTestRuleModal = () => {
+            closeModal(testRuleModal);
+        };
+        modalTestRuleCloseBtn.addEventListener('click', closeTestRuleModal);
+        modalTestRuleCloseBtn2.addEventListener('click', closeTestRuleModal);
+
+
+        // Filter and checkbox logic
+        libraryFilter.addEventListener('change', refreshSigmaRules);
+        statusFilter.addEventListener('change', refreshSigmaRules);
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', () => {
+            // Clear the previous timer on each key press
+            clearTimeout(debounceTimer);
+
+            // Set a new timer
+            debounceTimer = setTimeout(() => {
+                refreshSigmaRules();
+            }, 300); // Wait for 300ms after the user stops typing
+        });
+        
+        const updateConvertButtonState = () => {
+            const anyChecked = document.querySelectorAll('.sigma-checkbox:checked').length > 0;
+            convertBtn.disabled = !anyChecked;
+            convertAIBtn.disabled = !anyChecked;
+        };
+
+        sigmaRulesTableBody.addEventListener('change', (e) => {
+            if (e.target.classList.contains('sigma-checkbox')) {
+                updateConvertButtonState();
+            }
+        });
+
+        // Column selector logic
+        columnSelectorBtn.addEventListener('click', () => {
+            columnSelectorDropdown.classList.toggle('hidden');
+        });
+
+        columnOptions.addEventListener('change', (e) => {
+            if (e.target.classList.contains('column-selector-cb')) {
+                const key = e.target.dataset.key;
+                if (e.target.checked) {
+                    selectedColumns.push(key);
+                } else {
+                    selectedColumns = selectedColumns.filter(c => c !== key);
+                }
+                saveSelectedColumns();
+                refreshSigmaRules();
+            }
+        });
+
+        sigmaRulesTableHead.addEventListener('click', (e) => {
+            const header = e.target.closest('.sortable');
+            if (!header) return;
+
+            const key = header.dataset.sortKey;
+            if (sigmaRuleSort.key === key) {
+                // If same column, flip direction
+                sigmaRuleSort.direction = sigmaRuleSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                // If new column, sort ascending
+                sigmaRuleSort.key = key;
+                sigmaRuleSort.direction = 'asc';
+            }
+            // Re-render the table with the existing data, but sorted
+            renderSigmaRules(currentSigmaRules);
+        });
+
+        // --- Initial Load ---
+        renderColumnSelector();
+        refreshAllData();
+        
+        // --- Periodic Refresh ---
+        setInterval(refreshAllData, 300000); // Refresh all data every 5 minutes
+    });
+    </script>
+</body>
+</html>

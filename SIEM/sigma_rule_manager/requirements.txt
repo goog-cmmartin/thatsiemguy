@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+pydantic
+GitPython
+pyyaml
+pysigma
+pysigma-backend-secops
+secops
+aiofiles
