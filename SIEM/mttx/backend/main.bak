@@ -1,0 +1,456 @@
+import os
+import uvicorn
+import logging
+import json
+import pandas as pd
+import numpy as np
+import requests
+from fastapi import FastAPI, Depends, HTTPException, APIRouter
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy.orm import sessionmaker, Session, relationship
+from sqlalchemy.ext.declarative import declarative_base
+from pydantic import BaseModel
+from typing import List, Dict, Any, Optional
+
+# --- Logging Setup ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# --- SDK Import ---
+try:
+    from secops import SecOpsClient
+    SECOPS_SDK_AVAILABLE = True
+except ImportError:
+    SECOPS_SDK_AVAILABLE = False
+    logging.warning("SecOps SDK not found. /test and /analysis endpoints will be disabled.")
+
+# --- Database Setup ---
+DATABASE_URL = "sqlite:///./mttx.db"
+Base = declarative_base()
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# --- SQLAlchemy Models ---
+class Tenant(Base):
+    __tablename__ = "tenants"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    guid = Column(String, unique=True, index=True, nullable=False)
+    region = Column(String, nullable=False)
+    gcp_project_id = Column(String, nullable=False)
+    soar_url = Column(String, nullable=True)
+    soar_api_key = Column(String, nullable=True)
+    
+    stages = relationship("CaseStage", back_populates="tenant", cascade="all, delete-orphan")
+
+class CaseStage(Base):
+    __tablename__ = "case_stages"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    soar_id = Column(Integer) # Made non-unique as different tenants can have same stage IDs
+    tenant_id = Column(Integer, ForeignKey("tenants.id"))
+
+    tenant = relationship("Tenant", back_populates="stages")
+
+class CaseStatus(Base):
+    __tablename__ = "case_statuses"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    enum_id = Column(Integer, unique=True)
+
+class MTTxConfig(Base):
+    __tablename__ = "mttx_configs"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    metric_type = Column(String)
+
+Base.metadata.create_all(bind=engine)
+
+# --- Pydantic Schemas ---
+class TenantBase(BaseModel):
+    name: str
+    guid: str
+    region: str
+    gcp_project_id: str
+    soar_url: Optional[str] = None
+    soar_api_key: Optional[str] = None
+
+class TenantCreate(TenantBase):
+    pass
+
+class TenantUpdate(TenantBase):
+    pass
+
+class CaseStageResponse(BaseModel):
+    id: int
+    name: str
+    soar_id: int
+    
+    class Config:
+        from_attributes = True
+
+class TenantResponse(TenantBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class MTTxConfigBase(BaseModel):
+    name: str
+    metric_type: str
+
+class MTTxConfigCreate(MTTxConfigBase):
+    pass
+
+class MTTxConfigResponse(MTTxConfigBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class AnalysisRequest(BaseModel):
+    tenant_id: int
+    time_unit: str
+    start_time_val: int
+
+class TestConnectionResponse(BaseModel):
+    status: str
+    message: str
+
+class MetricsResponse(BaseModel):
+    individual_cases: Dict[str, Any]
+    average_metrics: Dict[str, Any]
+    completion_rates: Dict[str, Any]
+
+class FetchStagesResponse(BaseModel):
+    status: str
+    message: str
+    stages_fetched: int
+
+
+# --- FastAPI App Setup ---
+app = FastAPI()
+api_router = APIRouter()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        
+# --- Database Seeding ---
+def seed_case_statuses(db: Session):
+    statuses = {
+        0: "UNSPECIFIED",
+        1: "OPENED",
+        2: "CLOSED",
+        3: "ALL",
+        4: "MERGED",
+        5: "CREATION_PENDING",
+    }
+    
+    existing_statuses = db.query(CaseStatus).count()
+    if existing_statuses == 0:
+        logging.info("Seeding database with initial case statuses.")
+        for enum_id, name in statuses.items():
+            db_status = CaseStatus(name=name, enum_id=enum_id)
+            db.add(db_status)
+        db.commit()
+    else:
+        logging.info("Case statuses already exist in the database.")
+
+
+@app.on_event("startup")
+def on_startup():
+    # Create a new session just for seeding
+    db = SessionLocal()
+    try:
+        seed_case_statuses(db)
+    finally:
+        db.close()
+
+# --- Data Processing Functions ---
+def json_to_csv(json_data: Dict[str, Any]) -> List[List[Any]]:
+    results = json_data.get('results', [])
+    if not results or not results[0].get('values'):
+        logging.error("JSON is empty or has an invalid structure.")
+        return []
+    num_rows = len(results[0]['values'])
+    header = [result.get('column', 'Unknown_Column') for result in results]
+    csv_data = [header]
+    for i in range(num_rows):
+        row = []
+        for result in results:
+            try:
+                val_dict = result['values'][i]['value']
+                value_keys = [k for k in val_dict.keys() if k != 'metadata']
+                if value_keys:
+                    actual_key = value_keys[0]
+                    row.append(val_dict[actual_key])
+                else:
+                    row.append('')
+            except (KeyError, IndexError) as e:
+                logging.warning(f"Error processing data at row {i} for column {result.get('column')}: {e}")
+                row.append('')
+        csv_data.append(row)
+    return csv_data
+
+def calculate_soc_metrics_structured(data: List[List[Any]]) -> Dict[str, Any]:
+    if not data or len(data) < 2:
+        return {}
+    headers, records = data[0], data[1:]
+    df = pd.DataFrame(records, columns=headers)
+    df['case_history_case_event_time'] = pd.to_numeric(df['case_history_case_event_time'])
+    case_ids = df['case_history_case_id'].unique()
+    
+    total_cases = len(case_ids)
+    individual_case_metrics = {}
+    mtta_values, mttc_values, mttr_values = [], [], []
+
+    for case_id in case_ids:
+        case_df = df[df['case_history_case_id'] == case_id].sort_values(by='case_history_case_event_time')
+        case_results = {}
+        create_events = case_df[case_df['case_history_case_activity'] == 'CREATE_CASE']
+        if create_events.empty:
+            continue
+        time_created = create_events['case_history_case_event_time'].iloc[0]
+        stage_changes = case_df[(case_df['case_history_case_activity'] == 'STAGE_CHANGE') & (case_df['case_history_case_event_time'] > time_created)]
+        time_first_action = stage_changes['case_history_case_event_time'].min()
+        time_contained = case_df[case_df['case_history_stage'] == 'Incident']['case_history_case_event_time'].min()
+        time_closed = case_df[case_df['case_history_status'] == 'CLOSED']['case_history_case_event_time'].min()
+
+        if pd.notna(time_first_action):
+            mtta = time_first_action - time_created
+            mtta_values.append(mtta)
+            case_results['MTTA'] = int(mtta)
+        else:
+            case_results['MTTA'] = '-'
+        
+        if pd.notna(time_contained) and pd.notna(time_first_action):
+            mttc = time_contained - time_first_action
+            mttc_values.append(mttc)
+            case_results['MTTC'] = int(mttc)
+        else:
+            case_results['MTTC'] = '-'
+            
+        if pd.notna(time_closed) and pd.notna(time_first_action):
+            mttr = time_closed - time_first_action
+            mttr_values.append(mttr)
+            case_results['MTTR'] = int(mttr)
+        else:
+            case_results['MTTR'] = '-'
+        
+        individual_case_metrics[case_id] = case_results
+    
+    avg_mtta = np.mean(mtta_values) if mtta_values else 0
+    avg_mttc = np.mean(mttc_values) if mttc_values else 0
+    avg_mttr = np.mean(mttr_values) if mttr_values else 0
+
+    completion_mtta = (len(mtta_values) / total_cases) * 100 if total_cases > 0 else 0
+    completion_mttc = (len(mttc_values) / total_cases) * 100 if total_cases > 0 else 0
+    completion_mttr = (len(mttr_values) / total_cases) * 100 if total_cases > 0 else 0
+
+    return {
+        "individual_cases": individual_case_metrics,
+        "average_metrics": {
+            "Average_MTTA_seconds": int(avg_mtta),
+            "Average_MTTC_seconds": int(avg_mttc),
+            "Average_MTTR_seconds": int(avg_mttr)
+        },
+        "completion_rates": {
+            "MTTA_completion_percent": round(completion_mtta, 2),
+            "MTTC_completion_percent": round(completion_mttc, 2),
+            "MTTR_completion_percent": round(completion_mttr, 2),
+            "total_cases": total_cases
+        }
+    }
+
+
+# --- API Endpoints ---
+@api_router.post("/tenants", response_model=TenantResponse, status_code=201)
+def create_tenant(tenant: TenantCreate, db: Session = Depends(get_db)):
+    db_tenant = Tenant(**tenant.model_dump())
+    db.add(db_tenant)
+    db.commit()
+    db.refresh(db_tenant)
+    return db_tenant
+
+@api_router.get("/tenants", response_model=List[TenantResponse])
+def read_tenants(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    tenants = db.query(Tenant).offset(skip).limit(limit).all()
+    return tenants
+
+@api_router.put("/tenants/{tenant_id}", response_model=TenantResponse)
+def update_tenant(tenant_id: int, tenant: TenantUpdate, db: Session = Depends(get_db)):
+    db_tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    if not db_tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    update_data = tenant.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_tenant, key, value)
+        
+    db.commit()
+    db.refresh(db_tenant)
+    return db_tenant
+
+@api_router.post("/tenants/{tenant_id}/test", response_model=TestConnectionResponse)
+def test_tenant_connection(tenant_id: int, db: Session = Depends(get_db)):
+    if not SECOPS_SDK_AVAILABLE:
+        raise HTTPException(status_code=501, detail="SecOps SDK not installed on the server.")
+
+    db_tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    if db_tenant is None:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    logging.info(f"Testing connection for Tenant ID: {db_tenant.id}, Name: '{db_tenant.name}'")
+    try:
+        client = SecOpsClient()
+        chronicle = client.chronicle(
+            customer_id=db_tenant.guid,
+            project_id=db_tenant.gcp_project_id,
+            region=db_tenant.region
+        )
+        chronicle.list_feeds()
+        logging.info(f"Successfully connected to tenant ID: {db_tenant.id}")
+        return {"status": "success", "message": "Connection to SecOps tenant successful."}
+    except Exception as e:
+        logging.error(f"Connection failed for tenant ID {db_tenant.id}: {e}", exc_info=True)
+        return {"status": "failed", "message": f"Connection failed: {str(e)}"}
+
+@api_router.post("/tenants/{tenant_id}/fetch-stages", response_model=FetchStagesResponse)
+def fetch_and_store_stages(tenant_id: int, db: Session = Depends(get_db)):
+    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    if not tenant.soar_url or not tenant.soar_api_key:
+        raise HTTPException(status_code=400, detail="SOAR URL and API Key are not configured for this tenant.")
+
+    api_url = f"{tenant.soar_url.rstrip('/')}/api/external/v1/settings/GetCaseStageDefinitionRecords"
+    headers = { 'AppKey': tenant.soar_api_key, 'Content-Type': 'application/json' }
+    payload = { "searchTerm": "", "requestedPage": 0, "pageSize": 100 }
+
+    try:
+        logging.info(f"Fetching case stages from {api_url}")
+        response = requests.post(api_url, headers=headers, json=payload, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        stages = data.get("objectsList", [])
+        
+        db.query(CaseStage).filter(CaseStage.tenant_id == tenant_id).delete()
+        
+        for stage in stages:
+            new_stage = CaseStage(
+                name=stage.get("name"),
+                soar_id=stage.get("id"),
+                tenant_id=tenant_id
+            )
+            db.add(new_stage)
+        
+        db.commit()
+        logging.info(f"Successfully fetched and stored {len(stages)} stages for tenant {tenant.name}.")
+        return {"status": "success", "message": f"Successfully fetched {len(stages)} stages.", "stages_fetched": len(stages)}
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Failed to call SOAR API for tenant {tenant.id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to connect to SOAR API: {e}")
+    except Exception as e:
+        logging.error(f"An error occurred processing stages for tenant {tenant.id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal error occurred.")
+
+@api_router.get("/tenants/{tenant_id}/stages", response_model=List[CaseStageResponse])
+def get_tenant_stages(tenant_id: int, db: Session = Depends(get_db)):
+    stages = db.query(CaseStage).filter(CaseStage.tenant_id == tenant_id).all()
+    return stages
+
+@api_router.post("/mttx-configs", response_model=MTTxConfigResponse, status_code=201)
+def create_mttx_config(config: MTTxConfigCreate, db: Session = Depends(get_db)):
+    db_config = MTTxConfig(**config.model_dump())
+    db.add(db_config)
+    db.commit()
+    db.refresh(db_config)
+    return db_config
+
+@api_router.get("/mttx-configs", response_model=List[MTTxConfigResponse])
+def read_mttx_configs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    configs = db.query(MTTxConfig).offset(skip).limit(limit).all()
+    return configs
+
+@api_router.post("/analysis/run", response_model=Dict[str, Any])
+def run_analysis(request: AnalysisRequest, db: Session = Depends(get_db)):
+    if not SECOPS_SDK_AVAILABLE:
+        raise HTTPException(status_code=501, detail="SecOps SDK not installed on the server.")
+    tenant = db.query(Tenant).filter(Tenant.id == request.tenant_id).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Selected tenant not found.")
+    logging.info(f"Running analysis for tenant: {tenant.name}")
+    query = """
+$case_history_case_id = case_history.case_response_platform_info.case_id
+$case_history_case_activity = case_history.case_activity
+$case_history_case_event_time = case_history.event_time.seconds
+$case_history_stage = case_history.stage
+$case_history_assignee_name = case_history.assignee.name
+$case_history_assignee_email = case_history.assignee.email
+$case_history_assignee_soc_roles = case_history.assignee.soc_roles
+$case_history_priority = case_history.priority
+$case_history_status = case_history.status
+$case_history_important = case_history.important
+$case_history_incident = case_history.incident
+
+match:
+    $case_history_case_id,
+    $case_history_case_activity,
+    $case_history_case_event_time,
+    $case_history_stage,
+    $case_history_assignee_name,
+    $case_history_assignee_email,
+    $case_history_assignee_soc_roles,
+    $case_history_priority,
+    $case_history_status,
+    $case_history_important,
+    $case_history_incident
+order: 
+    $case_history_case_id desc
+limit:
+    1000
+    """
+    interval = { "relativeTime": { "timeUnit": request.time_unit, "startTimeVal": str(request.start_time_val) } }
+    try:
+        client = SecOpsClient()
+        chronicle = client.chronicle( customer_id=tenant.guid, project_id=tenant.gcp_project_id, region=tenant.region )
+        results = chronicle.execute_dashboard_query(query=query, interval=interval)
+        logging.info(f"Query successful. Found {len(results.get('results', []))} results.")
+        return results
+    except Exception as e:
+        logging.error(f"Analysis query failed for tenant {tenant.name}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")
+
+@api_router.post("/analysis/calculate", response_model=MetricsResponse)
+def calculate_metrics(raw_data: Dict[str, Any]):
+    logging.info("Starting metric calculation from raw data.")
+    try:
+        csv_data = json_to_csv(raw_data)
+        if not csv_data:
+            raise HTTPException(status_code=400, detail="Failed to convert JSON to CSV format.")
+        
+        metrics = calculate_soc_metrics_structured(csv_data)
+        if not metrics:
+            raise HTTPException(status_code=400, detail="Failed to calculate metrics from data.")
+            
+        logging.info("Successfully calculated metrics.")
+        return metrics
+    except Exception as e:
+        logging.error(f"Metric calculation failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An internal error occurred during metric calculation: {e}")
+
+
+# --- Mount API and Static Files ---
+app.include_router(api_router, prefix="/api")
+
+frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
+if os.path.exists(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="static")
+
+# --- Uvicorn Runner ---
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+

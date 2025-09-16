@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google SecOps MTTx Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        .tab-btn {
+            cursor: pointer;
+            transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+        .tab-active { color: #2563eb; border-color: #2563eb; }
+        .tab-inactive { color: #6b7280; border-color: transparent; }
+        .tab-inactive:hover { color: #111827; border-color: #d1d5db; }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            font-size: 0.75em;
+            font-weight: 500;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.375rem;
+        }
+        .filter-pill {
+            display: inline-flex;
+            align-items: center;
+            background-color: #e0e7ff;
+            color: #3730a3;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .filter-pill button {
+            margin-left: 0.5rem;
+            color: #4f46e5;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .tag-chip {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            margin: 0.125rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-3xl font-bold text-gray-900">Google SecOps MTTx Dashboard</h1>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <!-- Main Tab Navigation -->
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button data-target="tenants-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Tenants</button>
+                <button data-target="configs-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Configurations</button>
+                <button data-target="analysis-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Ad-hoc Analysis</button>
+                <button data-target="results-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">MTTx Results</button>
+                <button data-target="scheduler-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Scheduler</button>
+                <button data-target="signal-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Signal to Noise</button>
+            </nav>
+        </div>
+
+        <div class="pt-8">
+            <!-- Scheduler Panel -->
+            <div id="scheduler-panel" class="main-tab-panel hidden">
+                <p class="mb-6 text-gray-600">Configure scheduled CSV based exports per Tenant.</p>
+                <div class="space-y-8">
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Scheduler Configuration</h2>
+                        <div>
+                            <label for="scheduler-tenant-select" class="block font-semibold mb-1">Select Tenant to Configure Schedules</label>
+                            <select id="scheduler-tenant-select" class="w-full p-2 border rounded-md"></select>
+                        </div>
+                    </div>
+                    <div id="scheduler-content" class="hidden">
+                        <!-- Schedules will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tenants Panel -->
+            <div id="tenants-panel" class="main-tab-panel">
+                <p class="mb-6 text-gray-600">Configure your instances of Google SecOps. You will require a chronicle.googleapis.com BYOP Service Account, and a SOAR API key.</p>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="card p-6">
+                        <h2 id="tenant-form-title" class="text-2xl font-bold mb-4 border-b pb-2">Add New Tenant</h2>
+                        <form id="add-tenant-form" class="space-y-4">
+                            <input type="hidden" id="tenant-id">
+                            <div>
+                                <label for="tenant-name" class="block font-semibold">Tenant Name</label>
+                                <input type="text" id="tenant-name" placeholder="e.g., Primary Production" class="w-full p-2 border rounded-md mt-1" required>
+                            </div>
+                            <div>
+                                <label for="tenant-guid" class="block font-semibold">Customer ID (GUID)</label>
+                                <input type="text" id="tenant-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="w-full p-2 border rounded-md mt-1" required>
+                            </div>
+                            <div>
+                                <label for="tenant-gcp-project" class="block font-semibold">GCP Project ID</label>
+                                <input type="text" id="tenant-gcp-project" placeholder="your-gcp-project-id" class="w-full p-2 border rounded-md mt-1" required>
+                            </div>
+                             <div>
+                                <label for="tenant-region" class="block font-semibold">Region</label>
+                                <input type="text" id="tenant-region" placeholder="e.g., us-central1" class="w-full p-2 border rounded-md mt-1" required>
+                            </div>
+                            <div>
+                                <label for="base-url" class="block font-semibold">Base URL</label>
+                                <input type="url" id="base-url" placeholder="https://<your-secops-instance>" class="w-full p-2 border rounded-md mt-1">
+                            </div>
+                            <div class="border-t pt-4">
+                                <h3 class="font-semibold text-gray-600 mb-2">SOAR Configuration</h3>
+                                <div>
+                                    <label for="soar-url" class="block font-semibold">SOAR URL</label>
+                                    <input type="url" id="soar-url" placeholder="https://<your-soar-instance>" class="w-full p-2 border rounded-md mt-1">
+                                </div>
+                                 <div class="mt-4">
+                                    <label for="soar-api-key" class="block font-semibold">SOAR API Key</label>
+                                    <input type="password" id="soar-api-key" placeholder="Enter SOAR API Key" class="w-full p-2 border rounded-md mt-1">
+                                </div>
+                            </div>
+                            <div class="flex space-x-2 pt-4">
+                                <button id="tenant-submit-btn" type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Add Tenant</button>
+                                <button id="cancel-edit-btn" type="button" class="w-full bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition hidden">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                     <div class="card p-6">
+                        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Configured Tenants</h2>
+                        <ul id="tenant-list" class="space-y-3"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurations Panel -->
+            <div id="configs-panel" class="main-tab-panel hidden">
+                <p class="mb-6 text-gray-600">Select the SecOps Tenant you wish to create your MTTx configuration for. You can configure your MTTC and MTTR parameters per tenant, and the associated SecOps YL2 query to generate the required data. MTTA and MTTD are not user configurable.</p>
+                <div class="space-y-8">
+                    <div class="card p-6">
+                         <h2 class="text-2xl font-bold mb-4 border-b pb-2">Configuration Settings</h2>
+                         <div>
+                            <label for="config-tenant-select" class="block font-semibold mb-1">Select Tenant to Configure</label>
+                            <select id="config-tenant-select" class="w-full p-2 border rounded-md"></select>
+                        </div>
+                    </div>
+                    <div id="mttx-config-forms" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="card p-6">
+                             <h3 class="text-xl font-bold mb-4">MTTC Configuration</h3>
+                             <form id="mttc-config-form" class="space-y-4" data-metric="MTTC">
+                                 <input type="hidden" id="mttc-config-id">
+                                 <div>
+                                     <label class="block font-semibold">Key (Read-only)</label>
+                                     <input type="text" class="w-full p-2 border rounded-md mt-1 bg-gray-100" value="case_history_stage" readonly>
+                                 </div>
+                                 <div>
+                                     <label class="block font-semibold">Value (Select a Case Stage)</label>
+                                     <select id="mttc-config-value" class="w-full p-2 border rounded-md mt-1"></select>
+                                 </div>
+                                 <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save MTTC Config</button>
+                             </form>
+                        </div>
+                        <div class="card p-6">
+                             <h3 class="text-xl font-bold mb-4">MTTR Configuration</h3>
+                             <form id="mttr-config-form" class="space-y-4" data-metric="MTTR">
+                                <input type="hidden" id="mttr-config-id">
+                                <div>
+                                     <label class="block font-semibold">Key</label>
+                                     <select id="mttr-config-key" class="w-full p-2 border rounded-md mt-1">
+                                        <option value="case_history_stage">Case Stage</option>
+                                        <option value="case_history_status">Case Status</option>
+                                     </select>
+                                 </div>
+                                 <div>
+                                     <label class="block font-semibold">Value</label>
+                                     <select id="mttr-config-value" class="w-full p-2 border rounded-md mt-1"></select>
+                                 </div>
+                                 <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save MTTR Config</button>
+                             </form>
+                        </div>
+                    </div>
+                    <div id="query-config-forms" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="card p-6">
+                             <h3 class="text-xl font-bold mb-4">Case History Query</h3>
+                             <form id="query-history-form">
+                                 <input type="hidden" id="query-history-id">
+                                 <textarea id="query-history-text" class="w-full p-2 border rounded-md font-mono text-sm" rows="15"></textarea>
+                                 <button type="submit" class="mt-2 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save History Query</button>
+                             </form>
+                        </div>
+                        <div class="card p-6">
+                             <h3 class="text-xl font-bold mb-4">Case (MTTD) Query</h3>
+                             <form id="query-case-form">
+                                 <input type="hidden" id="query-case-id">
+                                 <textarea id="query-case-text" class="w-full p-2 border rounded-md font-mono text-sm" rows="15"></textarea>
+                                 <button type="submit" class="mt-2 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Case Query</button>
+                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ad-hoc Analysis Panel -->
+            <div id="analysis-panel" class="main-tab-panel hidden">
+                <p class="mb-6 text-gray-600">Select a Tenant, specify a relative time range, and click Run Analysis to generate MTTx data. Once complete, click the Calculate MTTx Metrics button.</p>
+                 <div class="card p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Analysis Parameters</h2>
+                    <div class="space-y-4 max-w-2xl">
+                        <div>
+                            <label for="analysis-tenant-select" class="block font-semibold">Select Tenant</label>
+                            <select id="analysis-tenant-select" class="w-full p-2 border rounded-md mt-1"></select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Select Relative Time Range</label>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <input type="number" id="start-time-val" class="w-1/2 p-2 border rounded-md" value="7">
+                                <select id="time-unit" class="w-full p-2 border rounded-md">
+                                    <option value="DAY">Days</option>
+                                    <option value="HOUR">Hours</option>
+                                    <option value="MINUTE">Minutes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="run-analysis-btn" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 transition">Run Analysis</button>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Raw Query Results</h2>
+                    <pre id="raw-results-output" class="bg-gray-900 text-white p-4 rounded-md overflow-x-auto text-sm h-96">Run an analysis to see the raw query results here.</pre>
+                    <button id="calculate-metrics-btn" class="mt-4 w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-purple-700 transition hidden">Calculate MTTx Metrics</button>
+                </div>
+            </div>
+
+            <!-- MTTx Results Panel -->
+            <div id="results-panel" class="main-tab-panel hidden">
+                <p class="mb-6 text-gray-600">Optionally, apply Filters to update your Average Metrics, Completion Rates, and the Show Details tickbox if you wish to see more granular Case data.</p>
+                <div id="filter-container" class="card p-6 mb-8 hidden">
+                    <div class="flex justify-between items-center border-b pb-2 mb-4">
+                        <h2 class="text-2xl font-bold">Filters</h2>
+                        <button id="toggle-filters-btn" title="Toggle Filters" class="text-gray-500 hover:text-gray-800 transition">
+                            <svg class="w-6 h-6 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
+                    <div id="filter-body" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                             <div>
+                                <label for="environment-search" class="block font-semibold mb-1">Search Environments</label>
+                                <input type="text" id="environment-search" placeholder="Filter environments..." class="w-full p-2 border rounded-md">
+                                 <div id="environment-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50"></div>
+                            </div>
+                             <div>
+                                <label for="rule-search" class="block font-semibold mb-1">Search Detection Rules</label>
+                                <input type="text" id="rule-search" placeholder="Filter rules..." class="w-full p-2 border rounded-md">
+                                <div id="rule-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50"></div>
+                            </div>
+                            <div>
+                                <label for="tag-search" class="block font-semibold mb-1">Search Tags</label>
+                                <input type="text" id="tag-search" placeholder="Filter tags..." class="w-full p-2 border rounded-md">
+                                <div id="tag-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50"></div>
+                                <label for="filter-mode" class="block font-semibold mb-1 mt-4">Tag Filter Mode</label>
+                                <select id="filter-mode" class="w-full p-2 border rounded-md">
+                                    <option value="exclude">Exclude cases with selected tags</option>
+                                    <option value="include">Include ONLY cases with selected tags</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="apply-filters-btn" class="w-full md:w-auto bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Apply Filters</button>
+                            <button id="clear-filters-btn" class="w-full md:w-auto bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition">Clear Filters</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="mttx-results-container">
+                     <p class="text-gray-500">Calculate metrics to see results.</p>
+                </div>
+            </div>
+            
+            <!-- Signal to Noise Panel -->
+            <div id="signal-panel" class="main-tab-panel hidden">
+                <p class="mb-6 text-gray-600">Plot True Positive against True Positive - Benign, or False Positive detections to see which Detection Rules are providing value, or not.</p>
+                 <div class="card p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Chart Configuration</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="signal-tags-select" class="block font-semibold mb-1">Signal Tags (Y-Axis)</label>
+                            <select id="signal-tags-select" multiple class="w-full p-2 border rounded-md bg-gray-50 h-32"></select>
+                        </div>
+                        <div>
+                            <label for="noise-tags-select" class="block font-semibold mb-1">Noise Tags (X-Axis)</label>
+                            <select id="noise-tags-select" multiple class="w-full p-2 border rounded-md bg-gray-50 h-32"></select>
+                        </div>
+                    </div>
+                    <button id="generate-chart-btn" class="mt-4 w-full md:w-auto bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Generate Chart</button>
+                </div>
+                 <div class="card p-6">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Detection Rule Signal to Noise Quadrant</h2>
+                    <p class="text-gray-600 mb-4">Each bubble represents a detection rule. Size indicates total alert volume. Use filters on the 'MTTx Results' tab to refine this view.</p>
+                    <div class="relative h-[600px]">
+                        <canvas id="signal-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000/api';
+
+        // Global State
+        let caseHistoryData = null;
+        let caseMttdData = null;
+        let fullMetricsData = null;
+        let allCaseStages = [];
+        let allCaseStatuses = [];
+        let signalChart = null;
+
+        // Element References
+        const tenantList = document.getElementById('tenant-list');
+        const tenantSelectForAnalysis = document.getElementById('analysis-tenant-select');
+        const tenantSelectForConfig = document.getElementById('config-tenant-select');
+        const tenantSelectForScheduler = document.getElementById('scheduler-tenant-select');
+        const addTenantForm = document.getElementById('add-tenant-form');
+        const mttxConfigForms = document.getElementById('mttx-config-forms');
+        const queryConfigForms = document.getElementById('query-config-forms');
+        
+        // Tab Switching Logic
+        const mainTabs = document.querySelectorAll('.tab-btn');
+        const mainTabPanels = document.querySelectorAll('.main-tab-panel');
+
+        const switchMainTab = (targetPanelId) => {
+            mainTabPanels.forEach(p => p.classList.toggle('hidden', p.id !== targetPanelId));
+            mainTabs.forEach(t => {
+                t.classList.toggle('tab-active', t.dataset.target === targetPanelId);
+                t.classList.toggle('tab-inactive', t.dataset.target !== targetPanelId);
+            });
+            if (targetPanelId === 'configs-panel') {
+                const selectedTenantId = tenantSelectForConfig.value;
+                if (selectedTenantId && !isNaN(selectedTenantId)) {
+                    loadAndDisplayConfigs(selectedTenantId);
+                }
+            } else if (targetPanelId === 'scheduler-panel') {
+                const selectedTenantId = tenantSelectForScheduler.value;
+                if (selectedTenantId && !isNaN(selectedTenantId)) {
+                    loadAndDisplaySchedules(selectedTenantId);
+                }
+            } else if (targetPanelId === 'signal-panel') {
+                if (fullMetricsData) {
+                    populateSignalNoiseSelectors();
+                    generateQuadrantChart();
+                }
+            }
+        };
+
+        mainTabs.forEach(t => t.addEventListener('click', () => switchMainTab(t.dataset.target)));
+
+        // --- Scheduler Logic ---
+        const loadAndDisplaySchedules = async (tenantId) => {
+            const schedulerContent = document.getElementById('scheduler-content');
+            if (!tenantId || isNaN(tenantId)) {
+                schedulerContent.classList.add('hidden');
+                return;
+            }
+            schedulerContent.classList.remove('hidden');
+            schedulerContent.innerHTML = '<p>Loading schedules...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/tenants/${tenantId}/schedules`);
+                if (!response.ok) throw new Error('Failed to fetch schedules');
+                const schedules = await response.json();
+                renderSchedules(schedules, tenantId);
+            } catch (error) {
+                schedulerContent.innerHTML = `<p class="text-red-500">Error loading schedules: ${error.message}</p>`;
+            }
+        };
+
+        const renderSchedules = (schedules, tenantId) => {
+            const schedulerContent = document.getElementById('scheduler-content');
+            schedulerContent.innerHTML = ''; // Clear previous content
+
+            // Add "Create New Schedule" Form
+            const createScheduleCard = document.createElement('div');
+            createScheduleCard.className = 'card p-6 mb-8';
+            createScheduleCard.innerHTML = `
+                <h3 class="text-xl font-bold mb-4">Create New Schedule</h3>
+                <form id="create-schedule-form" class="space-y-4">
+                    <!-- Form fields for new schedule -->
+                </form>
+            `;
+            schedulerContent.appendChild(createScheduleCard);
+            renderScheduleForm(document.getElementById('create-schedule-form'), { tenant_id: tenantId });
+
+
+            schedules.forEach(schedule => {
+                const scheduleCard = document.createElement('div');
+                scheduleCard.className = 'card p-6 mb-6';
+                scheduleCard.innerHTML = `
+                    <div class="flex justify-between items-center border-b pb-2 mb-4">
+                        <h3 class="text-xl font-bold">Edit Schedule</h3>
+                        <div class="flex space-x-2">
+                            <button class="test-schedule-btn text-sm bg-yellow-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-yellow-600" data-schedule-id="${schedule.id}">Test Run</button>
+                            <button class="delete-schedule-btn text-sm bg-red-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-red-600" data-schedule-id="${schedule.id}">Delete Schedule</button>
+                        </div>
+                    </div>
+                    <form id="schedule-form-${schedule.id}" class="space-y-4"></form>
+                    <div class="border-t mt-6 pt-4">
+                        <h4 class="text-lg font-semibold mb-2">Output Destinations</h4>
+                        <div id="destinations-for-${schedule.id}"></div>
+                    </div>
+                `;
+                schedulerContent.appendChild(scheduleCard);
+                renderScheduleForm(document.getElementById(`schedule-form-${schedule.id}`), schedule);
+                renderDestinations(schedule.id);
+            });
+        };
+        
+        const renderScheduleForm = (formElement, scheduleData) => {
+            const isNew = !scheduleData.id;
+            formElement.innerHTML = `
+                <input type="hidden" name="schedule_id" value="${scheduleData.id || ''}">
+                <input type="hidden" name="tenant_id" value="${scheduleData.tenant_id}">
+                <div>
+                    <label class="block font-semibold">Cron Schedule</label>
+                    <input type="text" name="cron_schedule" class="w-full p-2 border rounded-md mt-1" placeholder="e.g., 0 2 * * *" value="${scheduleData.cron_schedule || ''}" required>
+                    <p class="text-xs text-gray-500 mt-1">Use standard cron format (minute hour day(month) month day(week)).</p>
+                </div>
+                <div>
+                    <label class="block font-semibold">Report Time Range</label>
+                    <div class="flex items-center space-x-2 mt-1">
+                        <input type="number" name="start_time_val" class="w-1/2 p-2 border rounded-md" value="${scheduleData.start_time_val || 7}">
+                        <select name="time_unit" class="w-full p-2 border rounded-md">
+                            <option value="DAY" ${scheduleData.time_unit === 'DAY' ? 'selected' : ''}>Days</option>
+                            <option value="HOUR" ${scheduleData.time_unit === 'HOUR' ? 'selected' : ''}>Hours</option>
+                            <option value="MINUTE" ${scheduleData.time_unit === 'MINUTE' ? 'selected' : ''}>Minutes</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold">Metrics to Output</label>
+                    <div class="mt-2 space-y-2">
+                        <label class="flex items-center"><input type="checkbox" name="output_avg_metrics" class="h-4 w-4 rounded border-gray-300" ${scheduleData.output_avg_metrics !== false ? 'checked' : ''}> <span class="ml-2">Average Metrics</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="output_completion_rates" class="h-4 w-4 rounded border-gray-300" ${scheduleData.output_completion_rates !== false ? 'checked' : ''}> <span class="ml-2">Completion Rates</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="output_individual_cases" class="h-4 w-4 rounded border-gray-300" ${scheduleData.output_individual_cases ? 'checked' : ''}> <span class="ml-2">Individual Cases</span></label>
+                    </div>
+                </div>
+                 <div>
+                    <label class="flex items-center"><input type="checkbox" name="is_enabled" class="h-4 w-4 rounded border-gray-300" ${scheduleData.is_enabled !== false ? 'checked' : ''}> <span class="ml-2 font-semibold">Is Enabled</span></label>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">${isNew ? 'Create Schedule' : 'Update Schedule'}</button>
+            `;
+            formElement.addEventListener('submit', handleScheduleFormSubmit);
+        };
+
+        const handleScheduleFormSubmit = async (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const scheduleId = form.schedule_id.value;
+            const tenantId = form.tenant_id.value;
+            const isNew = !scheduleId;
+
+            const scheduleData = {
+                tenant_id: parseInt(tenantId),
+                cron_schedule: form.cron_schedule.value,
+                time_unit: form.time_unit.value,
+                start_time_val: parseInt(form.start_time_val.value),
+                output_avg_metrics: form.output_avg_metrics.checked,
+                output_completion_rates: form.output_completion_rates.checked,
+                output_individual_cases: form.output_individual_cases.checked,
+                is_enabled: form.is_enabled.checked
+            };
+
+            const url = isNew ? `${API_BASE_URL}/schedules` : `${API_BASE_URL}/schedules/${scheduleId}`;
+            const method = isNew ? 'POST' : 'PUT';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(scheduleData)
+                });
+                if (!response.ok) throw new Error(await response.text());
+                alert(`Schedule ${isNew ? 'created' : 'updated'} successfully!`);
+                loadAndDisplaySchedules(tenantId);
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        };
+        
+        const renderDestinations = async (scheduleId) => {
+            const container = document.getElementById(`destinations-for-${scheduleId}`);
+            try {
+                const response = await fetch(`${API_BASE_URL}/schedules/${scheduleId}/destinations`);
+                const destinations = await response.json();
+                
+                container.innerHTML = ''; // Clear
+                destinations.forEach(dest => {
+                    const destForm = document.createElement('form');
+                    destForm.className = 'p-4 bg-gray-50 rounded-md mb-2';
+                    destForm.innerHTML = `
+                        <input type="hidden" name="destination_id" value="${dest.id}">
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="font-semibold">Destination: ${dest.destination_type}</p>
+                            <button type="button" class="delete-destination-btn text-xs bg-red-100 text-red-700 font-semibold py-1 px-2 rounded-lg hover:bg-red-200" data-destination-id="${dest.id}">Delete</button>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium">File Path</label>
+                            <input type="text" name="path" class="w-full p-2 border rounded-md mt-1 text-sm" value="${dest.path || ''}" placeholder="/path/to/output.csv">
+                        </div>
+                        <div class="mt-2">
+                            <label class="flex items-center"><input type="checkbox" name="is_enabled" class="h-4 w-4 rounded" ${dest.is_enabled ? 'checked' : ''}> <span class="ml-2 text-sm">Enabled</span></label>
+                        </div>
+                        <button type="submit" class="mt-2 w-full bg-green-600 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-green-700">Update Destination</button>
+                    `;
+                    container.appendChild(destForm);
+                });
+
+                // Add "New Destination" form
+                const newDestForm = document.createElement('form');
+                newDestForm.className = 'p-4 border-t';
+                newDestForm.innerHTML = `
+                    <h5 class="font-semibold mb-2">Add New Destination</h5>
+                    <input type="hidden" name="schedule_id" value="${scheduleId}">
+                    <div>
+                        <label class="block text-sm font-medium">Destination Type</label>
+                        <select name="destination_type" class="w-full p-2 border rounded-md mt-1 text-sm"><option value="CSV">CSV</option></select>
+                    </div>
+                    <div class="mt-2">
+                        <label class="block text-sm font-medium">File Path</label>
+                        <input type="text" name="path" class="w-full p-2 border rounded-md mt-1 text-sm" placeholder="/path/to/output.csv" required>
+                    </div>
+                    <button type="submit" class="mt-2 w-full bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-blue-600">Add Destination</button>
+                `;
+                container.appendChild(newDestForm);
+
+            } catch (error) {
+                container.innerHTML = `<p class="text-red-500">Could not load destinations.</p>`;
+            }
+        };
+        
+        document.getElementById('scheduler-content').addEventListener('submit', async function(event) {
+            const form = event.target;
+            if (form.querySelector('[name="destination_id"]') || form.querySelector('[name="destination_type"]')) { // It's a destination form
+                event.preventDefault();
+                const destId = form.destination_id ? form.destination_id.value : null;
+                const scheduleId = form.schedule_id.value;
+                const isNew = !destId;
+                
+                const data = {
+                    schedule_id: parseInt(scheduleId),
+                    destination_type: form.destination_type ? form.destination_type.value : 'CSV',
+                    path: form.path.value,
+                    is_enabled: form.is_enabled ? form.is_enabled.checked : true
+                };
+
+                const url = isNew ? `${API_BASE_URL}/destinations` : `${API_BASE_URL}/destinations/${destId}`;
+                const method = isNew ? 'POST' : 'PUT';
+
+                try {
+                    const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                    if (!response.ok) throw new Error(await response.text());
+                    alert(`Destination ${isNew ? 'added' : 'updated'}.`);
+                    renderDestinations(scheduleId);
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            }
+        });
+
+        document.getElementById('scheduler-content').addEventListener('click', async function(event) {
+            if (event.target.classList.contains('test-schedule-btn')) {
+                const scheduleId = event.target.dataset.scheduleId;
+                event.target.textContent = 'Testing...';
+                event.target.disabled = true;
+                try {
+                    const response = await fetch(`${API_BASE_URL}/schedules/${scheduleId}/run`, { method: 'POST' });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.detail || 'Failed to start test run.');
+                    alert(result.message);
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                } finally {
+                    event.target.textContent = 'Test Run';
+                    event.target.disabled = false;
+                }
+            }
+            if (event.target.classList.contains('delete-schedule-btn')) {
+                const scheduleId = event.target.dataset.scheduleId;
+                if (confirm('Are you sure you want to delete this entire schedule and its destinations?')) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/schedules/${scheduleId}`, { method: 'DELETE' });
+                        if (!response.ok) throw new Error('Failed to delete schedule');
+                        alert('Schedule deleted.');
+                        loadAndDisplaySchedules(tenantSelectForScheduler.value);
+                    } catch (error) { alert(`Error: ${error.message}`); }
+                }
+            }
+            if (event.target.classList.contains('delete-destination-btn')) {
+                const destinationId = event.target.dataset.destinationId;
+                const scheduleId = event.target.closest('.card').querySelector('input[name="schedule_id"]').value;
+                 if (confirm('Are you sure you want to delete this destination?')) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/destinations/${destinationId}`, { method: 'DELETE' });
+                        if (!response.ok) throw new Error('Failed to delete destination');
+                        alert('Destination deleted.');
+                        renderDestinations(scheduleId);
+                    } catch (error) { alert(`Error: ${error.message}`); }
+                }
+            }
+        });
+
+
+        // --- Tenant Logic ---
+        const resetTenantForm = () => {
+            addTenantForm.reset();
+            document.getElementById('tenant-id').value = '';
+            document.getElementById('tenant-form-title').textContent = 'Add New Tenant';
+            document.getElementById('tenant-submit-btn').textContent = 'Add Tenant';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        };
+
+
+        const startEditTenant = (tenant) => {
+            document.getElementById('tenant-id').value = tenant.id;
+            document.getElementById('tenant-name').value = tenant.name;
+            document.getElementById('tenant-guid').value = tenant.guid;
+            document.getElementById('tenant-gcp-project').value = tenant.gcp_project_id;
+            document.getElementById('tenant-region').value = tenant.region;
+            document.getElementById('base-url').value = tenant.base_url || '';
+            document.getElementById('soar-url').value = tenant.soar_url || '';
+            document.getElementById('soar-api-key').value = tenant.soar_api_key || '';
+            document.getElementById('tenant-form-title').textContent = 'Edit Tenant';
+            document.getElementById('tenant-submit-btn').textContent = 'Update Tenant';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+        };
+
+        const handleTestTenant = async (tenantId, statusEl) => {
+            statusEl.textContent = 'Testing...';
+            statusEl.className = 'status-badge bg-yellow-100 text-yellow-800';
+            try {
+                const response = await fetch(`${API_BASE_URL}/tenants/${tenantId}/test`, { method: 'POST' });
+                const result = await response.json();
+                statusEl.textContent = result.status === 'success' ? 'Success' : 'Failed';
+                statusEl.className = `status-badge ${result.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+                if(result.status !== 'success') alert(`Connection Test Failed: ${result.message || 'Unknown error'}`);
+            } catch (error) {
+                statusEl.textContent = 'Failed';
+                statusEl.className = 'status-badge bg-red-100 text-red-800';
+            }
+        };
+
+        const renderTenants = (tenants) => {
+            const selects = [tenantSelectForAnalysis, tenantSelectForConfig, tenantSelectForScheduler];
+            tenantList.innerHTML = '';
+            selects.forEach(s => s.innerHTML = '');
+            if (tenants.length === 0) {
+                const noTenantMsg = `<li class="p-2 text-gray-500">No tenants configured.</li>`;
+                const noTenantOption = `<option>Please add a tenant first</option>`;
+                tenantList.innerHTML = noTenantMsg;
+                selects.forEach(s => s.innerHTML = noTenantOption);
+            } else {
+                tenants.forEach(tenant => {
+                    const li = document.createElement('li');
+                    li.className = 'p-3 bg-gray-50 rounded-md flex justify-between items-center';
+                    li.innerHTML = `<div class="font-semibold text-gray-700">${tenant.name}</div>`;
+                    const controls = document.createElement('div');
+                    controls.className = 'flex items-center space-x-2';
+                    controls.innerHTML = `
+                        <span id="status-${tenant.id}" class="status-badge bg-gray-200 text-gray-600">Untested</span>
+                        <button class="edit-btn text-sm bg-white font-semibold py-1 px-3 border rounded-lg shadow-sm hover:bg-gray-50">Edit</button>
+                        <button class="test-btn text-sm bg-white font-semibold py-1 px-3 border rounded-lg shadow-sm hover:bg-gray-50">Test</button>`;
+                    controls.querySelector('.edit-btn').onclick = () => startEditTenant(tenant);
+                    controls.querySelector('.test-btn').onclick = () => handleTestTenant(tenant.id, controls.querySelector(`#status-${tenant.id}`));
+                    li.appendChild(controls);
+                    tenantList.appendChild(li);
+                    
+                    const option = new Option(tenant.name, tenant.id);
+                    selects.forEach(s => s.add(option.cloneNode(true)));
+                });
+            }
+        };
+
+        const fetchTenants = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/tenants`);
+                if (!response.ok) throw new Error('Failed to fetch tenants');
+                renderTenants(await response.json());
+            } catch (error) {
+                tenantList.innerHTML = `<li class="p-2 text-red-500">Failed to load tenants.</li>`;
+            }
+        };
+
+        // --- Configuration Logic ---
+        const populateSelectWithOptions = (selectElement, options, selectedValue) => {
+            selectElement.innerHTML = '';
+            options.forEach(opt => {
+                const option = new Option(opt.text, opt.value);
+                selectElement.add(option);
+            });
+            if (selectedValue) selectElement.value = selectedValue;
+        };
+
+        const updateMttrValueOptions = () => {
+            const keySelect = document.getElementById('mttr-config-key');
+            const valueSelect = document.getElementById('mttr-config-value');
+            const source = keySelect.value === 'case_history_stage' ? allCaseStages : allCaseStatuses;
+            populateSelectWithOptions(valueSelect, source.map(s => ({ value: s.name, text: s.name })));
+        };
+        
+        const loadAndDisplayConfigs = async (tenantId) => {
+             if (!tenantId || isNaN(tenantId)) {
+                mttxConfigForms.classList.add('hidden');
+                queryConfigForms.classList.add('hidden');
+                return;
+            }
+            try {
+                mttxConfigForms.classList.remove('hidden');
+                queryConfigForms.classList.remove('hidden');
+
+                const [statusesRes, configsRes, queriesRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/case-statuses`),
+                    fetch(`${API_BASE_URL}/tenants/${tenantId}/mttx-configs`),
+                    fetch(`${API_BASE_URL}/tenants/${tenantId}/queries`)
+                ]);
+
+                allCaseStatuses = await statusesRes.json();
+                const configs = await configsRes.json();
+                const queries = await queriesRes.json();
+                
+                let stagesResponse = await fetch(`${API_BASE_URL}/tenants/${tenantId}/stages`);
+                allCaseStages = await stagesResponse.json();
+                if (allCaseStages.length === 0) {
+                    const fetchSoarResponse = await fetch(`${API_BASE_URL}/tenants/${tenantId}/fetch-stages`, { method: 'POST' });
+                    if (!fetchSoarResponse.ok) throw new Error((await fetchSoarResponse.json()).detail);
+                    allCaseStages = await (await fetch(`${API_BASE_URL}/tenants/${tenantId}/stages`)).json();
+                }
+
+                const mttcConfig = configs.find(c => c.metric_type === 'MTTC');
+                if (mttcConfig) {
+                    document.getElementById('mttc-config-id').value = mttcConfig.id;
+                    populateSelectWithOptions(document.getElementById('mttc-config-value'), allCaseStages.map(s => ({ value: s.name, text: s.name })), mttcConfig.config_value);
+                }
+                const mttrConfig = configs.find(c => c.metric_type === 'MTTR');
+                if (mttrConfig) {
+                    document.getElementById('mttr-config-id').value = mttrConfig.id;
+                    document.getElementById('mttr-config-key').value = mttrConfig.config_key;
+                    updateMttrValueOptions();
+                    document.getElementById('mttr-config-value').value = mttrConfig.config_value;
+                }
+                
+                const historyQuery = queries.find(q => q.name === 'query_history');
+                if(historyQuery) {
+                    document.getElementById('query-history-id').value = historyQuery.id;
+                    document.getElementById('query-history-text').value = historyQuery.query_text;
+                }
+                const caseQuery = queries.find(q => q.name === 'query_case');
+                if(caseQuery) {
+                    document.getElementById('query-case-id').value = caseQuery.id;
+                    document.getElementById('query-case-text').value = caseQuery.query_text;
+                }
+
+            } catch (error) {
+                alert(`Error loading configurations: ${error.message}`);
+                mttxConfigForms.classList.add('hidden');
+                queryConfigForms.classList.add('hidden');
+            }
+        };
+
+        const handleConfigFormSubmit = async (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const configId = form.querySelector('input[type=hidden]').value;
+            const keySelect = form.querySelector('select[id*=-config-key]');
+            const valueInput = form.querySelector('[id*=-config-value]');
+            
+            const configData = {
+                config_key: keySelect ? keySelect.value : "case_history_stage",
+                config_value: valueInput.value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/mttx-configs/${configId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configData)
+                });
+                if (!response.ok) throw new Error('Failed to save configuration');
+                alert(`${form.dataset.metric} configuration saved successfully!`);
+            } catch (error) { alert(`Error: ${error.message}`); }
+        };
+
+        const handleQueryFormSubmit = async (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const queryId = form.querySelector('input[type=hidden]').value;
+            const queryText = form.querySelector('textarea').value;
+            try {
+                const response = await fetch(`${API_BASE_URL}/queries/${queryId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query_text: queryText })
+                });
+                if (!response.ok) throw new Error('Failed to save query');
+                alert(`Query saved successfully!`);
+            } catch (error) { alert(`Error saving query: ${error.message}`); }
+        };
+
+        // --- Analysis and Calculation Logic ---
+        const handleRunAnalysis = async () => {
+            const runBtn = document.getElementById('run-analysis-btn');
+            runBtn.textContent = 'Running...';
+            runBtn.disabled = true;
+            document.getElementById('calculate-metrics-btn').classList.add('hidden');
+            document.getElementById('raw-results-output').textContent = 'Querying SecOps...';
+            
+            const analysisParams = {
+                tenant_id: parseInt(tenantSelectForAnalysis.value),
+                time_unit: document.getElementById('time-unit').value,
+                start_time_val: parseInt(document.getElementById('start-time-val').value)
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/analysis/run`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(analysisParams)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Analysis failed.');
+                
+                caseHistoryData = data.case_history_data;
+                caseMttdData = data.case_mttd_data;
+
+                document.getElementById('raw-results-output').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('calculate-metrics-btn').classList.remove('hidden');
+
+            } catch (error) {
+                document.getElementById('raw-results-output').textContent = `An error occurred:\n\n${error.message}`;
+            } finally {
+                runBtn.textContent = 'Run Analysis';
+                runBtn.disabled = false;
+            }
+        };
+
+        const formatSeconds = (seconds) => {
+            if (typeof seconds !== 'number' || isNaN(seconds)) return seconds;
+            const d = Math.floor(seconds / (3600*24));
+            const h = Math.floor(seconds % (3600*24) / 3600);
+            const m = Math.floor(seconds % 3600 / 60);
+            const s = Math.floor(seconds % 60);
+            return `${d}d ${h}h ${m}m ${s}s`;
+        };
+        
+        const recalculateAndRenderMetrics = (filteredCases) => {
+            const caseIds = Object.keys(filteredCases);
+            const totalCases = caseIds.length;
+
+            const getValues = (metric) => caseIds.map(id => filteredCases[id][metric]).filter(v => v !== '-' && typeof v === 'number');
+            const mttdValues = getValues('MTTD');
+            const mttaValues = getValues('MTTA');
+            const mttcValues = getValues('MTTC');
+            const mttrValues = getValues('MTTR');
+
+            const avg = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+            const completion = (arr) => totalCases > 0 ? (arr.length / totalCases) * 100 : 0;
+
+            const metrics = {
+                average_metrics: {
+                    Average_MTTD_seconds: avg(mttdValues),
+                    Average_MTTA_seconds: avg(mttaValues),
+                    Average_MTTC_seconds: avg(mttcValues),
+                    Average_MTTR_seconds: avg(mttrValues),
+                },
+                completion_rates: {
+                    MTTD_completion_percent: completion(mttdValues).toFixed(2),
+                    MTTA_completion_percent: completion(mttaValues).toFixed(2),
+                    MTTC_completion_percent: completion(mttcValues).toFixed(2),
+                    MTTR_completion_percent: completion(mttrValues).toFixed(2),
+                    total_cases: totalCases
+                },
+                individual_cases: filteredCases
+            };
+            
+            renderMttxResults(metrics);
+        };
+        
+        const renderMttxResults = (metrics) => {
+            const mttxResultsContainer = document.getElementById('mttx-results-container');
+            const showDetailsCheckbox = document.getElementById('show-details-checkbox');
+            const showDetails = showDetailsCheckbox ? showDetailsCheckbox.checked : false;
+
+            mttxResultsContainer.innerHTML = '';
+
+            const createMetricCard = (title, data) => {
+                const card = document.createElement('div');
+                card.className = 'card p-6 mb-8';
+                let header = `<h2 class="text-2xl font-bold mb-4 border-b pb-2">${title}</h2>`;
+                if(data.total_cases !== undefined) {
+                    header += `<p class="text-sm text-gray-600 mb-4">Based on a total of <strong>${data.total_cases}</strong> cases.</p>`;
+                }
+                card.innerHTML = header;
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center';
+                data.items.forEach(item => {
+                    grid.innerHTML += `<div class="bg-gray-100 p-4 rounded-lg"><div class="text-sm text-gray-500">${item.label}</div><div class="text-2xl font-bold text-gray-900">${item.value}</div></div>`;
+                });
+                card.appendChild(grid);
+                return card;
+            };
+
+            const avgMetrics = metrics.average_metrics;
+            const avgData = {
+                items: [
+                    { label: 'Avg. MTTD', value: formatSeconds(avgMetrics.Average_MTTD_seconds) },
+                    { label: 'Avg. MTTA', value: formatSeconds(avgMetrics.Average_MTTA_seconds) },
+                    { label: 'Avg. MTTC', value: formatSeconds(avgMetrics.Average_MTTC_seconds) },
+                    { label: 'Avg. MTTR', value: formatSeconds(avgMetrics.Average_MTTR_seconds) }
+                ]
+            };
+            mttxResultsContainer.appendChild(createMetricCard('Average Metrics (Efficiency)', avgData));
+
+            const completionRates = metrics.completion_rates;
+            const completionData = {
+                total_cases: completionRates.total_cases,
+                items: [
+                    { label: 'MTTD Completion', value: `${completionRates.MTTD_completion_percent}%` },
+                    { label: 'MTTA Completion', value: `${completionRates.MTTA_completion_percent}%` },
+                    { label: 'MTTC Completion', value: `${completionRates.MTTC_completion_percent}%` },
+                    { label: 'MTTR Completion', value: `${completionRates.MTTR_completion_percent}%` }
+                ]
+            };
+            mttxResultsContainer.appendChild(createMetricCard('Completion Rates (Process Adherence)', completionData));
+
+            const individualCases = metrics.individual_cases;
+            const casesCard = document.createElement('div');
+            casesCard.className = 'card p-6';
+            const numCases = Object.keys(individualCases).length;
+            const totalNumCases = Object.keys(fullMetricsData.individual_cases).length;
+            
+            const activeFiltersContainer = document.createElement('div');
+            activeFiltersContainer.id = 'active-filters-display';
+            activeFiltersContainer.className = 'mb-4';
+
+            casesCard.innerHTML = `
+                <div class="flex justify-between items-center border-b pb-2 mb-4">
+                     <h2 class="text-2xl font-bold">Individual Case Metrics <span class="text-lg font-normal text-gray-500">(${numCases} of ${totalNumCases} cases shown)</span></h2>
+                     <label class="flex items-center space-x-2">
+                         <input type="checkbox" id="show-details-checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${showDetails ? 'checked' : ''}>
+                         <span class="text-sm font-medium text-gray-700">Show Details</span>
+                     </label>
+                </div>`;
+            casesCard.appendChild(activeFiltersContainer);
+            casesCard.innerHTML += `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead id="individual-cases-thead" class="bg-gray-50"></thead>
+                        <tbody id="individual-cases-tbody" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>`;
+            mttxResultsContainer.appendChild(casesCard);
+
+            const thead = casesCard.querySelector('#individual-cases-thead');
+            let headerHtml = `<tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Case ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MTTD (sec)</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MTTA (sec)</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MTTC (sec)</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MTTR (sec)</th>`;
+            if (showDetails) {
+                headerHtml += `
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Environment</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detection Rule</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th>`;
+            }
+            headerHtml += `</tr>`;
+            thead.innerHTML = headerHtml;
+
+            const tbody = casesCard.querySelector('#individual-cases-tbody');
+            if(Object.keys(individualCases).length === 0) {
+                 tbody.innerHTML = `<tr><td colspan="${showDetails ? 8 : 5}" class="px-6 py-4 text-center text-gray-500">No cases match the current filter.</td></tr>`;
+            } else {
+                tbody.innerHTML = '';
+                for (const caseId in individualCases) {
+                    const caseMetrics = individualCases[caseId];
+                    let rowHtml = `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${caseMetrics.link ? `<a href="${caseMetrics.link}" target="_blank" class="text-blue-600 hover:underline">${caseId}</a>` : caseId}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.MTTD}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.MTTA}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.MTTC}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.MTTR}</td>`;
+                    if (showDetails) {
+                        const tagsHtml = (caseMetrics.tags || []).map(tag => `<span class="tag-chip bg-blue-100 text-blue-800">${tag}</span>`).join('');
+                        const envHtml = caseMetrics.environment ? `<span class="tag-chip bg-green-100 text-green-800">${caseMetrics.environment}</span>` : '-';
+                        rowHtml += `
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${envHtml}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.detection_rule_name || '-'}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500"><div class="flex flex-wrap gap-1">${tagsHtml || '-'}</div></td>`;
+                    }
+                    rowHtml += `</tr>`;
+                    tbody.innerHTML += rowHtml;
+                }
+            }
+            document.getElementById('show-details-checkbox').addEventListener('change', applyFiltersAndRedraw);
+        };
+        
+        const applyFiltersAndRedraw = () => {
+            const filterMode = document.getElementById('filter-mode').value;
+            const selectedTags = new Set([...document.querySelectorAll('#tag-filter-options input:checked')].map(el => el.value));
+            const selectedEnvs = new Set([...document.querySelectorAll('#environment-filter-options input:checked')].map(el => el.value));
+            const selectedRules = new Set([...document.querySelectorAll('#rule-filter-options input:checked')].map(el => el.value));
+
+            const filteredCases = {};
+            for (const caseId in fullMetricsData.individual_cases) {
+                const caseData = fullMetricsData.individual_cases[caseId];
+                const caseTags = new Set(caseData.tags || []);
+                const caseEnv = caseData.environment;
+                const caseRule = caseData.detection_rule_name;
+
+                const tagMatch = selectedTags.size === 0 || (filterMode === 'include' 
+                    ? [...selectedTags].some(tag => caseTags.has(tag))
+                    : ![...selectedTags].some(tag => caseTags.has(tag))
+                );
+                
+                const envMatch = selectedEnvs.size === 0 || selectedEnvs.has(caseEnv);
+                const ruleMatch = selectedRules.size === 0 || selectedRules.has(caseRule);
+
+                if (tagMatch && envMatch && ruleMatch) {
+                    filteredCases[caseId] = caseData;
+                }
+            }
+            recalculateAndRenderMetrics(filteredCases);
+        };
+        
+        const filterCheckboxList = (inputId, containerId) => {
+            const searchInput = document.getElementById(inputId);
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const labels = document.querySelectorAll(`#${containerId} label`);
+                labels.forEach(label => {
+                    const text = label.textContent.toLowerCase();
+                    label.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        };
+
+        const storeAndRenderInitialResults = (metrics) => {
+            fullMetricsData = metrics; // Store the complete, unfiltered dataset
+            const baseUrl = metrics.base_url;
+
+            Object.keys(fullMetricsData.individual_cases).forEach(caseId => {
+                if (baseUrl) {
+                    fullMetricsData.individual_cases[caseId].link = `${baseUrl}/cases/${caseId}`;
+                }
+            });
+
+            const tagOptionsContainer = document.getElementById('tag-filter-options');
+            const envOptionsContainer = document.getElementById('environment-filter-options');
+            const ruleOptionsContainer = document.getElementById('rule-filter-options');
+            
+            const allTags = new Set();
+            const allEnvs = new Set();
+            const allRules = new Set();
+
+            Object.values(metrics.individual_cases).forEach(caseData => {
+                (caseData.tags || []).forEach(tag => allTags.add(tag));
+                if(caseData.environment) allEnvs.add(caseData.environment);
+                if(caseData.detection_rule_name) allRules.add(caseData.detection_rule_name);
+            });
+
+            const createCheckboxes = (container, items) => {
+                container.innerHTML = '';
+                if(items.size > 0){
+                    items.forEach(item => {
+                        container.innerHTML += `
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" value="${item}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">${item}</span>
+                            </label>
+                        `;
+                    });
+                } else {
+                    container.innerHTML = `<span class="text-sm text-gray-500">None found.</span>`;
+                }
+            };
+
+            createCheckboxes(tagOptionsContainer, allTags);
+            createCheckboxes(envOptionsContainer, allEnvs);
+            createCheckboxes(ruleOptionsContainer, allRules);
+
+            if (allTags.size > 0 || allEnvs.size > 0 || allRules.size > 0) {
+                document.getElementById('filter-container').classList.remove('hidden');
+            } else {
+                 document.getElementById('filter-container').classList.add('hidden');
+            }
+
+            recalculateAndRenderMetrics(fullMetricsData.individual_cases);
+        };
+
+        const handleCalculateMetrics = async () => {
+            const calcBtn = document.getElementById('calculate-metrics-btn');
+            calcBtn.textContent = 'Calculating...';
+            calcBtn.disabled = true;
+
+            const payload = { 
+                tenant_id: parseInt(tenantSelectForAnalysis.value), 
+                case_history_data: caseHistoryData,
+                case_mttd_data: caseMttdData
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/analysis/calculate`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error((await response.json()).detail || 'Calculation failed.');
+                storeAndRenderInitialResults(await response.json());
+                switchMainTab('results-panel');
+            } catch (error) {
+                alert(`An error occurred during calculation:\n\n${error.message}`);
+            } finally {
+                calcBtn.textContent = 'Calculate MTTx Metrics';
+                calcBtn.disabled = false;
+            }
+        };
+        
+        const populateSignalNoiseSelectors = () => {
+            const signalSelect = document.getElementById('signal-tags-select');
+            const noiseSelect = document.getElementById('noise-tags-select');
+            
+            const allTags = new Set();
+            if (fullMetricsData && fullMetricsData.individual_cases) {
+                 Object.values(fullMetricsData.individual_cases).forEach(caseData => {
+                    (caseData.tags || []).forEach(tag => allTags.add(tag));
+                });
+            }
+
+            signalSelect.innerHTML = '';
+            noiseSelect.innerHTML = '';
+            allTags.forEach(tag => {
+                const option = new Option(tag, tag);
+                signalSelect.add(option.cloneNode(true));
+                noiseSelect.add(option);
+            });
+        };
+        
+        const generateQuadrantChart = () => {
+            const signalTags = new Set([...document.getElementById('signal-tags-select').selectedOptions].map(o => o.value));
+            const noiseTags = new Set([...document.getElementById('noise-tags-select').selectedOptions].map(o => o.value));
+
+            const ruleData = {};
+             const filteredCases = getFilteredCases();
+
+            Object.values(filteredCases).forEach(caseData => {
+                const rule = caseData.detection_rule_name || 'Unknown Rule';
+                if (!ruleData[rule]) {
+                    ruleData[rule] = { signal: 0, noise: 0, volume: 0 };
+                }
+                const tags = new Set(caseData.tags || []);
+                ruleData[rule].volume++;
+                if ([...signalTags].some(tag => tags.has(tag))) ruleData[rule].signal++;
+                if ([...noiseTags].some(tag => tags.has(tag))) ruleData[rule].noise++;
+            });
+            
+            const datasets = [{
+                label: 'Detection Rules',
+                data: Object.entries(ruleData).map(([ruleName, counts]) => ({
+                    x: counts.noise,
+                    y: counts.signal,
+                    r: Math.max(5, Math.sqrt(counts.volume) * 5), // Bubble radius
+                    ruleName: ruleName
+                })),
+                backgroundColor: 'rgba(59, 130, 246, 0.7)'
+            }];
+
+            if (signalChart) signalChart.destroy();
+            
+            signalChart = new Chart(document.getElementById('signal-chart').getContext('2d'), {
+                type: 'bubble',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { title: { display: true, text: 'Signal Count' }, beginAtZero: true },
+                        x: { title: { display: true, text: 'Noise Count' }, beginAtZero: true }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const d = context.raw;
+                                    return `${d.ruleName}: (Noise: ${d.x}, Signal: ${d.y}, Volume: ${Math.round(Math.pow(d.r/5, 2))})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        };
+        
+        const getFilteredCases = () => {
+             if (!fullMetricsData) return {};
+             const filterMode = document.getElementById('filter-mode').value;
+            const selectedTags = new Set([...document.querySelectorAll('#tag-filter-options input:checked')].map(el => el.value));
+            const selectedEnvs = new Set([...document.querySelectorAll('#environment-filter-options input:checked')].map(el => el.value));
+            const selectedRules = new Set([...document.querySelectorAll('#rule-filter-options input:checked')].map(el => el.value));
+
+            if (selectedTags.size === 0 && selectedEnvs.size === 0 && selectedRules.size === 0) {
+                return fullMetricsData.individual_cases;
+            }
+
+            const filteredCases = {};
+            for (const caseId in fullMetricsData.individual_cases) {
+                const caseData = fullMetricsData.individual_cases[caseId];
+                const caseTags = new Set(caseData.tags || []);
+                const caseEnv = caseData.environment;
+                const caseRule = caseData.detection_rule_name;
+
+                const tagMatch = selectedTags.size === 0 || (filterMode === 'include' 
+                    ? [...selectedTags].some(tag => caseTags.has(tag))
+                    : ![...selectedTags].some(tag => caseTags.has(tag))
+                );
+                
+                const envMatch = selectedEnvs.size === 0 || selectedEnvs.has(caseEnv);
+                const ruleMatch = selectedRules.size === 0 || selectedRules.has(caseRule);
+
+                if (tagMatch && envMatch && ruleMatch) {
+                    filteredCases[caseId] = caseData;
+                }
+            }
+            return filteredCases;
+        }
+
+
+        // --- Event Listeners & Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            switchMainTab('tenants-panel');
+            fetchTenants();
+
+            tenantSelectForConfig.addEventListener('change', (e) => loadAndDisplayConfigs(e.target.value));
+            tenantSelectForScheduler.addEventListener('change', (e) => loadAndDisplaySchedules(e.target.value));
+            document.getElementById('mttr-config-key').addEventListener('change', updateMttrValueOptions);
+            document.getElementById('mttc-config-form').addEventListener('submit', handleConfigFormSubmit);
+            document.getElementById('mttr-config-form').addEventListener('submit', handleConfigFormSubmit);
+            document.getElementById('query-history-form').addEventListener('submit', handleQueryFormSubmit);
+            document.getElementById('query-case-form').addEventListener('submit', handleQueryFormSubmit);
+            
+            document.getElementById('run-analysis-btn').addEventListener('click', handleRunAnalysis);
+            document.getElementById('calculate-metrics-btn').addEventListener('click', handleCalculateMetrics);
+            document.getElementById('apply-filters-btn').addEventListener('click', applyFiltersAndRedraw);
+            document.getElementById('generate-chart-btn').addEventListener('click', generateQuadrantChart);
+            
+            filterCheckboxList('tag-search', 'tag-filter-options');
+            filterCheckboxList('environment-search', 'environment-filter-options');
+            filterCheckboxList('rule-search', 'rule-filter-options');
+
+            document.getElementById('toggle-filters-btn').addEventListener('click', () => {
+                const filterBody = document.getElementById('filter-body');
+                const icon = document.getElementById('toggle-filters-btn').querySelector('svg');
+                filterBody.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
+            });
+            
+            document.getElementById('clear-filters-btn').addEventListener('click', () => {
+                document.querySelectorAll('#tag-filter-options input:checked, #environment-filter-options input:checked, #rule-filter-options input:checked').forEach(el => el.checked = false);
+                document.getElementById('tag-search').value = '';
+                document.getElementById('environment-search').value = '';
+                document.getElementById('rule-search').value = '';
+                filterCheckboxList('tag-search', 'tag-filter-options');
+                filterCheckboxList('environment-search', 'environment-filter-options');
+                filterCheckboxList('rule-search', 'rule-filter-options');
+                applyFiltersAndRedraw();
+            });
+
+
+            addTenantForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const tenantData = {
+                    name: document.getElementById('tenant-name').value,
+                    guid: document.getElementById('tenant-guid').value,
+                    gcp_project_id: document.getElementById('tenant-gcp-project').value,
+                    region: document.getElementById('tenant-region').value,
+                    base_url: document.getElementById('base-url').value,
+                    soar_url: document.getElementById('soar-url').value,
+                    soar_api_key: document.getElementById('soar-api-key').value,
+                };
+                const tenantId = document.getElementById('tenant-id').value;
+                const url = tenantId ? `${API_BASE_URL}/tenants/${tenantId}` : `${API_BASE_URL}/tenants`;
+                const method = tenantId ? 'PUT' : 'POST';
+                try {
+                    const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tenantData) });
+                    if (!response.ok) throw new Error( (await response.json()).detail );
+                    resetTenantForm();
+                    fetchTenants();
+                } catch (error) {
+                    alert(`Failed to ${tenantId ? 'update' : 'add'} tenant: ${error.message}`);
+                }
+            });
+            document.getElementById('cancel-edit-btn').addEventListener('click', resetTenantForm);
+        });
+    </script>
+</body>
+</html>
+
