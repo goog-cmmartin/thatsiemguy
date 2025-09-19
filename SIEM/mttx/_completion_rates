@@ -1,0 +1,2 @@
+MTTA_completion_percent,MTTC_completion_percent,MTTR_completion_percent,MTTD_completion_percent,total_cases,tenant_name,export_datetime
+68.42,0.0,0.0,278.95,19,go-preview-americas,2025-09-19T14:29:40.164886+00:00

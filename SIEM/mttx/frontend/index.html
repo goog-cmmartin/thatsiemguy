@@ -527,20 +527,36 @@
                 destinations.forEach(dest => {
                     const destForm = document.createElement('form');
                     destForm.className = 'p-4 bg-gray-50 rounded-md mb-2';
+                    let pathOrNameInput = '';
+                    if (dest.destination_type === 'CSV') {
+                        pathOrNameInput = `
+                        <div>
+                            <label class="block text-sm font-medium">File Path</label>
+                            <input type="text" name="path" class="w-full p-2 border rounded-md mt-1 text-sm" value="${dest.path || ''}" placeholder="/path/to/output.csv">
+                        </div>`;
+                    } else if (dest.destination_type === 'DATA_TABLE') {
+                        pathOrNameInput = `
+                        <div>
+                            <label class="block text-sm font-medium">Data Table Name</label>
+                            <input type="text" name="data_table_name" class="w-full p-2 border rounded-md mt-1 text-sm" value="${dest.data_table_name || ''}" placeholder="e.g., MTTx_Results">
+                        </div>`;
+                    }
+
                     destForm.innerHTML = `
                         <input type="hidden" name="destination_id" value="${dest.id}">
+                        <input type="hidden" name="destination_type" value="${dest.destination_type}">
                         <div class="flex justify-between items-center mb-2">
                             <p class="font-semibold">Destination: ${dest.destination_type}</p>
                             <button type="button" class="delete-destination-btn text-xs bg-red-100 text-red-700 font-semibold py-1 px-2 rounded-lg hover:bg-red-200" data-destination-id="${dest.id}">Delete</button>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium">File Path</label>
-                            <input type="text" name="path" class="w-full p-2 border rounded-md mt-1 text-sm" value="${dest.path || ''}" placeholder="/path/to/output.csv">
-                        </div>
+                        ${pathOrNameInput}
                         <div class="mt-2">
                             <label class="flex items-center"><input type="checkbox" name="is_enabled" class="h-4 w-4 rounded" ${dest.is_enabled ? 'checked' : ''}> <span class="ml-2 text-sm">Enabled</span></label>
                         </div>
-                        <button type="submit" class="mt-2 w-full bg-green-600 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-green-700">Update Destination</button>
+                        <div class="flex space-x-2 mt-2">
+                            <button type="submit" class="w-full bg-green-600 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-green-700">Update Destination</button>
+                            ${dest.destination_type === 'DATA_TABLE' ? `<button type="button" class="create-dashboard-btn w-full bg-indigo-600 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-indigo-700" data-destination-id="${dest.id}">Create Dashboard</button>` : ''}
+                        </div>
                     `;
                     container.appendChild(destForm);
                 });
@@ -553,15 +569,38 @@
                     <input type="hidden" name="schedule_id" value="${scheduleId}">
                     <div>
                         <label class="block text-sm font-medium">Destination Type</label>
-                        <select name="destination_type" class="w-full p-2 border rounded-md mt-1 text-sm"><option value="CSV">CSV</option></select>
+                        <select name="destination_type" class="w-full p-2 border rounded-md mt-1 text-sm">
+                            <option value="CSV">CSV</option>
+                            <option value="DATA_TABLE">Data Table</option>
+                        </select>
                     </div>
-                    <div class="mt-2">
+                    <div class="mt-2" id="destination-path-container-${scheduleId}">
                         <label class="block text-sm font-medium">File Path</label>
                         <input type="text" name="path" class="w-full p-2 border rounded-md mt-1 text-sm" placeholder="/path/to/output.csv" required>
+                    </div>
+                    <div class="mt-2 hidden" id="destination-data-table-container-${scheduleId}">
+                        <label class="block text-sm font-medium">Data Table Name (Optional)</label>
+                        <input type="text" name="data_table_name" class="w-full p-2 border rounded-md mt-1 text-sm" placeholder="Default: mttx_schedule_${scheduleId}_<type>">
                     </div>
                     <button type="submit" class="mt-2 w-full bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-blue-600">Add Destination</button>
                 `;
                 container.appendChild(newDestForm);
+                
+                const destTypeSelect = newDestForm.querySelector('select[name="destination_type"]');
+                destTypeSelect.addEventListener('change', (e) => {
+                    const pathContainer = document.getElementById(`destination-path-container-${scheduleId}`);
+                    const dataTableContainer = document.getElementById(`destination-data-table-container-${scheduleId}`);
+                    const pathInput = pathContainer.querySelector('input');
+                    if (e.target.value === 'DATA_TABLE') {
+                        pathContainer.classList.add('hidden');
+                        pathInput.required = false;
+                        dataTableContainer.classList.remove('hidden');
+                    } else { // CSV
+                        pathContainer.classList.remove('hidden');
+                        pathInput.required = true;
+                        dataTableContainer.classList.add('hidden');
+                    }
+                });
 
             } catch (error) {
                 container.innerHTML = `<p class="text-red-500">Could not load destinations.</p>`;
@@ -578,8 +617,9 @@
                 
                 const data = {
                     schedule_id: parseInt(scheduleId),
-                    destination_type: form.destination_type ? form.destination_type.value : 'CSV',
-                    path: form.path.value,
+                    destination_type: form.destination_type.value,
+                    path: form.path ? form.path.value : null,
+                    data_table_name: form.data_table_name ? form.data_table_name.value : null,
                     is_enabled: form.is_enabled ? form.is_enabled.checked : true
                 };
 
@@ -627,7 +667,7 @@
             }
             if (event.target.classList.contains('delete-destination-btn')) {
                 const destinationId = event.target.dataset.destinationId;
-                const scheduleId = event.target.closest('.card').querySelector('input[name="schedule_id"]').value;
+                const scheduleId = event.target.closest('.card').querySelector('form input[name="schedule_id"]').value;
                  if (confirm('Are you sure you want to delete this destination?')) {
                     try {
                         const response = await fetch(`${API_BASE_URL}/destinations/${destinationId}`, { method: 'DELETE' });
@@ -637,7 +677,33 @@
                     } catch (error) { alert(`Error: ${error.message}`); }
                 }
             }
+            if (event.target.classList.contains('create-dashboard-btn')) {
+                const destinationId = event.target.dataset.destinationId;
+                handleCreateDashboard(destinationId, event.target);
+            }
         });
+
+        const handleCreateDashboard = async (destinationId, buttonElement) => {
+            buttonElement.textContent = 'Creating...';
+            buttonElement.disabled = true;
+            try {
+                const response = await fetch(`${API_BASE_URL}/destinations/${destinationId}/create-dashboard`, { method: 'POST' });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.detail || 'Failed to create dashboard.');
+                
+                let successMessage = result.message;
+                if (result.dashboard_url) {
+                    successMessage += `\n\nYou can view it here: ${result.dashboard_url}`;
+                }
+                alert(successMessage);
+
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            } finally {
+                buttonElement.textContent = 'Create Dashboard';
+                buttonElement.disabled = false;
+            }
+        };
 
 
         // --- Tenant Logic ---
@@ -679,6 +745,23 @@
             }
         };
 
+        const handleDeleteTenant = async (tenantId) => {
+            if (confirm('Are you sure you want to delete this tenant and all its associated configurations? This action cannot be undone.')) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/tenants/${tenantId}`, { method: 'DELETE' });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || 'Failed to delete tenant');
+                    }
+                    alert('Tenant deleted successfully.');
+                    resetTenantForm();
+                    fetchTenants();
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            }
+        };
+
         const renderTenants = (tenants) => {
             const selects = [tenantSelectForAnalysis, tenantSelectForConfig, tenantSelectForScheduler];
             tenantList.innerHTML = '';
@@ -698,9 +781,11 @@
                     controls.innerHTML = `
                         <span id="status-${tenant.id}" class="status-badge bg-gray-200 text-gray-600">Untested</span>
                         <button class="edit-btn text-sm bg-white font-semibold py-1 px-3 border rounded-lg shadow-sm hover:bg-gray-50">Edit</button>
-                        <button class="test-btn text-sm bg-white font-semibold py-1 px-3 border rounded-lg shadow-sm hover:bg-gray-50">Test</button>`;
+                        <button class="test-btn text-sm bg-white font-semibold py-1 px-3 border rounded-lg shadow-sm hover:bg-gray-50">Test</button>
+                        <button class="delete-btn text-sm bg-red-100 text-red-700 font-semibold py-1 px-2 rounded-lg hover:bg-red-200">Delete</button>`;
                     controls.querySelector('.edit-btn').onclick = () => startEditTenant(tenant);
                     controls.querySelector('.test-btn').onclick = () => handleTestTenant(tenant.id, controls.querySelector(`#status-${tenant.id}`));
+                    controls.querySelector('.delete-btn').onclick = () => handleDeleteTenant(tenant.id);
                     li.appendChild(controls);
                     tenantList.appendChild(li);
                     
@@ -1158,7 +1243,7 @@
             casesCard.appendChild(activeFiltersContainer);
             casesCard.innerHTML += `
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 table-fixed">
                         <thead id="individual-cases-thead" class="bg-gray-50"></thead>
                         <tbody id="individual-cases-tbody" class="bg-white divide-y divide-gray-200"></tbody>
                     </table>
@@ -1167,12 +1252,12 @@
 
             const thead = casesCard.querySelector('#individual-cases-thead');
             
-            const sortableHeader = (key, label) => {
+            const sortableHeader = (key, label, extraClasses = '') => {
                 let icon = '';
                 if (sortColumn === key) {
                     icon = sortDirection === 'asc' ? ' ▲' : ' ▼';
                 }
-                return `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" data-sort="${key}">${label}${icon}</th>`;
+                return `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer ${extraClasses}" data-sort="${key}">${label}${icon}</th>`;
             };
 
             const unitLabel = {
@@ -1183,16 +1268,16 @@
             }[selectedUnit] || 'sec';
 
             let headerHtml = `<tr>
-                ${sortableHeader('case_id', 'Case ID')}
-                ${sortableHeader('MTTD', `MTTD (${unitLabel})`)}
-                ${sortableHeader('MTTA', `MTTA (${unitLabel})`)}
-                ${sortableHeader('MTTC', `MTTC (${unitLabel})`)}
-                ${sortableHeader('MTTR', `MTTR (${unitLabel})`)}`;
+                ${sortableHeader('case_id', 'Case ID', 'w-1/6')}
+                ${sortableHeader('MTTD', `MTTD (${unitLabel})`, 'w-1/12')}
+                ${sortableHeader('MTTA', `MTTA (${unitLabel})`, 'w-1/12')}
+                ${sortableHeader('MTTC', `MTTC (${unitLabel})`, 'w-1/12')}
+                ${sortableHeader('MTTR', `MTTR (${unitLabel})`, 'w-1/12')}`;
             if (showDetails) {
                 headerHtml += `
-                    ${sortableHeader('environment', 'Environment')}
-                    ${sortableHeader('detection_rule_name', 'Detection Rule')}
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th>`;
+                    ${sortableHeader('environment', 'Environment', 'w-1/6')}
+                    ${sortableHeader('detection_rule_name', 'Detection Rule', 'w-1/4')}
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Tags</th>`;
             }
             headerHtml += `</tr>`;
             thead.innerHTML = headerHtml;
@@ -1262,7 +1347,7 @@
                         const envHtml = caseMetrics.environment ? `<span class="tag-chip bg-green-100 text-green-800">${caseMetrics.environment}</span>` : '-';
                         rowHtml += `
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${envHtml}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.detection_rule_name || '-'}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500 break-words">${caseMetrics.detection_rule_name || '-'}</td>
                             <td class="px-6 py-4 text-sm text-gray-500"><div class="flex flex-wrap gap-1">${tagsHtml || '-'}</div></td>`;
                     }
                     rowHtml += `</tr>`;
@@ -1392,7 +1477,11 @@
                 storeAndRenderInitialResults(await response.json());
                 switchMainTab('results-panel');
             } catch (error) {
+                console.error("Calculation API Error:", error);
                 alert(`An error occurred during calculation:\n\n${error.message}`);
+            } finally {
+                calcBtn.textContent = 'Calculate MTTx Metrics';
+                calcBtn.disabled = false;
             }
         };
         

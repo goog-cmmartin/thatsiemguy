@@ -69,8 +69,9 @@ class ScheduleDestination(Base):
     __tablename__ = "schedule_destinations"
     id = Column(Integer, primary_key=True, index=True)
     schedule_id = Column(Integer, ForeignKey("schedules.id"), nullable=False)
-    destination_type = Column(String, nullable=False, default="CSV") # e.g., CSV, WEBHOOK, EMAIL
+    destination_type = Column(String, nullable=False, default="CSV") # e.g., CSV, DATA_TABLE
     path = Column(String, nullable=True) # For CSV, this is the file path
+    data_table_name = Column(String, nullable=True) # For DATA_TABLE, this is the base name
     is_enabled = Column(Boolean, default=True)
 
     schedule = relationship("Schedule", back_populates="destinations")
@@ -224,6 +225,11 @@ class FetchStagesResponse(BaseModel):
     message: str
     stages_fetched: int
 
+class DashboardCreationResponse(BaseModel):
+    status: str
+    message: str
+    dashboard_url: Optional[str] = None
+
 class ScheduleBase(BaseModel):
     cron_schedule: str
     time_unit: str = "DAY"
@@ -249,6 +255,7 @@ class ScheduleResponse(ScheduleBase):
 class ScheduleDestinationBase(BaseModel):
     destination_type: str = "CSV"
     path: Optional[str] = None
+    data_table_name: Optional[str] = None
     is_enabled: bool = True
 
 class ScheduleDestinationCreate(ScheduleDestinationBase):
@@ -334,15 +341,18 @@ def run_scheduled_analysis(tenant_id: int, schedule_id: int):
 
         # Handle destinations
         for dest in schedule.destinations:
-            if dest.is_enabled and dest.destination_type == 'CSV' and dest.path:
+            if not dest.is_enabled:
+                continue
+
+            export_dt = datetime.now(timezone.utc).isoformat()
+            tenant_name = tenant.name
+
+            if dest.destination_type == 'CSV' and dest.path:
                 try:
                     base_path, extension = os.path.splitext(dest.path)
                     output_dir = os.path.dirname(dest.path)
                     if not os.path.exists(output_dir):
                         os.makedirs(output_dir)
-                    
-                    export_dt = datetime.now(timezone.utc).isoformat()
-                    tenant_name = tenant.name
 
                     if schedule.output_avg_metrics:
                         df_avg = pd.DataFrame([metrics.get('average_metrics')])
@@ -373,6 +383,86 @@ def run_scheduled_analysis(tenant_id: int, schedule_id: int):
 
                 except Exception as e:
                     logging.error(f"Failed to write CSV for schedule {schedule_id} to {dest.path}: {e}", exc_info=True)
+
+            elif dest.destination_type == 'DATA_TABLE':
+                if not SECOPS_SDK_AVAILABLE:
+                    logging.error("SecOps SDK not available, skipping Data Table export.")
+                    continue
+                
+                try:
+                    from secops.chronicle.data_table import DataTableColumnType
+                    client = SecOpsClient()
+                    chronicle = client.chronicle(customer_id=tenant.guid, project_id=tenant.gcp_project_id, region=tenant.region)
+                    
+                    base_name = dest.data_table_name or f"mttx_schedule_{schedule.id}"
+
+                    def write_to_data_table(table_name, header_def, rows_data):
+                        try:
+                            chronicle.create_data_table_rows(table_name, rows_data)
+                            logging.info(f"Successfully appended {len(rows_data)} rows to Data Table '{table_name}'.")
+                        except Exception:
+                            logging.warning(f"Failed to append rows to '{table_name}', attempting to create it.")
+                            try:
+                                chronicle.create_data_table(name=table_name, description=f"MTTx metrics export for {tenant_name}", header=header_def, rows=rows_data)
+                                logging.info(f"Successfully created Data Table '{table_name}' with {len(rows_data)} rows.")
+                            except Exception as create_e:
+                                logging.error(f"Failed to create Data Table '{table_name}': {create_e}", exc_info=True)
+
+                    if schedule.output_avg_metrics:
+                        table_name = f"{base_name}_average_metrics"
+                        header = {
+                            "Average_MTTA_seconds": DataTableColumnType.NUMBER, "Average_MTTC_seconds": DataTableColumnType.NUMBER,
+                            "Average_MTTR_seconds": DataTableColumnType.NUMBER, "Average_MTTD_seconds": DataTableColumnType.NUMBER,
+                            "tenant_name": DataTableColumnType.STRING, "export_datetime": DataTableColumnType.STRING
+                        }
+                        avg_data = metrics.get('average_metrics', {})
+                        rows = [[str(avg_data.get(k, '0')) for k in header if k not in ['tenant_name', 'export_datetime']] + [tenant_name, export_dt]]
+                        write_to_data_table(table_name, header, rows)
+
+                    if schedule.output_completion_rates:
+                        table_name = f"{base_name}_completion_rates"
+                        header = {
+                            "MTTA_completion_percent": DataTableColumnType.NUMBER, "MTTC_completion_percent": DataTableColumnType.NUMBER,
+                            "MTTR_completion_percent": DataTableColumnType.NUMBER, "MTTD_completion_percent": DataTableColumnType.NUMBER,
+                            "total_cases": DataTableColumnType.NUMBER, "tenant_name": DataTableColumnType.STRING, "export_datetime": DataTableColumnType.STRING
+                        }
+                        comp_data = metrics.get('completion_rates', {})
+                        rows = [[str(comp_data.get(k, '0')) for k in header if k not in ['tenant_name', 'export_datetime']] + [tenant_name, export_dt]]
+                        write_to_data_table(table_name, header, rows)
+
+                    if schedule.output_individual_cases:
+                        table_name = f"{base_name}_individual_cases"
+                        header = {
+                            "case_id": DataTableColumnType.STRING, "MTTD": DataTableColumnType.NUMBER, "MTTA": DataTableColumnType.NUMBER,
+                            "MTTC": DataTableColumnType.NUMBER, "MTTR": DataTableColumnType.NUMBER, "tags": DataTableColumnType.STRING,
+                            "environment": DataTableColumnType.STRING, "detection_rule_name": DataTableColumnType.STRING,
+                            "tenant_name": DataTableColumnType.STRING, "export_datetime": DataTableColumnType.STRING
+                        }
+                        ind_cases = metrics.get('individual_cases', {})
+                        rows = []
+                        
+                        def metric_to_str(metric_value):
+                            return str(metric_value) if isinstance(metric_value, (int, float)) else "0"
+
+                        for case_id, case_data in ind_cases.items():
+                            row = [
+                                case_id,
+                                metric_to_str(case_data.get('MTTD')),
+                                metric_to_str(case_data.get('MTTA')),
+                                metric_to_str(case_data.get('MTTC')),
+                                metric_to_str(case_data.get('MTTR')),
+                                ",".join(case_data.get('tags', [])),
+                                case_data.get('environment', ''),
+                                case_data.get('detection_rule_name', ''),
+                                tenant_name,
+                                export_dt
+                            ]
+                            rows.append(row)
+                        if rows:
+                            write_to_data_table(table_name, header, rows)
+
+                except Exception as e:
+                    logging.error(f"Failed to process Data Table destination for schedule {schedule_id}: {e}", exc_info=True)
 
     except Exception as e:
         logging.error(f"Error during scheduled analysis for tenant {tenant_id}, schedule {schedule_id}: {e}", exc_info=True)
@@ -530,10 +620,15 @@ def calculate_soc_metrics_structured(
                 mttd = row['mttd_seconds']
                 
                 # Add additional context from the MTTD query to the results.
-                individual_case_metrics[case_id]['tags'] = row.get('tags', []) if isinstance(row.get('tags'), list) else []
-                individual_case_metrics[case_id]['environment'] = row.get('environment', 'Unknown')
-                individual_case_metrics[case_id]['detection_rule_name'] = row.get('detection_rule_name', 'Unknown')
-                
+                tags = row.get('tags', [])
+                individual_case_metrics[case_id]['tags'] = tags if isinstance(tags, list) else [tags] if pd.notna(tags) else []
+
+                env = row.get('environment', 'Unknown')
+                individual_case_metrics[case_id]['environment'] = (', '.join(env) if isinstance(env, list) else env) or 'Unknown'
+
+                rule = row.get('detection_rule_name', 'Unknown')
+                individual_case_metrics[case_id]['detection_rule_name'] = (', '.join(rule) if isinstance(rule, list) else rule) or 'Unknown'
+
                 # A valid MTTD must be a non-negative number.
                 if pd.notna(mttd) and mttd >= 0:
                     individual_case_metrics[case_id]['MTTD'] = int(mttd)
@@ -580,6 +675,15 @@ def update_tenant(tenant_id: int, tenant: TenantUpdate, db: Session = Depends(ge
     db.commit()
     db.refresh(db_tenant)
     return db_tenant
+
+@api_router.delete("/tenants/{tenant_id}", status_code=204)
+def delete_tenant(tenant_id: int, db: Session = Depends(get_db)):
+    db_tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    if not db_tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    db.delete(db_tenant)
+    db.commit()
+    return None
 
 @api_router.post("/tenants/{tenant_id}/test", response_model=TestConnectionResponse)
 def test_tenant_connection(tenant_id: int, db: Session = Depends(get_db)):
@@ -713,14 +817,14 @@ limit: 1000
 """
         default_query_case = """
 $case_id = case.response_platform_info.response_platform_id
-$created_time = case.create_time.seconds
-$environment = case.environment
 cast.as_int(case.alerts.metadata.collection_elements.references.event.metadata.event_timestamp.seconds) > 0
-$detection_rule_name = case.alerts.metadata.detection.rule_name
-match: $case_id, $environment, $created_time, $detection_rule_name
+match: $case_id
 outcome: 
+    $created_time = max(case.create_time.seconds)
     $min_event_ts = min(case.alerts.metadata.collection_elements.references.event.metadata.event_timestamp.seconds)
     $tags = array_distinct(case.tags.name)
+    $environment = array_distinct(case.environment)
+    $detection_rule_name = array_distinct(case.alerts.metadata.detection.rule_name)
 order: $case_id desc
 limit: 1000
 """
@@ -886,6 +990,82 @@ def delete_destination(destination_id: int, db: Session = Depends(get_db)):
     db.delete(db_destination)
     db.commit()
     return None
+
+@api_router.post("/destinations/{destination_id}/create-dashboard", response_model=DashboardCreationResponse)
+def create_secops_dashboard(destination_id: int, db: Session = Depends(get_db)):
+    if not SECOPS_SDK_AVAILABLE:
+        raise HTTPException(status_code=501, detail="SecOps SDK not installed.")
+
+    destination = db.query(ScheduleDestination).filter(ScheduleDestination.id == destination_id).first()
+    if not destination or destination.destination_type != 'DATA_TABLE':
+        raise HTTPException(status_code=404, detail="Data Table destination not found.")
+
+    schedule = destination.schedule
+    tenant = schedule.tenant
+
+    try:
+        dashboard_template_path = os.path.join(os.path.dirname(__file__), 'mttx_secops_dashboard.json')
+        with open(dashboard_template_path, 'r') as f:
+            # The JSON file is a list of dashboards; we want the first one.
+            dashboard_template = json.load(f)['dashboards'][0]
+            with open(os.path.join(os.path.dirname(__file__), 'debug1.txt'), 'w') as debug_file:
+                debug_file.write(json.dumps(dashboard_template, indent=2))
+
+        dashboard_str = json.dumps(dashboard_template)
+        
+        base_name = destination.data_table_name or f"mttx_schedule_{schedule.id}"
+        
+        # Replace placeholder table names in the template
+        dashboard_str = dashboard_str.replace("%mttx_schedule_1_average_metrics", f"%{base_name}_average_metrics")
+        dashboard_str = dashboard_str.replace("%mttx_schedule_1_completion_rates", f"%{base_name}_completion_rates")
+        dashboard_str = dashboard_str.replace("%mttx_schedule_1_individual_cases", f"%{base_name}_individual_cases")
+        
+        dashboard_to_import = json.loads(dashboard_str)
+
+        client = SecOpsClient()
+        chronicle = client.chronicle(customer_id=tenant.guid, project_id=tenant.gcp_project_id, region=tenant.region)
+        
+        # The SDK expects the dashboard to be wrapped in a source object
+        payload = dashboard_to_import
+        with open(os.path.join(os.path.dirname(__file__), 'debug2.txt'), 'w') as debug_file:
+            debug_file.write(json.dumps(payload, indent=2))
+        imported_dashboard_response = chronicle.import_dashboard(payload)
+        logging.info(f"Dashboard import response: {imported_dashboard_response}")
+        
+        new_dashboard_data = None
+        if isinstance(imported_dashboard_response, dict) and 'results' in imported_dashboard_response:
+            results = imported_dashboard_response['results']
+            if isinstance(results, list) and len(results) > 0:
+                first_result = results[0]
+                status = first_result.get('status', {})
+                
+                # Check for a failure status code (non-zero)
+                if status.get('code') is not None and status.get('code') != 0:
+                    raise Exception(f"Dashboard import failed: {status.get('message', 'Unknown error')}")
+
+                if status.get('message') == 'Dashboard Imported Successfully':
+                    dashboard_resource_name = first_result.get('dashboard')
+                    if dashboard_resource_name:
+                        dashboard_id = dashboard_resource_name.split('/')[-1]
+                        new_dashboard_data = chronicle.get_dashboard(dashboard_id=dashboard_id, view='FULL')
+
+        if not new_dashboard_data or 'name' not in new_dashboard_data:
+             raise Exception("Dashboard import did not return the expected structure or failed.")
+
+        dashboard_id = new_dashboard_data['name'].split('/')[-1]
+        dashboard_url = f"https://{tenant.base_url}/main/dashboards/{dashboard_id}" if tenant.base_url else None
+
+        return {
+            "status": "success",
+            "message": f"Dashboard '{new_dashboard_data.get('displayName', 'MTTx')}' created successfully!",
+            "dashboard_url": dashboard_url
+        }
+
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="Dashboard template file not found.")
+    except Exception as e:
+        logging.error(f"Failed to create SecOps dashboard: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
 
 app.include_router(api_router, prefix="/api")
