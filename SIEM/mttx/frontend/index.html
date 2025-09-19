@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google SecOps MTTx Dashboard</title>
+    <title>SecOps SDK: MTTx Report</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,7 +68,7 @@
 
     <header class="bg-white shadow-sm border-b border-gray-200">
         <div class="container mx-auto px-6 py-4">
-            <h1 class="text-3xl font-bold text-gray-900">Google SecOps MTTx Dashboard</h1>
+            <h1 class="text-3xl font-bold text-gray-900">SecOps SDK: MTTx Report</h1>
         </div>
     </header>
 
@@ -335,6 +335,8 @@
         let allCaseStages = [];
         let allCaseStatuses = [];
         let signalChart = null;
+        let sortColumn = 'case_id';
+        let sortDirection = 'asc';
 
         // Element References
         const tenantList = document.getElementById('tenant-list');
@@ -980,28 +982,71 @@
             mttxResultsContainer.appendChild(casesCard);
 
             const thead = casesCard.querySelector('#individual-cases-thead');
+            
+            const sortableHeader = (key, label) => {
+                let icon = '';
+                if (sortColumn === key) {
+                    icon = sortDirection === 'asc' ? ' ▲' : ' ▼';
+                }
+                return `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" data-sort="${key}">${label}${icon}</th>`;
+            };
+
             let headerHtml = `<tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Case ID</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MTTD (sec)</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MTTA (sec)</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MTTC (sec)</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MTTR (sec)</th>`;
+                ${sortableHeader('case_id', 'Case ID')}
+                ${sortableHeader('MTTD', 'MTTD (sec)')}
+                ${sortableHeader('MTTA', 'MTTA (sec)')}
+                ${sortableHeader('MTTC', 'MTTC (sec)')}
+                ${sortableHeader('MTTR', 'MTTR (sec)')}`;
             if (showDetails) {
                 headerHtml += `
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Environment</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detection Rule</th>
+                    ${sortableHeader('environment', 'Environment')}
+                    ${sortableHeader('detection_rule_name', 'Detection Rule')}
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th>`;
             }
             headerHtml += `</tr>`;
             thead.innerHTML = headerHtml;
+
+            thead.querySelectorAll('[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const newSortColumn = th.dataset.sort;
+                    if (sortColumn === newSortColumn) {
+                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortColumn = newSortColumn;
+                        sortDirection = 'asc';
+                    }
+                    applyFiltersAndRedraw();
+                });
+            });
 
             const tbody = casesCard.querySelector('#individual-cases-tbody');
             if(Object.keys(individualCases).length === 0) {
                  tbody.innerHTML = `<tr><td colspan="${showDetails ? 8 : 5}" class="px-6 py-4 text-center text-gray-500">No cases match the current filter.</td></tr>`;
             } else {
                 tbody.innerHTML = '';
-                for (const caseId in individualCases) {
-                    const caseMetrics = individualCases[caseId];
+                
+                let sortedCases = Object.values(individualCases);
+                if (sortColumn) {
+                    sortedCases.sort((a, b) => {
+                        let valA = a[sortColumn];
+                        let valB = b[sortColumn];
+
+                        if (['MTTD', 'MTTA', 'MTTC', 'MTTR'].includes(sortColumn)) {
+                            valA = (valA === '-') ? -Infinity : parseFloat(valA);
+                            valB = (valB === '-') ? -Infinity : parseFloat(valB);
+                        } else {
+                            valA = String(valA || '').toLowerCase();
+                            valB = String(valB || '').toLowerCase();
+                        }
+
+                        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+                }
+
+                for (const caseMetrics of sortedCases) {
+                    const caseId = caseMetrics.case_id;
                     let rowHtml = `
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${caseMetrics.link ? `<a href="${caseMetrics.link}" target="_blank" class="text-blue-600 hover:underline">${caseId}</a>` : caseId}</td>
@@ -1069,6 +1114,7 @@
             const baseUrl = metrics.base_url;
 
             Object.keys(fullMetricsData.individual_cases).forEach(caseId => {
+                fullMetricsData.individual_cases[caseId].case_id = caseId;
                 if (baseUrl) {
                     fullMetricsData.individual_cases[caseId].link = `${baseUrl}/cases/${caseId}`;
                 }

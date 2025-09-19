@@ -434,57 +434,91 @@ def calculate_soc_metrics_structured(
     mttc_config = configs.get("MTTC", MTTxConfig(config_key="case_history_stage", config_value="Incident"))
     mttr_config = configs.get("MTTR", MTTxConfig(config_key="case_history_status", config_value="CLOSED"))
 
+    # --- MTTA, MTTC, and MTTR Calculation ---
+    # These metrics are calculated by iterating through the historical events of each case.
     individual_case_metrics = {}
     mtta_values, mttc_values, mttr_values = [], [], []
 
     for case_id in case_ids:
+        # Filter events for the current case and sort them chronologically.
         case_df = df_history_filtered[df_history_filtered['case_history_case_id'] == case_id].sort_values(by='case_history_case_event_time')
         results = {}
+        
+        # Find the creation event to establish the starting point.
         create_events = case_df[case_df['case_history_case_activity'] == 'CREATE_CASE']
-        if create_events.empty: continue
+        if create_events.empty: continue # Skip if there's no creation event.
         
         time_created = create_events['case_history_case_event_time'].iloc[0]
+        
+        # --- MTTA (Mean Time to Acknowledge) ---
+        # Find the first action taken after the case was created. This is defined as the first STAGE_CHANGE.
         stage_changes = case_df[(case_df['case_history_case_activity'] == 'STAGE_CHANGE') & (case_df['case_history_case_event_time'] > time_created)]
         time_first_action = stage_changes['case_history_case_event_time'].min()
+
+        # --- MTTC (Mean Time to Contain) ---
+        # Find the first time the case entered the user-defined "containment" stage.
+        # The key (e.g., 'case_history_stage') and value (e.g., 'Incident') are from the MTTxConfig.
         time_contained = case_df[case_df[mttc_config.config_key] == mttc_config.config_value]['case_history_case_event_time'].min()
+
+        # --- MTTR (Mean Time to Remediate/Resolve) ---
+        # Find the first time the case entered the user-defined "resolved" status or stage.
         time_closed = case_df[case_df[mttr_config.config_key] == mttr_config.config_value]['case_history_case_event_time'].min()
 
+        # Calculate the metrics in seconds. If a timestamp is not available, store as '-'.
+        # MTTA = Time of First Action - Time of Creation
         results['MTTA'] = int(time_first_action - time_created) if pd.notna(time_first_action) else '-'
         if pd.notna(time_first_action): mtta_values.append(time_first_action - time_created)
         
+        # MTTC = Time of Containment - Time of First Action
         results['MTTC'] = int(time_contained - time_first_action) if pd.notna(time_contained) and pd.notna(time_first_action) else '-'
         if pd.notna(time_contained) and pd.notna(time_first_action): mttc_values.append(time_contained - time_first_action)
             
+        # MTTR = Time of Closure - Time of First Action
         results['MTTR'] = int(time_closed - time_first_action) if pd.notna(time_closed) and pd.notna(time_first_action) else '-'
         if pd.notna(time_closed) and pd.notna(time_first_action): mttr_values.append(time_closed - time_first_action)
         
         individual_case_metrics[case_id] = results
         
+    # --- MTTD Calculation ---
+    # MTTD is calculated from a separate dataset (df_mttd) which joins case creation time 
+    # with the earliest event timestamp from the alerts within that case.
     mttd_values = []
     if not df_mttd.empty:
+        # Ensure timestamps are numeric for calculation.
         df_mttd['created_time'] = pd.to_numeric(df_mttd['created_time'])
         df_mttd['min_event_ts'] = pd.to_numeric(df_mttd['min_event_ts'])
+        
+        # Calculate the difference in seconds between when the case was created and the earliest event time.
         df_mttd['mttd_seconds'] = df_mttd['created_time'] - df_mttd['min_event_ts']
         
+        # Iterate over the MTTD data to enrich the main metrics dictionary.
         for index, row in df_mttd.iterrows():
             case_id = row['case_id']
+            # Only process cases that we have history for.
             if case_id in individual_case_metrics:
                 mttd = row['mttd_seconds']
+                
+                # Add additional context from the MTTD query to the results.
                 individual_case_metrics[case_id]['tags'] = row.get('tags', []) if isinstance(row.get('tags'), list) else []
                 individual_case_metrics[case_id]['environment'] = row.get('environment', 'Unknown')
                 individual_case_metrics[case_id]['detection_rule_name'] = row.get('detection_rule_name', 'Unknown')
+                
+                # A valid MTTD must be a non-negative number.
                 if pd.notna(mttd) and mttd >= 0:
                     individual_case_metrics[case_id]['MTTD'] = int(mttd)
                     mttd_values.append(mttd)
                 else:
                     individual_case_metrics[case_id]['MTTD'] = '-'
     
+    # --- Final Data Assembly ---
+    # Ensure all cases have all metric fields, even if they couldn't be calculated.
     for case_id in individual_case_metrics:
         if 'MTTD' not in individual_case_metrics[case_id]: individual_case_metrics[case_id]['MTTD'] = '-'
         if 'tags' not in individual_case_metrics[case_id]: individual_case_metrics[case_id]['tags'] = []
         if 'environment' not in individual_case_metrics[case_id]: individual_case_metrics[case_id]['environment'] = 'Unknown'
         if 'detection_rule_name' not in individual_case_metrics[case_id]: individual_case_metrics[case_id]['detection_rule_name'] = 'Unknown'
 
+    # Calculate the final average and completion percentages.
     avg_mtta, avg_mttc, avg_mttr, avg_mttd = (np.mean(vals) if vals else 0 for vals in [mtta_values, mttc_values, mttr_values, mttd_values])
     comp_mtta, comp_mttc, comp_mttr, comp_mttd = ((len(vals) / total_cases) * 100 if total_cases > 0 else 0 for vals in [mtta_values, mttc_values, mttr_values, mttd_values])
 
