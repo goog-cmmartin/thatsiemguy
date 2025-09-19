@@ -1063,6 +1063,8 @@
             const mttxResultsContainer = document.getElementById('mttx-results-container');
             const showDetailsCheckbox = document.getElementById('show-details-checkbox');
             const showDetails = showDetailsCheckbox ? showDetailsCheckbox.checked : false;
+            const timeUnitSelect = document.getElementById('time-unit-select');
+            const selectedUnit = timeUnitSelect ? timeUnitSelect.value : 'SECONDS';
 
             mttxResultsContainer.innerHTML = '';
 
@@ -1137,10 +1139,21 @@
             casesCard.innerHTML = `
                 <div class="flex justify-between items-center border-b pb-2 mb-4">
                      <h2 class="text-2xl font-bold">Individual Case Metrics <span class="text-lg font-normal text-gray-500">(${numCases} of ${totalNumCases} cases shown)</span></h2>
-                     <label class="flex items-center space-x-2">
-                         <input type="checkbox" id="show-details-checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${showDetails ? 'checked' : ''}>
-                         <span class="text-sm font-medium text-gray-700">Show Details</span>
-                     </label>
+                     <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <label for="time-unit-select" class="text-sm font-medium text-gray-700 mr-2">Unit</label>
+                            <select id="time-unit-select" class="p-1 border rounded-md text-sm">
+                                <option value="SECONDS">Seconds</option>
+                                <option value="MINUTES">Minutes</option>
+                                <option value="HOURS">Hours</option>
+                                <option value="DAYS">Days</option>
+                            </select>
+                        </div>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="show-details-checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${showDetails ? 'checked' : ''}>
+                            <span class="text-sm font-medium text-gray-700">Show Details</span>
+                        </label>
+                     </div>
                 </div>`;
             casesCard.appendChild(activeFiltersContainer);
             casesCard.innerHTML += `
@@ -1162,12 +1175,19 @@
                 return `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" data-sort="${key}">${label}${icon}</th>`;
             };
 
+            const unitLabel = {
+                SECONDS: 'sec',
+                MINUTES: 'min',
+                HOURS: 'hr',
+                DAYS: 'day'
+            }[selectedUnit] || 'sec';
+
             let headerHtml = `<tr>
                 ${sortableHeader('case_id', 'Case ID')}
-                ${sortableHeader('MTTD', 'MTTD (sec)')}
-                ${sortableHeader('MTTA', 'MTTA (sec)')}
-                ${sortableHeader('MTTC', 'MTTC (sec)')}
-                ${sortableHeader('MTTR', 'MTTR (sec)')}`;
+                ${sortableHeader('MTTD', `MTTD (${unitLabel})`)}
+                ${sortableHeader('MTTA', `MTTA (${unitLabel})`)}
+                ${sortableHeader('MTTC', `MTTC (${unitLabel})`)}
+                ${sortableHeader('MTTR', `MTTR (${unitLabel})`)}`;
             if (showDetails) {
                 headerHtml += `
                     ${sortableHeader('environment', 'Environment')}
@@ -1216,15 +1236,27 @@
                     });
                 }
 
+                const convertSeconds = (seconds, unit) => {
+                    if (typeof seconds !== 'number' || isNaN(seconds)) return seconds;
+                    switch (unit) {
+                        case 'MINUTES': return (seconds / 60).toFixed(2);
+                        case 'HOURS': return (seconds / 3600).toFixed(2);
+                        case 'DAYS': return (seconds / 86400).toFixed(2);
+                        case 'SECONDS':
+                        default:
+                            return seconds;
+                    }
+                };
+
                 for (const caseMetrics of sortedCases) {
                     const caseId = caseMetrics.case_id;
                     let rowHtml = `
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${caseMetrics.link ? `<a href="${caseMetrics.link}" target="_blank" class="text-blue-600 hover:underline">${caseId}</a>` : caseId}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.MTTD}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.MTTA}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.MTTC}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${caseMetrics.MTTR}</td>`;
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${convertSeconds(caseMetrics.MTTD, selectedUnit)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${convertSeconds(caseMetrics.MTTA, selectedUnit)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${convertSeconds(caseMetrics.MTTC, selectedUnit)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${convertSeconds(caseMetrics.MTTR, selectedUnit)}</td>`;
                     if (showDetails) {
                         const tagsHtml = (caseMetrics.tags || []).map(tag => `<span class="tag-chip bg-blue-100 text-blue-800">${tag}</span>`).join('');
                         const envHtml = caseMetrics.environment ? `<span class="tag-chip bg-green-100 text-green-800">${caseMetrics.environment}</span>` : '-';
@@ -1238,6 +1270,11 @@
                 }
             }
             document.getElementById('show-details-checkbox').addEventListener('change', applyFiltersAndRedraw);
+            const newTimeUnitSelect = document.getElementById('time-unit-select');
+            if (newTimeUnitSelect) {
+                newTimeUnitSelect.value = selectedUnit;
+                newTimeUnitSelect.addEventListener('change', applyFiltersAndRedraw);
+            }
         };
         
         const applyFiltersAndRedraw = () => {
