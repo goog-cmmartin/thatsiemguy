@@ -219,6 +219,14 @@
                              </form>
                         </div>
                     </div>
+                    <div id="threshold-config-forms" class="hidden mt-8">
+                        <div class="card p-6">
+                             <h3 class="text-xl font-bold mb-4">Metric Threshold Configuration</h3>
+                             <p class="text-sm text-gray-600 mb-4">Set the thresholds for color-coding the average metrics on the results page. Values are evaluated in order: if a metric is less than or equal to the 'Good' value, it's good. If not, it's checked against the 'Ok' value.</p>
+                             <form id="threshold-config-form" class="space-y-6"></form>
+                             <button id="save-thresholds-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Thresholds</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -733,22 +741,28 @@
              if (!tenantId || isNaN(tenantId)) {
                 mttxConfigForms.classList.add('hidden');
                 queryConfigForms.classList.add('hidden');
+                document.getElementById('threshold-config-forms').classList.add('hidden');
                 return;
             }
             try {
                 mttxConfigForms.classList.remove('hidden');
                 queryConfigForms.classList.remove('hidden');
+                document.getElementById('threshold-config-forms').classList.remove('hidden');
 
-                const [statusesRes, configsRes, queriesRes] = await Promise.all([
+                const [statusesRes, configsRes, queriesRes, thresholdsRes] = await Promise.all([
                     fetch(`${API_BASE_URL}/case-statuses`),
                     fetch(`${API_BASE_URL}/tenants/${tenantId}/mttx-configs`),
-                    fetch(`${API_BASE_URL}/tenants/${tenantId}/queries`)
+                    fetch(`${API_BASE_URL}/tenants/${tenantId}/queries`),
+                    fetch(`${API_BASE_URL}/tenants/${tenantId}/thresholds`)
                 ]);
 
                 allCaseStatuses = await statusesRes.json();
                 const configs = await configsRes.json();
                 const queries = await queriesRes.json();
+                const thresholds = await thresholdsRes.json();
                 
+                renderThresholdsForm(thresholds);
+
                 let stagesResponse = await fetch(`${API_BASE_URL}/tenants/${tenantId}/stages`);
                 allCaseStages = await stagesResponse.json();
                 if (allCaseStages.length === 0) {
@@ -785,6 +799,144 @@
                 alert(`Error loading configurations: ${error.message}`);
                 mttxConfigForms.classList.add('hidden');
                 queryConfigForms.classList.add('hidden');
+                document.getElementById('threshold-config-forms').classList.add('hidden');
+            }
+        };
+
+        const renderThresholdsForm = (thresholds) => {
+            const form = document.getElementById('threshold-config-form');
+            form.innerHTML = '';
+
+            const timeUnits = {
+                SECOND: 1,
+                MINUTE: 60,
+                HOUR: 3600,
+                DAY: 86400
+            };
+
+            const getBestUnit = (seconds) => {
+                if (seconds >= 86400 && seconds % 86400 === 0) return 'DAY';
+                if (seconds >= 3600 && seconds % 3600 === 0) return 'HOUR';
+                if (seconds >= 60 && seconds % 60 === 0) return 'MINUTE';
+                return 'SECOND';
+            };
+
+            thresholds.forEach(t => {
+                const fieldset = document.createElement('div');
+                fieldset.className = 'p-4 border rounded-lg bg-gray-50';
+                
+                if (t.metric_name.includes('percent')) {
+                     fieldset.innerHTML = `
+                        <h4 class="font-bold text-lg mb-3">${t.metric_name.replace(/_/g, ' ').replace('percent', '(%)')} Thresholds</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block font-semibold mb-1">Good (≥ %)</label>
+                                <input type="number" data-metric="${t.metric_name}" name="good_value" class="w-full p-2 border rounded-md" value="${t.good_threshold}">
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1">Ok (≥ %)</label>
+                                <input type="number" data-metric="${t.metric_name}" name="ok_value" class="w-full p-2 border rounded-md" value="${t.ok_threshold}">
+                            </div>
+                        </div>`;
+                } else {
+                    const goodUnit = getBestUnit(t.good_threshold);
+                    const okUnit = getBestUnit(t.ok_threshold);
+                    const goodValue = t.good_threshold / timeUnits[goodUnit];
+                    const okValue = t.ok_threshold / timeUnits[okUnit];
+                    fieldset.innerHTML = `
+                        <h4 class="font-bold text-lg mb-3">${t.metric_name} Thresholds</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block font-semibold mb-1">Good (≤)</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" data-metric="${t.metric_name}" name="good_value" class="w-full p-2 border rounded-md" value="${goodValue}">
+                                    <select name="good_unit" class="w-full p-2 border rounded-md">
+                                        ${Object.keys(timeUnits).map(unit => `<option value="${unit}" ${unit === goodUnit ? 'selected' : ''}>${unit.charAt(0) + unit.slice(1).toLowerCase()}s</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1">Ok (≤)</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" data-metric="${t.metric_name}" name="ok_value" class="w-full p-2 border rounded-md" value="${okValue}">
+                                    <select name="ok_unit" class="w-full p-2 border rounded-md">
+                                        ${Object.keys(timeUnits).map(unit => `<option value="${unit}" ${unit === okUnit ? 'selected' : ''}>${unit.charAt(0) + unit.slice(1).toLowerCase()}s</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+                
+                // Common color pickers
+                fieldset.innerHTML += `
+                    <div class="grid grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label class="block font-semibold mb-1">Good Color</label>
+                            <input type="color" data-metric="${t.metric_name}" name="good_color" class="w-full h-10 p-1 border rounded-md" value="${t.good_color}">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Ok Color</label>
+                            <input type="color" data-metric="${t.metric_name}" name="ok_color" class="w-full h-10 p-1 border rounded-md" value="${t.ok_color}">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Bad Color</label>
+                            <input type="color" data-metric="${t.metric_name}" name="bad_color" class="w-full h-10 p-1 border rounded-md" value="${t.bad_color}">
+                        </div>
+                    </div>`;
+                form.appendChild(fieldset);
+            });
+        };
+
+        const handleThresholdFormSubmit = async () => {
+            const tenantId = tenantSelectForConfig.value;
+            if (!tenantId) return;
+
+            const form = document.getElementById('threshold-config-form');
+            const metrics = [
+                'MTTD', 'MTTA', 'MTTC', 'MTTR',
+                'MTTD_completion_percent', 'MTTA_completion_percent', 
+                'MTTC_completion_percent', 'MTTR_completion_percent'
+            ];
+            const timeUnits = { SECOND: 1, MINUTE: 60, HOUR: 3600, DAY: 86400 };
+            
+            const payload = { thresholds: [] };
+
+            metrics.forEach(metric => {
+                const goodValueEl = form.querySelector(`[data-metric="${metric}"][name="good_value"]`);
+                const okValueEl = form.querySelector(`[data-metric="${metric}"][name="ok_value"]`);
+                
+                let goodThreshold, okThreshold;
+
+                if (metric.includes('percent')) {
+                    goodThreshold = parseInt(goodValueEl.value);
+                    okThreshold = parseInt(okValueEl.value);
+                } else {
+                    const goodUnit = form.querySelector(`[data-metric="${metric}"][name="good_unit"]`).value;
+                    const okUnit = form.querySelector(`[data-metric="${metric}"][name="ok_unit"]`).value;
+                    goodThreshold = parseInt(goodValueEl.value) * timeUnits[goodUnit];
+                    okThreshold = parseInt(okValueEl.value) * timeUnits[okUnit];
+                }
+
+                payload.thresholds.push({
+                    metric_name: metric,
+                    good_threshold: goodThreshold,
+                    ok_threshold: okThreshold,
+                    good_color: form.querySelector(`[data-metric="${metric}"][name="good_color"]`).value,
+                    ok_color: form.querySelector(`[data-metric="${metric}"][name="ok_color"]`).value,
+                    bad_color: form.querySelector(`[data-metric="${metric}"][name="bad_color"]`).value,
+                });
+            });
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/tenants/${tenantId}/thresholds`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error('Failed to save thresholds');
+                alert('Thresholds saved successfully!');
+            } catch (error) {
+                alert(`Error: ${error.message}`);
             }
         };
 
@@ -900,7 +1052,8 @@
                     MTTR_completion_percent: completion(mttrValues).toFixed(2),
                     total_cases: totalCases
                 },
-                individual_cases: filteredCases
+                individual_cases: filteredCases,
+                thresholds: fullMetricsData.thresholds
             };
             
             renderMttxResults(metrics);
@@ -913,6 +1066,22 @@
 
             mttxResultsContainer.innerHTML = '';
 
+            const getTimeThresholdColor = (metricName, valueInSeconds) => {
+                const threshold = metrics.thresholds.find(t => t.metric_name === metricName);
+                if (!threshold || typeof valueInSeconds !== 'number') return 'bg-gray-100';
+                if (valueInSeconds <= threshold.good_threshold) return threshold.good_color;
+                if (valueInSeconds <= threshold.ok_threshold) return threshold.ok_color;
+                return threshold.bad_color;
+            };
+            
+            const getCompletionThresholdColor = (metricName, valuePercent) => {
+                const threshold = metrics.thresholds.find(t => t.metric_name === metricName);
+                if (!threshold || typeof valuePercent !== 'number') return 'bg-gray-100';
+                if (valuePercent >= threshold.good_threshold) return threshold.good_color;
+                if (valuePercent >= threshold.ok_threshold) return threshold.ok_color;
+                return threshold.bad_color;
+            };
+
             const createMetricCard = (title, data) => {
                 const card = document.createElement('div');
                 card.className = 'card p-6 mb-8';
@@ -924,7 +1093,9 @@
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center';
                 data.items.forEach(item => {
-                    grid.innerHTML += `<div class="bg-gray-100 p-4 rounded-lg"><div class="text-sm text-gray-500">${item.label}</div><div class="text-2xl font-bold text-gray-900">${item.value}</div></div>`;
+                    const colorClass = item.color ? '' : 'bg-gray-100';
+                    const style = item.color ? `style="background-color: ${item.color}"` : '';
+                    grid.innerHTML += `<div class="${colorClass} p-4 rounded-lg" ${style}><div class="text-sm text-gray-500">${item.label}</div><div class="text-2xl font-bold text-gray-900">${item.value}</div></div>`;
                 });
                 card.appendChild(grid);
                 return card;
@@ -933,10 +1104,10 @@
             const avgMetrics = metrics.average_metrics;
             const avgData = {
                 items: [
-                    { label: 'Avg. MTTD', value: formatSeconds(avgMetrics.Average_MTTD_seconds) },
-                    { label: 'Avg. MTTA', value: formatSeconds(avgMetrics.Average_MTTA_seconds) },
-                    { label: 'Avg. MTTC', value: formatSeconds(avgMetrics.Average_MTTC_seconds) },
-                    { label: 'Avg. MTTR', value: formatSeconds(avgMetrics.Average_MTTR_seconds) }
+                    { label: 'Avg. MTTD', value: formatSeconds(avgMetrics.Average_MTTD_seconds), color: getTimeThresholdColor('MTTD', avgMetrics.Average_MTTD_seconds) },
+                    { label: 'Avg. MTTA', value: formatSeconds(avgMetrics.Average_MTTA_seconds), color: getTimeThresholdColor('MTTA', avgMetrics.Average_MTTA_seconds) },
+                    { label: 'Avg. MTTC', value: formatSeconds(avgMetrics.Average_MTTC_seconds), color: getTimeThresholdColor('MTTC', avgMetrics.Average_MTTC_seconds) },
+                    { label: 'Avg. MTTR', value: formatSeconds(avgMetrics.Average_MTTR_seconds), color: getTimeThresholdColor('MTTR', avgMetrics.Average_MTTR_seconds) }
                 ]
             };
             mttxResultsContainer.appendChild(createMetricCard('Average Metrics (Efficiency)', avgData));
@@ -945,10 +1116,10 @@
             const completionData = {
                 total_cases: completionRates.total_cases,
                 items: [
-                    { label: 'MTTD Completion', value: `${completionRates.MTTD_completion_percent}%` },
-                    { label: 'MTTA Completion', value: `${completionRates.MTTA_completion_percent}%` },
-                    { label: 'MTTC Completion', value: `${completionRates.MTTC_completion_percent}%` },
-                    { label: 'MTTR Completion', value: `${completionRates.MTTR_completion_percent}%` }
+                    { label: 'MTTD Completion', value: `${completionRates.MTTD_completion_percent}%`, color: getCompletionThresholdColor('MTTD_completion_percent', parseFloat(completionRates.MTTD_completion_percent)) },
+                    { label: 'MTTA Completion', value: `${completionRates.MTTA_completion_percent}%`, color: getCompletionThresholdColor('MTTA_completion_percent', parseFloat(completionRates.MTTA_completion_percent)) },
+                    { label: 'MTTC Completion', value: `${completionRates.MTTC_completion_percent}%`, color: getCompletionThresholdColor('MTTC_completion_percent', parseFloat(completionRates.MTTC_completion_percent)) },
+                    { label: 'MTTR Completion', value: `${completionRates.MTTR_completion_percent}%`, color: getCompletionThresholdColor('MTTR_completion_percent', parseFloat(completionRates.MTTR_completion_percent)) }
                 ]
             };
             mttxResultsContainer.appendChild(createMetricCard('Completion Rates (Process Adherence)', completionData));
@@ -1185,9 +1356,6 @@
                 switchMainTab('results-panel');
             } catch (error) {
                 alert(`An error occurred during calculation:\n\n${error.message}`);
-            } finally {
-                calcBtn.textContent = 'Calculate MTTx Metrics';
-                calcBtn.disabled = false;
             }
         };
         

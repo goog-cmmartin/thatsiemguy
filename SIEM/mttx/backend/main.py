@@ -48,6 +48,7 @@ class Tenant(Base):
     configs = relationship("MTTxConfig", back_populates="tenant", cascade="all, delete-orphan")
     queries = relationship("QueryConfig", back_populates="tenant", cascade="all, delete-orphan")
     schedules = relationship("Schedule", back_populates="tenant", cascade="all, delete-orphan")
+    thresholds = relationship("MetricThreshold", back_populates="tenant", cascade="all, delete-orphan")
 
 class Schedule(Base):
     __tablename__ = "schedules"
@@ -98,6 +99,19 @@ class MTTxConfig(Base):
     tenant_id = Column(Integer, ForeignKey("tenants.id"))
 
     tenant = relationship("Tenant", back_populates="configs")
+
+class MetricThreshold(Base):
+    __tablename__ = "metric_thresholds"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    metric_name = Column(String, nullable=False)
+    good_threshold = Column(Integer, nullable=False)
+    ok_threshold = Column(Integer, nullable=False)
+    good_color = Column(String, default="#dcfce7")
+    ok_color = Column(String, default="#fef9c3")
+    bad_color = Column(String, default="#fee2e2")
+
+    tenant = relationship("Tenant", back_populates="thresholds")
 
 class QueryConfig(Base):
     __tablename__ = "query_configs"
@@ -158,6 +172,22 @@ class MTTxConfigResponse(BaseModel):
     tenant_id: int
     class Config: from_attributes = True
 
+class MetricThresholdBase(BaseModel):
+    metric_name: str
+    good_threshold: int
+    ok_threshold: int
+    good_color: str
+    ok_color: str
+    bad_color: str
+
+class MetricThresholdResponse(MetricThresholdBase):
+    id: int
+    tenant_id: int
+    class Config: from_attributes = True
+
+class BulkThresholdUpdate(BaseModel):
+    thresholds: List[MetricThresholdBase]
+
 class QueryConfigUpdate(BaseModel):
     query_text: str
 
@@ -186,6 +216,7 @@ class MetricsResponse(BaseModel):
     individual_cases: Dict[str, Any]
     average_metrics: Dict[str, Any]
     completion_rates: Dict[str, Any]
+    thresholds: List[MetricThresholdResponse]
     base_url: Optional[str] = None
 
 class FetchStagesResponse(BaseModel):
@@ -613,6 +644,59 @@ def update_mttx_config(config_id: int, config: MTTxConfigUpdate, db: Session = D
     db.refresh(db_config)
     return db_config
 
+@api_router.get("/tenants/{tenant_id}/thresholds", response_model=List[MetricThresholdResponse])
+def get_thresholds(tenant_id: int, db: Session = Depends(get_db)):
+    thresholds = db.query(MetricThreshold).filter(MetricThreshold.tenant_id == tenant_id).all()
+    
+    # Check if we have the 8 required metrics (4 time-based, 4 percentage-based)
+    if len(thresholds) < 8:
+        existing_metrics = {t.metric_name for t in thresholds}
+        
+        # Time-based defaults
+        time_defaults = [
+            {"tenant_id": tenant_id, "metric_name": "MTTD", "good_threshold": 86400, "ok_threshold": 604800},
+            {"tenant_id": tenant_id, "metric_name": "MTTA", "good_threshold": 3600, "ok_threshold": 28800},
+            {"tenant_id": tenant_id, "metric_name": "MTTC", "good_threshold": 86400, "ok_threshold": 604800},
+            {"tenant_id": tenant_id, "metric_name": "MTTR", "good_threshold": 604800, "ok_threshold": 2592000},
+        ]
+        
+        # Percentage-based defaults (Good >= 90, Ok >= 75)
+        percent_defaults = [
+            {"tenant_id": tenant_id, "metric_name": "MTTD_completion_percent", "good_threshold": 90, "ok_threshold": 75},
+            {"tenant_id": tenant_id, "metric_name": "MTTA_completion_percent", "good_threshold": 90, "ok_threshold": 75},
+            {"tenant_id": tenant_id, "metric_name": "MTTC_completion_percent", "good_threshold": 90, "ok_threshold": 75},
+            {"tenant_id": tenant_id, "metric_name": "MTTR_completion_percent", "good_threshold": 90, "ok_threshold": 75},
+        ]
+
+        all_defaults = time_defaults + percent_defaults
+        new_thresholds = []
+        for default in all_defaults:
+            if default["metric_name"] not in existing_metrics:
+                new_thresholds.append(MetricThreshold(**default))
+
+        if new_thresholds:
+            db.add_all(new_thresholds)
+            db.commit()
+            # Re-query to get all thresholds including the newly added ones
+            return db.query(MetricThreshold).filter(MetricThreshold.tenant_id == tenant_id).all()
+
+    return thresholds
+
+@api_router.post("/tenants/{tenant_id}/thresholds", response_model=List[MetricThresholdResponse])
+def bulk_update_thresholds(tenant_id: int, payload: BulkThresholdUpdate, db: Session = Depends(get_db)):
+    updated_thresholds = []
+    for item in payload.thresholds:
+        db_threshold = db.query(MetricThreshold).filter_by(tenant_id=tenant_id, metric_name=item.metric_name).first()
+        if db_threshold:
+            db_threshold.good_threshold = item.good_threshold
+            db_threshold.ok_threshold = item.ok_threshold
+            db_threshold.good_color = item.good_color
+            db_threshold.ok_color = item.ok_color
+            db_threshold.bad_color = item.bad_color
+            updated_thresholds.append(db_threshold)
+    db.commit()
+    return updated_thresholds
+
 @api_router.get("/tenants/{tenant_id}/queries", response_model=List[QueryConfigResponse])
 def get_queries(tenant_id: int, db: Session = Depends(get_db)):
     queries = db.query(QueryConfig).filter(QueryConfig.tenant_id == tenant_id).all()
@@ -711,8 +795,11 @@ def calculate_metrics(request: CalculationRequest, db: Session = Depends(get_db)
         metrics = calculate_soc_metrics_structured(request.case_history_data, request.case_mttd_data, db, request.tenant_id)
         if not metrics: raise HTTPException(status_code=400, detail="Failed to calculate metrics.")
         
+        thresholds = db.query(MetricThreshold).filter(MetricThreshold.tenant_id == request.tenant_id).all()
+
         full_response = metrics
         full_response['base_url'] = tenant.base_url
+        full_response['thresholds'] = thresholds
         return full_response
     except Exception as e:
         logging.error(f"Metric calculation failed: {e}", exc_info=True)
