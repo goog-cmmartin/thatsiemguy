@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SecOps SDK: MTTx Report</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,13 +19,20 @@
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             border: 1px solid #e5e7eb;
         }
+        .dark .card {
+            background-color: #1f2937;
+            border-color: #4b5563;
+        }
         .tab-btn {
             cursor: pointer;
             transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
         }
         .tab-active { color: #2563eb; border-color: #2563eb; }
+        .dark .tab-active { color: #3b82f6; border-color: #3b82f6; }
         .tab-inactive { color: #6b7280; border-color: transparent; }
         .tab-inactive:hover { color: #111827; border-color: #d1d5db; }
+        .dark .tab-inactive { color: #9ca3af; }
+        .dark .tab-inactive:hover { color: #f9fafb; border-color: #4b5563; }
         .status-badge {
             display: inline-block;
             padding: 0.25em 0.6em;
@@ -47,12 +56,19 @@
             margin-right: 0.5rem;
             margin-bottom: 0.5rem;
         }
+        .dark .filter-pill {
+            background-color: #374151;
+            color: #e5e7eb;
+        }
         .filter-pill button {
             margin-left: 0.5rem;
             color: #4f46e5;
             background: none;
             border: none;
             cursor: pointer;
+        }
+        .dark .filter-pill button {
+            color: #818cf8;
         }
         .tag-chip {
             display: inline-block;
@@ -63,18 +79,30 @@
             margin: 0.125rem;
         }
     </style>
+    <script>
+        // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-300">
 
-    <header class="bg-white shadow-sm border-b border-gray-200">
-        <div class="container mx-auto px-6 py-4">
-            <h1 class="text-3xl font-bold text-gray-900">SecOps SDK: MTTx Report</h1>
+    <header class="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">SecOps SDK: MTTx Report</h1>
+            <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+            </button>
         </div>
     </header>
 
     <main class="container mx-auto px-6 py-8">
         <!-- Main Tab Navigation -->
-        <div class="border-b border-gray-200">
+        <div class="border-b border-gray-200 dark:border-gray-700">
             <nav class="-mb-px flex space-x-8" aria-label="Tabs">
                 <button data-target="tenants-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Tenants</button>
                 <button data-target="configs-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Configurations</button>
@@ -88,13 +116,13 @@
         <div class="pt-8">
             <!-- Scheduler Panel -->
             <div id="scheduler-panel" class="main-tab-panel hidden">
-                <p class="mb-6 text-gray-600">Configure scheduled CSV based exports per Tenant.</p>
+                <p class="mb-6 text-gray-600 dark:text-gray-400">Configure scheduled CSV based exports per Tenant.</p>
                 <div class="space-y-8">
                     <div class="card p-6">
-                        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Scheduler Configuration</h2>
+                        <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Scheduler Configuration</h2>
                         <div>
-                            <label for="scheduler-tenant-select" class="block font-semibold mb-1">Select Tenant to Configure Schedules</label>
-                            <select id="scheduler-tenant-select" class="w-full p-2 border rounded-md"></select>
+                            <label for="scheduler-tenant-select" class="block font-semibold mb-1 dark:text-gray-300">Select Tenant to Configure Schedules</label>
+                            <select id="scheduler-tenant-select" class="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"></select>
                         </div>
                     </div>
                     <div id="scheduler-content" class="hidden">
@@ -105,51 +133,51 @@
 
             <!-- Tenants Panel -->
             <div id="tenants-panel" class="main-tab-panel">
-                <p class="mb-6 text-gray-600">Configure your instances of Google SecOps. You will require a chronicle.googleapis.com BYOP Service Account, and a SOAR API key.</p>
+                <p class="mb-6 text-gray-600 dark:text-gray-400">Configure your instances of Google SecOps. You will require a chronicle.googleapis.com BYOP Service Account, and a SOAR API key.</p>
                  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="card p-6">
-                        <h2 id="tenant-form-title" class="text-2xl font-bold mb-4 border-b pb-2">Add New Tenant</h2>
+                        <h2 id="tenant-form-title" class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Add New Tenant</h2>
                         <form id="add-tenant-form" class="space-y-4">
                             <input type="hidden" id="tenant-id">
                             <div>
-                                <label for="tenant-name" class="block font-semibold">Tenant Name</label>
-                                <input type="text" id="tenant-name" placeholder="e.g., Primary Production" class="w-full p-2 border rounded-md mt-1" required>
+                                <label for="tenant-name" class="block font-semibold dark:text-gray-300">Tenant Name</label>
+                                <input type="text" id="tenant-name" placeholder="e.g., Primary Production" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
                             </div>
                             <div>
-                                <label for="tenant-guid" class="block font-semibold">Customer ID (GUID)</label>
-                                <input type="text" id="tenant-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="w-full p-2 border rounded-md mt-1" required>
+                                <label for="tenant-guid" class="block font-semibold dark:text-gray-300">Customer ID (GUID)</label>
+                                <input type="text" id="tenant-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
                             </div>
                             <div>
-                                <label for="tenant-gcp-project" class="block font-semibold">GCP Project ID</label>
-                                <input type="text" id="tenant-gcp-project" placeholder="your-gcp-project-id" class="w-full p-2 border rounded-md mt-1" required>
+                                <label for="tenant-gcp-project" class="block font-semibold dark:text-gray-300">GCP Project ID</label>
+                                <input type="text" id="tenant-gcp-project" placeholder="your-gcp-project-id" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
                             </div>
                              <div>
-                                <label for="tenant-region" class="block font-semibold">Region</label>
-                                <input type="text" id="tenant-region" placeholder="e.g., us-central1" class="w-full p-2 border rounded-md mt-1" required>
+                                <label for="tenant-region" class="block font-semibold dark:text-gray-300">Region</label>
+                                <input type="text" id="tenant-region" placeholder="e.g., us-central1" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
                             </div>
                             <div>
-                                <label for="base-url" class="block font-semibold">Base URL</label>
-                                <input type="url" id="base-url" placeholder="https://<your-secops-instance>" class="w-full p-2 border rounded-md mt-1">
+                                <label for="base-url" class="block font-semibold dark:text-gray-300">Base URL</label>
+                                <input type="url" id="base-url" placeholder="https://<your-secops-instance>" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
                             </div>
-                            <div class="border-t pt-4">
-                                <h3 class="font-semibold text-gray-600 mb-2">SOAR Configuration</h3>
+                            <div class="border-t pt-4 dark:border-gray-600">
+                                <h3 class="font-semibold text-gray-600 mb-2 dark:text-gray-400">SOAR Configuration</h3>
                                 <div>
-                                    <label for="soar-url" class="block font-semibold">SOAR URL</label>
-                                    <input type="url" id="soar-url" placeholder="https://<your-soar-instance>" class="w-full p-2 border rounded-md mt-1">
+                                    <label for="soar-url" class="block font-semibold dark:text-gray-300">SOAR URL</label>
+                                    <input type="url" id="soar-url" placeholder="https://<your-soar-instance>" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
                                 </div>
                                  <div class="mt-4">
-                                    <label for="soar-api-key" class="block font-semibold">SOAR API Key</label>
-                                    <input type="password" id="soar-api-key" placeholder="Enter SOAR API Key" class="w-full p-2 border rounded-md mt-1">
+                                    <label for="soar-api-key" class="block font-semibold dark:text-gray-300">SOAR API Key</label>
+                                    <input type="password" id="soar-api-key" placeholder="Enter SOAR API Key" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
                                 </div>
                             </div>
                             <div class="flex space-x-2 pt-4">
                                 <button id="tenant-submit-btn" type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Add Tenant</button>
-                                <button id="cancel-edit-btn" type="button" class="w-full bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition hidden">Cancel</button>
+                                <button id="cancel-edit-btn" type="button" class="w-full bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition hidden dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500">Cancel</button>
                             </div>
                         </form>
                     </div>
                      <div class="card p-6">
-                        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Configured Tenants</h2>
+                        <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Configured Tenants</h2>
                         <ul id="tenant-list" class="space-y-3"></ul>
                     </div>
                 </div>
@@ -157,45 +185,45 @@
 
             <!-- Configurations Panel -->
             <div id="configs-panel" class="main-tab-panel hidden">
-                <p class="mb-6 text-gray-600">Select the SecOps Tenant you wish to create your MTTx configuration for. You can configure your MTTC and MTTR parameters per tenant, and the associated SecOps YL2 query to generate the required data. MTTA and MTTD are not user configurable.</p>
+                <p class="mb-6 text-gray-600 dark:text-gray-400">Select the SecOps Tenant you wish to create your MTTx configuration for. You can configure your MTTC and MTTR parameters per tenant, and the associated SecOps YL2 query to generate the required data. MTTA and MTTD are not user configurable.</p>
                 <div class="space-y-8">
                     <div class="card p-6">
-                         <h2 class="text-2xl font-bold mb-4 border-b pb-2">Configuration Settings</h2>
+                         <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Configuration Settings</h2>
                          <div>
-                            <label for="config-tenant-select" class="block font-semibold mb-1">Select Tenant to Configure</label>
-                            <select id="config-tenant-select" class="w-full p-2 border rounded-md"></select>
+                            <label for="config-tenant-select" class="block font-semibold mb-1 dark:text-gray-300">Select Tenant to Configure</label>
+                            <select id="config-tenant-select" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"></select>
                         </div>
                     </div>
                     <div id="mttx-config-forms" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4">MTTC Configuration</h3>
+                             <h3 class="text-xl font-bold mb-4 dark:text-white">MTTC Configuration</h3>
                              <form id="mttc-config-form" class="space-y-4" data-metric="MTTC">
                                  <input type="hidden" id="mttc-config-id">
                                  <div>
-                                     <label class="block font-semibold">Key (Read-only)</label>
-                                     <input type="text" class="w-full p-2 border rounded-md mt-1 bg-gray-100" value="case_history_stage" readonly>
+                                     <label class="block font-semibold dark:text-gray-300">Key (Read-only)</label>
+                                     <input type="text" class="w-full p-2 border rounded-md mt-1 bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-300" value="case_history_stage" readonly>
                                  </div>
                                  <div>
-                                     <label class="block font-semibold">Value (Select a Case Stage)</label>
-                                     <select id="mttc-config-value" class="w-full p-2 border rounded-md mt-1"></select>
+                                     <label class="block font-semibold dark:text-gray-300">Value (Select a Case Stage)</label>
+                                     <select id="mttc-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
                                  </div>
                                  <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save MTTC Config</button>
                              </form>
                         </div>
                         <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4">MTTR Configuration</h3>
+                             <h3 class="text-xl font-bold mb-4 dark:text-white">MTTR Configuration</h3>
                              <form id="mttr-config-form" class="space-y-4" data-metric="MTTR">
                                 <input type="hidden" id="mttr-config-id">
                                 <div>
-                                     <label class="block font-semibold">Key</label>
-                                     <select id="mttr-config-key" class="w-full p-2 border rounded-md mt-1">
+                                     <label class="block font-semibold dark:text-gray-300">Key</label>
+                                     <select id="mttr-config-key" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                         <option value="case_history_stage">Case Stage</option>
                                         <option value="case_history_status">Case Status</option>
                                      </select>
                                  </div>
                                  <div>
-                                     <label class="block font-semibold">Value</label>
-                                     <select id="mttr-config-value" class="w-full p-2 border rounded-md mt-1"></select>
+                                     <label class="block font-semibold dark:text-gray-300">Value</label>
+                                     <select id="mttr-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
                                  </div>
                                  <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save MTTR Config</button>
                              </form>
@@ -203,26 +231,26 @@
                     </div>
                     <div id="query-config-forms" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4">Case History Query</h3>
+                             <h3 class="text-xl font-bold mb-4 dark:text-white">Case History Query</h3>
                              <form id="query-history-form">
                                  <input type="hidden" id="query-history-id">
-                                 <textarea id="query-history-text" class="w-full p-2 border rounded-md font-mono text-sm" rows="15"></textarea>
+                                 <textarea id="query-history-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
                                  <button type="submit" class="mt-2 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save History Query</button>
                              </form>
                         </div>
                         <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4">Case (MTTD) Query</h3>
+                             <h3 class="text-xl font-bold mb-4 dark:text-white">Case (MTTD) Query</h3>
                              <form id="query-case-form">
                                  <input type="hidden" id="query-case-id">
-                                 <textarea id="query-case-text" class="w-full p-2 border rounded-md font-mono text-sm" rows="15"></textarea>
+                                 <textarea id="query-case-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
                                  <button type="submit" class="mt-2 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Case Query</button>
                              </form>
                         </div>
                     </div>
                     <div id="threshold-config-forms" class="hidden mt-8">
                         <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4">Metric Threshold Configuration</h3>
-                             <p class="text-sm text-gray-600 mb-4">Set the thresholds for color-coding the average metrics on the results page. Values are evaluated in order: if a metric is less than or equal to the 'Good' value, it's good. If not, it's checked against the 'Ok' value.</p>
+                             <h3 class="text-xl font-bold mb-4 dark:text-white">Metric Threshold Configuration</h3>
+                             <p class="text-sm text-gray-600 mb-4 dark:text-gray-400">Set the thresholds for color-coding the average metrics on the results page. Values are evaluated in order: if a metric is less than or equal to the 'Good' value, it's good. If not, it's checked against the 'Ok' value.</p>
                              <form id="threshold-config-form" class="space-y-6"></form>
                              <button id="save-thresholds-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Thresholds</button>
                         </div>
@@ -232,19 +260,19 @@
 
             <!-- Ad-hoc Analysis Panel -->
             <div id="analysis-panel" class="main-tab-panel hidden">
-                <p class="mb-6 text-gray-600">Select a Tenant, specify a relative time range, and click Run Analysis to generate MTTx data. Once complete, click the Calculate MTTx Metrics button.</p>
+                <p class="mb-6 text-gray-600 dark:text-gray-400">Select a Tenant, specify a relative time range, and click Run Analysis to generate MTTx data. Once complete, click the Calculate MTTx Metrics button.</p>
                  <div class="card p-6 mb-8">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Analysis Parameters</h2>
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Analysis Parameters</h2>
                     <div class="space-y-4 max-w-2xl">
                         <div>
-                            <label for="analysis-tenant-select" class="block font-semibold">Select Tenant</label>
-                            <select id="analysis-tenant-select" class="w-full p-2 border rounded-md mt-1"></select>
+                            <label for="analysis-tenant-select" class="block font-semibold dark:text-gray-300">Select Tenant</label>
+                            <select id="analysis-tenant-select" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
                         </div>
                         <div>
-                            <label class="block font-semibold">Select Relative Time Range</label>
+                            <label class="block font-semibold dark:text-gray-300">Select Relative Time Range</label>
                             <div class="flex items-center space-x-2 mt-1">
-                                <input type="number" id="start-time-val" class="w-1/2 p-2 border rounded-md" value="7">
-                                <select id="time-unit" class="w-full p-2 border rounded-md">
+                                <input type="number" id="start-time-val" class="w-1/2 p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="7">
+                                <select id="time-unit" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="DAY">Days</option>
                                     <option value="HOUR">Hours</option>
                                     <option value="MINUTE">Minutes</option>
@@ -255,7 +283,7 @@
                     </div>
                 </div>
                 <div class="card p-6">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Raw Query Results</h2>
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Raw Query Results</h2>
                     <pre id="raw-results-output" class="bg-gray-900 text-white p-4 rounded-md overflow-x-auto text-sm h-96">Run an analysis to see the raw query results here.</pre>
                     <button id="calculate-metrics-btn" class="mt-4 w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-purple-700 transition hidden">Calculate MTTx Metrics</button>
                 </div>
@@ -263,32 +291,32 @@
 
             <!-- MTTx Results Panel -->
             <div id="results-panel" class="main-tab-panel hidden">
-                <p class="mb-6 text-gray-600">Optionally, apply Filters to update your Average Metrics, Completion Rates, and the Show Details tickbox if you wish to see more granular Case data.</p>
+                <p class="mb-6 text-gray-600 dark:text-gray-400">Optionally, apply Filters to update your Average Metrics, Completion Rates, and the Show Details tickbox if you wish to see more granular Case data.</p>
                 <div id="filter-container" class="card p-6 mb-8 hidden">
-                    <div class="flex justify-between items-center border-b pb-2 mb-4">
-                        <h2 class="text-2xl font-bold">Filters</h2>
-                        <button id="toggle-filters-btn" title="Toggle Filters" class="text-gray-500 hover:text-gray-800 transition">
+                    <div class="flex justify-between items-center border-b pb-2 mb-4 dark:border-gray-600">
+                        <h2 class="text-2xl font-bold dark:text-white">Filters</h2>
+                        <button id="toggle-filters-btn" title="Toggle Filters" class="text-gray-500 hover:text-gray-800 transition dark:text-gray-400 dark:hover:text-white">
                             <svg class="w-6 h-6 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
                     </div>
                     <div id="filter-body" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                              <div>
-                                <label for="environment-search" class="block font-semibold mb-1">Search Environments</label>
-                                <input type="text" id="environment-search" placeholder="Filter environments..." class="w-full p-2 border rounded-md">
-                                 <div id="environment-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50"></div>
+                                <label for="environment-search" class="block font-semibold mb-1 dark:text-gray-300">Search Environments</label>
+                                <input type="text" id="environment-search" placeholder="Filter environments..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                 <div id="environment-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
                             </div>
                              <div>
-                                <label for="rule-search" class="block font-semibold mb-1">Search Detection Rules</label>
-                                <input type="text" id="rule-search" placeholder="Filter rules..." class="w-full p-2 border rounded-md">
-                                <div id="rule-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50"></div>
+                                <label for="rule-search" class="block font-semibold mb-1 dark:text-gray-300">Search Detection Rules</label>
+                                <input type="text" id="rule-search" placeholder="Filter rules..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <div id="rule-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
                             </div>
                             <div>
-                                <label for="tag-search" class="block font-semibold mb-1">Search Tags</label>
-                                <input type="text" id="tag-search" placeholder="Filter tags..." class="w-full p-2 border rounded-md">
-                                <div id="tag-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50"></div>
-                                <label for="filter-mode" class="block font-semibold mb-1 mt-4">Tag Filter Mode</label>
-                                <select id="filter-mode" class="w-full p-2 border rounded-md">
+                                <label for="tag-search" class="block font-semibold mb-1 dark:text-gray-300">Search Tags</label>
+                                <input type="text" id="tag-search" placeholder="Filter tags..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <div id="tag-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
+                                <label for="filter-mode" class="block font-semibold mb-1 mt-4 dark:text-gray-300">Tag Filter Mode</label>
+                                <select id="filter-mode" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="exclude">Exclude cases with selected tags</option>
                                     <option value="include">Include ONLY cases with selected tags</option>
                                 </select>
@@ -296,35 +324,35 @@
                         </div>
                         <div class="flex space-x-2">
                             <button id="apply-filters-btn" class="w-full md:w-auto bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Apply Filters</button>
-                            <button id="clear-filters-btn" class="w-full md:w-auto bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition">Clear Filters</button>
+                            <button id="clear-filters-btn" class="w-full md:w-auto bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500">Clear Filters</button>
                         </div>
                     </div>
                 </div>
                 <div id="mttx-results-container">
-                     <p class="text-gray-500">Calculate metrics to see results.</p>
+                     <p class="text-gray-500 dark:text-gray-400">Calculate metrics to see results.</p>
                 </div>
             </div>
             
             <!-- Signal to Noise Panel -->
             <div id="signal-panel" class="main-tab-panel hidden">
-                <p class="mb-6 text-gray-600">Plot True Positive against True Positive - Benign, or False Positive detections to see which Detection Rules are providing value, or not.</p>
+                <p class="mb-6 text-gray-600 dark:text-gray-400">Plot True Positive against True Positive - Benign, or False Positive detections to see which Detection Rules are providing value, or not.</p>
                  <div class="card p-6 mb-8">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Chart Configuration</h2>
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Chart Configuration</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="signal-tags-select" class="block font-semibold mb-1">Signal Tags (Y-Axis)</label>
-                            <select id="signal-tags-select" multiple class="w-full p-2 border rounded-md bg-gray-50 h-32"></select>
+                            <label for="signal-tags-select" class="block font-semibold mb-1 dark:text-gray-300">Signal Tags (Y-Axis)</label>
+                            <select id="signal-tags-select" multiple class="w-full p-2 border rounded-md bg-gray-50 h-32 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
                         </div>
                         <div>
-                            <label for="noise-tags-select" class="block font-semibold mb-1">Noise Tags (X-Axis)</label>
-                            <select id="noise-tags-select" multiple class="w-full p-2 border rounded-md bg-gray-50 h-32"></select>
+                            <label for="noise-tags-select" class="block font-semibold mb-1 dark:text-gray-300">Noise Tags (X-Axis)</label>
+                            <select id="noise-tags-select" multiple class="w-full p-2 border rounded-md bg-gray-50 h-32 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
                         </div>
                     </div>
                     <button id="generate-chart-btn" class="mt-4 w-full md:w-auto bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Generate Chart</button>
                 </div>
                  <div class="card p-6">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Detection Rule Signal to Noise Quadrant</h2>
-                    <p class="text-gray-600 mb-4">Each bubble represents a detection rule. Size indicates total alert volume. Use filters on the 'MTTx Results' tab to refine this view.</p>
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Detection Rule Signal to Noise Quadrant</h2>
+                    <p class="text-gray-600 mb-4 dark:text-gray-400">Each bubble represents a detection rule. Size indicates total alert volume. Use filters on the 'MTTx Results' tab to refine this view.</p>
                     <div class="relative h-[600px]">
                         <canvas id="signal-chart"></canvas>
                     </div>
@@ -332,6 +360,38 @@
             </div>
         </div>
     </main>
+
+    <!-- Main modal -->
+    <div id="default-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative p-4 w-full max-w-2xl max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                <!-- Modal header -->
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+                    <h3 id="modal-title" class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Confirmation
+                    </h3>
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="default-modal">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                </div>
+                <!-- Modal body -->
+                <div class="p-4 md:p-5 space-y-4">
+                    <p id="modal-body" class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                        Are you sure you want to proceed?
+                    </p>
+                </div>
+                <!-- Modal footer -->
+                <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+                    <button id="modal-confirm-btn" data-modal-hide="default-modal" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">I accept</button>
+                    <button id="modal-decline-btn" data-modal-hide="default-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Decline</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         const API_BASE_URL = 'http://127.0.0.1:8000/api';
@@ -656,7 +716,8 @@
             }
             if (event.target.classList.contains('delete-schedule-btn')) {
                 const scheduleId = event.target.dataset.scheduleId;
-                if (confirm('Are you sure you want to delete this entire schedule and its destinations?')) {
+                const confirmed = await showModal('Are you sure you want to delete this entire schedule and its destinations?');
+                if (confirmed) {
                     try {
                         const response = await fetch(`${API_BASE_URL}/schedules/${scheduleId}`, { method: 'DELETE' });
                         if (!response.ok) throw new Error('Failed to delete schedule');
@@ -668,7 +729,8 @@
             if (event.target.classList.contains('delete-destination-btn')) {
                 const destinationId = event.target.dataset.destinationId;
                 const scheduleId = event.target.closest('.card').querySelector('form input[name="schedule_id"]').value;
-                 if (confirm('Are you sure you want to delete this destination?')) {
+                const confirmed = await showModal('Are you sure you want to delete this destination?');
+                 if (confirmed) {
                     try {
                         const response = await fetch(`${API_BASE_URL}/destinations/${destinationId}`, { method: 'DELETE' });
                         if (!response.ok) throw new Error('Failed to delete destination');
@@ -746,7 +808,8 @@
         };
 
         const handleDeleteTenant = async (tenantId) => {
-            if (confirm('Are you sure you want to delete this tenant and all its associated configurations? This action cannot be undone.')) {
+            const confirmed = await showModal('Are you sure you want to delete this tenant and all its associated configurations? This action cannot be undone.');
+            if (confirmed) {
                 try {
                     const response = await fetch(`${API_BASE_URL}/tenants/${tenantId}`, { method: 'DELETE' });
                     if (!response.ok) {
@@ -762,27 +825,60 @@
             }
         };
 
+        const showModal = (message, title = 'Confirmation') => {
+            return new Promise((resolve) => {
+                const modal = new Modal(document.getElementById('default-modal'));
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-body').textContent = message;
+
+                const confirmBtn = document.getElementById('modal-confirm-btn');
+                const declineBtn = document.getElementById('modal-decline-btn');
+
+                const confirmClickHandler = () => {
+                    modal.hide();
+                    resolve(true);
+                    cleanup();
+                };
+
+                const declineClickHandler = () => {
+                    modal.hide();
+                    resolve(false);
+                    cleanup();
+                };
+
+                const cleanup = () => {
+                    confirmBtn.removeEventListener('click', confirmClickHandler);
+                    declineBtn.removeEventListener('click', declineClickHandler);
+                };
+
+                confirmBtn.addEventListener('click', confirmClickHandler);
+                declineBtn.addEventListener('click', declineClickHandler);
+
+                modal.show();
+            });
+        };
+
         const renderTenants = (tenants) => {
             const selects = [tenantSelectForAnalysis, tenantSelectForConfig, tenantSelectForScheduler];
             tenantList.innerHTML = '';
             selects.forEach(s => s.innerHTML = '');
             if (tenants.length === 0) {
-                const noTenantMsg = `<li class="p-2 text-gray-500">No tenants configured.</li>`;
+                const noTenantMsg = `<li class="p-2 text-gray-500 dark:text-gray-400">No tenants configured.</li>`;
                 const noTenantOption = `<option>Please add a tenant first</option>`;
                 tenantList.innerHTML = noTenantMsg;
                 selects.forEach(s => s.innerHTML = noTenantOption);
             } else {
                 tenants.forEach(tenant => {
                     const li = document.createElement('li');
-                    li.className = 'p-3 bg-gray-50 rounded-md flex justify-between items-center';
-                    li.innerHTML = `<div class="font-semibold text-gray-700">${tenant.name}</div>`;
+                    li.className = 'p-3 bg-gray-50 rounded-md flex justify-between items-center dark:bg-gray-700';
+                    li.innerHTML = `<div class="font-semibold text-gray-700 dark:text-gray-200">${tenant.name}</div>`;
                     const controls = document.createElement('div');
                     controls.className = 'flex items-center space-x-2';
                     controls.innerHTML = `
-                        <span id="status-${tenant.id}" class="status-badge bg-gray-200 text-gray-600">Untested</span>
-                        <button class="edit-btn text-sm bg-white font-semibold py-1 px-3 border rounded-lg shadow-sm hover:bg-gray-50">Edit</button>
-                        <button class="test-btn text-sm bg-white font-semibold py-1 px-3 border rounded-lg shadow-sm hover:bg-gray-50">Test</button>
-                        <button class="delete-btn text-sm bg-red-100 text-red-700 font-semibold py-1 px-2 rounded-lg hover:bg-red-200">Delete</button>`;
+                        <span id="status-${tenant.id}" class="status-badge bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300">Untested</span>
+                        <button class="edit-btn text-sm bg-white font-semibold py-1 px-3 border rounded-lg shadow-sm hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-500">Edit</button>
+                        <button class="test-btn text-sm bg-white font-semibold py-1 px-3 border rounded-lg shadow-sm hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-500">Test</button>
+                        <button class="delete-btn text-sm bg-red-100 text-red-700 font-semibold py-1 px-2 rounded-lg hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800">Delete</button>`;
                     controls.querySelector('.edit-btn').onclick = () => startEditTenant(tenant);
                     controls.querySelector('.test-btn').onclick = () => handleTestTenant(tenant.id, controls.querySelector(`#status-${tenant.id}`));
                     controls.querySelector('.delete-btn').onclick = () => handleDeleteTenant(tenant.id);
@@ -1594,6 +1690,46 @@
         }
 
 
+        // --- Theme Toggler ---
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        // Change the icons inside the button based on previous settings
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            themeToggleLightIcon.classList.remove('hidden');
+        } else {
+            themeToggleDarkIcon.classList.remove('hidden');
+        }
+
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
+        themeToggleBtn.addEventListener('click', function() {
+            // toggle icons inside button
+            themeToggleDarkIcon.classList.toggle('hidden');
+            themeToggleLightIcon.classList.toggle('hidden');
+
+            // if set via local storage previously
+            if (localStorage.getItem('color-theme')) {
+                if (localStorage.getItem('color-theme') === 'light') {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                }
+            // if NOT set via local storage previously
+            } else {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                }
+            }
+        });
+
+
         // --- Event Listeners & Init ---
         document.addEventListener('DOMContentLoaded', () => {
             switchMainTab('tenants-panel');
@@ -1661,6 +1797,7 @@
             document.getElementById('cancel-edit-btn').addEventListener('click', resetTenantForm);
         });
     </script>
+
 </body>
 </html>
 
