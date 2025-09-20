@@ -134,51 +134,69 @@
             <!-- Tenants Panel -->
             <div id="tenants-panel" class="main-tab-panel">
                 <p class="mb-6 text-gray-600 dark:text-gray-400">Configure your instances of Google SecOps. You will require a chronicle.googleapis.com BYOP Service Account, and a SOAR API key.</p>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="card p-6">
-                        <h2 id="tenant-form-title" class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Add New Tenant</h2>
-                        <form id="add-tenant-form" class="space-y-4">
-                            <input type="hidden" id="tenant-id">
-                            <div>
-                                <label for="tenant-name" class="block font-semibold dark:text-gray-300">Tenant Name</label>
-                                <input type="text" id="tenant-name" placeholder="e.g., Primary Production" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
-                            </div>
-                            <div>
-                                <label for="tenant-guid" class="block font-semibold dark:text-gray-300">Customer ID (GUID)</label>
-                                <input type="text" id="tenant-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
-                            </div>
-                            <div>
-                                <label for="tenant-gcp-project" class="block font-semibold dark:text-gray-300">GCP Project ID</label>
-                                <input type="text" id="tenant-gcp-project" placeholder="your-gcp-project-id" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
-                            </div>
-                             <div>
-                                <label for="tenant-region" class="block font-semibold dark:text-gray-300">Region</label>
-                                <input type="text" id="tenant-region" placeholder="e.g., us-central1" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
-                            </div>
-                            <div>
-                                <label for="base-url" class="block font-semibold dark:text-gray-300">Base URL</label>
-                                <input type="url" id="base-url" placeholder="https://<your-secops-instance>" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
-                            </div>
-                            <div class="border-t pt-4 dark:border-gray-600">
-                                <h3 class="font-semibold text-gray-600 mb-2 dark:text-gray-400">SOAR Configuration</h3>
-                                <div>
-                                    <label for="soar-url" class="block font-semibold dark:text-gray-300">SOAR URL</label>
-                                    <input type="url" id="soar-url" placeholder="https://<your-soar-instance>" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
-                                </div>
-                                 <div class="mt-4">
-                                    <label for="soar-api-key" class="block font-semibold dark:text-gray-300">SOAR API Key</label>
-                                    <input type="password" id="soar-api-key" placeholder="Enter SOAR API Key" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
-                                </div>
-                            </div>
-                            <div class="flex space-x-2 pt-4">
-                                <button id="tenant-submit-btn" type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Add Tenant</button>
-                                <button id="cancel-edit-btn" type="button" class="w-full bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition hidden dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500">Cancel</button>
-                            </div>
-                        </form>
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2 dark:border-gray-600">
+                        <h2 class="text-2xl font-bold dark:text-white">Configured Tenants</h2>
+                        <button id="add-tenant-btn" type="button" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Add New Tenant</button>
                     </div>
-                     <div class="card p-6">
-                        <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Configured Tenants</h2>
-                        <ul id="tenant-list" class="space-y-3"></ul>
+                    <ul id="tenant-list" class="space-y-3"></ul>
+                </div>
+            </div>
+
+            <!-- Tenant Modal -->
+            <div id="tenant-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                <div class="relative p-4 w-full max-w-2xl max-h-full">
+                    <!-- Modal content -->
+                    <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                        <!-- Modal header -->
+                        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                            <h3 id="tenant-modal-title" class="text-xl font-semibold text-gray-900 dark:text-white">Add New Tenant</h3>
+                            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="tenant-modal">
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/></svg>
+                                <span class="sr-only">Close modal</span>
+                            </button>
+                        </div>
+                        <!-- Modal body -->
+                        <div class="p-4 md:p-5">
+                            <form id="add-tenant-form" class="space-y-4">
+                                <input type="hidden" id="tenant-id">
+                                <div>
+                                    <label for="tenant-name" class="block font-semibold dark:text-gray-300">Tenant Name</label>
+                                    <input type="text" id="tenant-name" placeholder="e.g., Primary Production" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                                </div>
+                                <div>
+                                    <label for="tenant-guid" class="block font-semibold dark:text-gray-300">Customer ID (GUID)</label>
+                                    <input type="text" id="tenant-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                                </div>
+                                <div>
+                                    <label for="tenant-gcp-project" class="block font-semibold dark:text-gray-300">GCP Project ID</label>
+                                    <input type="text" id="tenant-gcp-project" placeholder="your-gcp-project-id" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                                </div>
+                                 <div>
+                                    <label for="tenant-region" class="block font-semibold dark:text-gray-300">Region</label>
+                                    <input type="text" id="tenant-region" placeholder="e.g., us-central1" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                                </div>
+                                <div>
+                                    <label for="base-url" class="block font-semibold dark:text-gray-300">Base URL</label>
+                                    <input type="url" id="base-url" placeholder="https://<your-secops-instance>" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                                </div>
+                                <div class="border-t pt-4 dark:border-gray-600">
+                                    <h3 class="font-semibold text-gray-600 mb-2 dark:text-gray-400">SOAR Configuration</h3>
+                                    <div>
+                                        <label for="soar-url" class="block font-semibold dark:text-gray-300">SOAR URL</label>
+                                        <input type="url" id="soar-url" placeholder="https://<your-soar-instance>" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                                    </div>
+                                     <div class="mt-4">
+                                        <label for="soar-api-key" class="block font-semibold dark:text-gray-300">SOAR API Key</label>
+                                        <input type="password" id="soar-api-key" placeholder="Enter SOAR API Key" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2 pt-4">
+                                    <button id="tenant-submit-btn" type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Add Tenant</button>
+                                    <button id="cancel-edit-btn" type="button" data-modal-hide="tenant-modal" class="w-full bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -769,27 +787,31 @@
 
 
         // --- Tenant Logic ---
-        const resetTenantForm = () => {
-            addTenantForm.reset();
-            document.getElementById('tenant-id').value = '';
-            document.getElementById('tenant-form-title').textContent = 'Add New Tenant';
-            document.getElementById('tenant-submit-btn').textContent = 'Add Tenant';
-            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        const tenantModal = new Modal(document.getElementById('tenant-modal'));
+
+        const showTenantModal = (tenant = null) => {
+            if (tenant) {
+                document.getElementById('tenant-id').value = tenant.id;
+                document.getElementById('tenant-name').value = tenant.name;
+                document.getElementById('tenant-guid').value = tenant.guid;
+                document.getElementById('tenant-gcp-project').value = tenant.gcp_project_id;
+                document.getElementById('tenant-region').value = tenant.region;
+                document.getElementById('base-url').value = tenant.base_url || '';
+                document.getElementById('soar-url').value = tenant.soar_url || '';
+                document.getElementById('soar-api-key').value = tenant.soar_api_key || '';
+                document.getElementById('tenant-modal-title').textContent = `Edit Tenant: ${tenant.name}`;
+                document.getElementById('tenant-submit-btn').textContent = 'Update Tenant';
+            } else {
+                addTenantForm.reset();
+                document.getElementById('tenant-id').value = '';
+                document.getElementById('tenant-modal-title').textContent = 'Add New Tenant';
+                document.getElementById('tenant-submit-btn').textContent = 'Add Tenant';
+            }
+            tenantModal.show();
         };
 
-
         const startEditTenant = (tenant) => {
-            document.getElementById('tenant-id').value = tenant.id;
-            document.getElementById('tenant-name').value = tenant.name;
-            document.getElementById('tenant-guid').value = tenant.guid;
-            document.getElementById('tenant-gcp-project').value = tenant.gcp_project_id;
-            document.getElementById('tenant-region').value = tenant.region;
-            document.getElementById('base-url').value = tenant.base_url || '';
-            document.getElementById('soar-url').value = tenant.soar_url || '';
-            document.getElementById('soar-api-key').value = tenant.soar_api_key || '';
-            document.getElementById('tenant-form-title').textContent = 'Edit Tenant';
-            document.getElementById('tenant-submit-btn').textContent = 'Update Tenant';
-            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            showTenantModal(tenant);
         };
 
         const handleTestTenant = async (tenantId, statusEl) => {
@@ -1770,6 +1792,7 @@
                 applyFiltersAndRedraw();
             });
 
+            document.getElementById('add-tenant-btn').addEventListener('click', () => showTenantModal());
 
             addTenantForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1788,13 +1811,12 @@
                 try {
                     const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tenantData) });
                     if (!response.ok) throw new Error( (await response.json()).detail );
-                    resetTenantForm();
+                    tenantModal.hide();
                     fetchTenants();
                 } catch (error) {
                     alert(`Failed to ${tenantId ? 'update' : 'add'} tenant: ${error.message}`);
                 }
             });
-            document.getElementById('cancel-edit-btn').addEventListener('click', resetTenantForm);
         });
     </script>
 
