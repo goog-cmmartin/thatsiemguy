@@ -15,6 +15,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from pydantic import BaseModel, field_validator
 from typing import List, Dict, Any, Optional
 
+# --- Version ---
+VERSION = "0.1.0"
+
 # --- Logging Setup ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -208,6 +211,8 @@ class CalculationRequest(BaseModel):
     tenant_id: int
     case_history_data: Dict[str, Any]
     case_mttd_data: Dict[str, Any]
+    history_limit_hit: bool = False
+    mttd_limit_hit: bool = False
 
 class TestConnectionResponse(BaseModel):
     status: str
@@ -219,6 +224,8 @@ class MetricsResponse(BaseModel):
     completion_rates: Dict[str, Any]
     thresholds: List[MetricThresholdResponse]
     base_url: Optional[str] = None
+    history_limit_hit: bool = False
+    mttd_limit_hit: bool = False
 
 class FetchStagesResponse(BaseModel):
     status: str
@@ -270,6 +277,9 @@ class ScheduleDestinationResponse(ScheduleDestinationBase):
 
     class Config:
         from_attributes = True
+
+class VersionResponse(BaseModel):
+    version: str
 
 
 # --- FastAPI App Setup ---
@@ -656,6 +666,10 @@ def calculate_soc_metrics_structured(
 
 
 # --- API Endpoints ---
+@api_router.get("/version", response_model=VersionResponse)
+def get_version():
+    return {"version": VERSION}
+
 @api_router.get("/tenants", response_model=List[TenantResponse])
 def read_tenants(db: Session = Depends(get_db)): return db.query(Tenant).all()
 @api_router.post("/tenants", response_model=TenantResponse, status_code=201)
@@ -758,10 +772,10 @@ def get_thresholds(tenant_id: int, db: Session = Depends(get_db)):
         
         # Time-based defaults
         time_defaults = [
-            {"tenant_id": tenant_id, "metric_name": "MTTD", "good_threshold": 86400, "ok_threshold": 604800},
-            {"tenant_id": tenant_id, "metric_name": "MTTA", "good_threshold": 3600, "ok_threshold": 28800},
-            {"tenant_id": tenant_id, "metric_name": "MTTC", "good_threshold": 86400, "ok_threshold": 604800},
-            {"tenant_id": tenant_id, "metric_name": "MTTR", "good_threshold": 604800, "ok_threshold": 2592000},
+            {"tenant_id": tenant_id, "metric_name": "MTTD", "good_threshold": 600, "ok_threshold": 3600}, # Good <= 10 mins, Ok <= 1 hr
+            {"tenant_id": tenant_id, "metric_name": "MTTA", "good_threshold": 900, "ok_threshold": 3600}, # Good <= 15 mins, Ok <= 1 hr
+            {"tenant_id": tenant_id, "metric_name": "MTTC", "good_threshold": 3600, "ok_threshold": 21600}, # Good <= 1 hr, Ok <= 6 hrs
+            {"tenant_id": tenant_id, "metric_name": "MTTR", "good_threshold": 604800, "ok_threshold": 2592000}, # Good <= 7 days, Ok <= 30 days
         ]
         
         # Percentage-based defaults (Good >= 90, Ok >= 75)
@@ -813,7 +827,7 @@ $case_history_stage = case_history.stage
 $case_history_status = case_history.status
 match: $case_history_case_id, $case_history_case_activity, $case_history_case_event_time, $case_history_stage, $case_history_status
 order: $case_history_case_id desc
-limit: 1000
+limit: 10000
 """
         default_query_case = """
 $case_id = case.response_platform_info.response_platform_id
@@ -826,7 +840,7 @@ outcome:
     $environment = array_distinct(case.environment)
     $detection_rule_name = array_distinct(case.alerts.metadata.detection.rule_name)
 order: $case_id desc
-limit: 1000
+limit: 10000
 """
         db_queries = [
             QueryConfig(name="query_history", query_text=default_query_history, tenant_id=tenant_id),
@@ -848,6 +862,7 @@ def update_query(query_id: int, query: QueryConfigUpdate, db: Session = Depends(
 
 def perform_analysis(tenant_id: int, time_unit: str, start_time_val: int, db: Session):
     """Reusable function to perform the core analysis."""
+    logging.info(f"Performing analysis for tenant_id: {tenant_id} with time range: {start_time_val} {time_unit}(s)")
     if not SECOPS_SDK_AVAILABLE:
         raise HTTPException(status_code=501, detail="SecOps SDK not installed.")
     
@@ -877,9 +892,21 @@ def perform_analysis(tenant_id: int, time_unit: str, start_time_val: int, db: Se
         results_history = chronicle.execute_dashboard_query(query=queries["query_history"], interval=interval)
         results_mttd = chronicle.execute_dashboard_query(query=queries["query_case"], interval=interval)
         
+        history_results_count = 0
+        if results_history.get('results') and results_history['results'][0].get('values'):
+            history_results_count = len(results_history['results'][0]['values'])
+        logging.info(f"Received {history_results_count} rows from case_history_data query.")
+
+        mttd_results_count = 0
+        if results_mttd.get('results') and results_mttd['results'][0].get('values'):
+            mttd_results_count = len(results_mttd['results'][0]['values'])
+        logging.info(f"Received {mttd_results_count} rows from case_mttd_data query.")
+
         return {
             "case_history_data": results_history,
-            "case_mttd_data": results_mttd
+            "case_mttd_data": results_mttd,
+            "history_limit_hit": history_results_count == 1000,
+            "mttd_limit_hit": mttd_results_count == 1000
         }
     except Exception as e:
         logging.error(f"Analysis query failed for tenant {tenant_id}: {e}", exc_info=True)
@@ -904,6 +931,8 @@ def calculate_metrics(request: CalculationRequest, db: Session = Depends(get_db)
         full_response = metrics
         full_response['base_url'] = tenant.base_url
         full_response['thresholds'] = thresholds
+        full_response['history_limit_hit'] = request.history_limit_hit
+        full_response['mttd_limit_hit'] = request.mttd_limit_hit
         return full_response
     except Exception as e:
         logging.error(f"Metric calculation failed: {e}", exc_info=True)
