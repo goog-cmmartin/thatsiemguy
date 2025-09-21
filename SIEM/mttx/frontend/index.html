@@ -119,14 +119,42 @@
                 <p class="mb-6 text-gray-600 dark:text-gray-400">Configure scheduled CSV based exports per Tenant.</p>
                 <div class="space-y-8">
                     <div class="card p-6">
-                        <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Scheduler Configuration</h2>
+                        <div class="flex justify-between items-center mb-4 border-b pb-2 dark:border-gray-600">
+                            <h2 class="text-2xl font-bold dark:text-white">Scheduler Configuration</h2>
+                            <button id="create-schedule-btn" type="button" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Create New Schedule</button>
+                        </div>
                         <div>
                             <label for="scheduler-tenant-select" class="block font-semibold mb-1 dark:text-gray-300">Select Tenant to Configure Schedules</label>
                             <select id="scheduler-tenant-select" class="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"></select>
                         </div>
+                        <div id="scheduler-content" class="mt-4 hidden">
+                            <!-- Schedules table will be loaded here -->
+                        </div>
                     </div>
-                    <div id="scheduler-content" class="hidden">
-                        <!-- Schedules will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Schedule Modal -->
+            <div id="schedule-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                <div class="relative p-4 w-full max-w-4xl max-h-full">
+                    <!-- Modal content -->
+                    <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                        <!-- Modal header -->
+                        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                            <h3 id="schedule-modal-title" class="text-xl font-semibold text-gray-900 dark:text-white">Create New Schedule</h3>
+                            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="schedule-modal">
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/></svg>
+                                <span class="sr-only">Close modal</span>
+                            </button>
+                        </div>
+                        <!-- Modal body -->
+                        <div class="p-4 md:p-5">
+                            <form id="schedule-form" class="space-y-4"></form>
+                            <div class="border-t mt-6 pt-4 dark:border-gray-600">
+                                <h4 class="text-lg font-semibold mb-2 dark:text-white">Output Destinations</h4>
+                                <div id="destinations-container"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -212,65 +240,93 @@
                             <select id="config-tenant-select" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"></select>
                         </div>
                     </div>
-                    <div id="mttx-config-forms" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4 dark:text-white">MTTC Configuration</h3>
-                             <form id="mttc-config-form" class="space-y-4" data-metric="MTTC">
-                                 <input type="hidden" id="mttc-config-id">
-                                 <div>
-                                     <label class="block font-semibold dark:text-gray-300">Key (Read-only)</label>
-                                     <input type="text" class="w-full p-2 border rounded-md mt-1 bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-300" value="case_history_stage" readonly>
-                                 </div>
-                                 <div>
-                                     <label class="block font-semibold dark:text-gray-300">Value (Select a Case Stage)</label>
-                                     <select id="mttc-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
-                                 </div>
-                                 <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save MTTC Config</button>
-                             </form>
+
+                    <div id="config-accordion" data-accordion="collapse" class="hidden">
+                        <h2 id="accordion-heading-1">
+                            <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" data-accordion-target="#accordion-body-1" aria-expanded="true" aria-controls="accordion-body-1">
+                                <span>1. MTTx Metric Definitions</span>
+                                <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
+                            </button>
+                        </h2>
+                        <div id="accordion-body-1" class="hidden" aria-labelledby="accordion-heading-1">
+                            <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div class="card p-6">
+                                         <h3 class="text-xl font-bold mb-4 dark:text-white">MTTC Configuration</h3>
+                                         <form id="mttc-config-form" class="space-y-4" data-metric="MTTC">
+                                             <input type="hidden" id="mttc-config-id">
+                                             <div>
+                                                 <label class="block font-semibold dark:text-gray-300">Key (Read-only)</label>
+                                                 <input type="text" class="w-full p-2 border rounded-md mt-1 bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-300" value="case_history_stage" readonly>
+                                             </div>
+                                             <div>
+                                                 <label class="block font-semibold dark:text-gray-300">Value (Select a Case Stage)</label>
+                                                 <select id="mttc-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
+                                             </div>
+                                         </form>
+                                    </div>
+                                    <div class="card p-6">
+                                         <h3 class="text-xl font-bold mb-4 dark:text-white">MTTR Configuration</h3>
+                                         <form id="mttr-config-form" class="space-y-4" data-metric="MTTR">
+                                            <input type="hidden" id="mttr-config-id">
+                                            <div>
+                                                 <label class="block font-semibold dark:text-gray-300">Key</label>
+                                                 <select id="mttr-config-key" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                                    <option value="case_history_stage">Case Stage</option>
+                                                    <option value="case_history_status">Case Status</option>
+                                                 </select>
+                                             </div>
+                                             <div>
+                                                 <label class="block font-semibold dark:text-gray-300">Value</label>
+                                                 <select id="mttr-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
+                                             </div>
+                                         </form>
+                                    </div>
+                                </div>
+                                <button id="save-metrics-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Metric Definitions</button>
+                            </div>
                         </div>
-                        <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4 dark:text-white">MTTR Configuration</h3>
-                             <form id="mttr-config-form" class="space-y-4" data-metric="MTTR">
-                                <input type="hidden" id="mttr-config-id">
-                                <div>
-                                     <label class="block font-semibold dark:text-gray-300">Key</label>
-                                     <select id="mttr-config-key" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                        <option value="case_history_stage">Case Stage</option>
-                                        <option value="case_history_status">Case Status</option>
-                                     </select>
-                                 </div>
-                                 <div>
-                                     <label class="block font-semibold dark:text-gray-300">Value</label>
-                                     <select id="mttr-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
-                                 </div>
-                                 <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save MTTR Config</button>
-                             </form>
+
+                        <h2 id="accordion-heading-2">
+                            <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" data-accordion-target="#accordion-body-2" aria-expanded="false" aria-controls="accordion-body-2">
+                                <span>2. Data Source Queries</span>
+                                <svg data-accordion-icon class="w-3 h-3 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
+                            </button>
+                        </h2>
+                        <div id="accordion-body-2" class="hidden" aria-labelledby="accordion-heading-2">
+                            <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700">
+                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div class="card p-6">
+                                         <h3 class="text-xl font-bold mb-4 dark:text-white">Case History Query</h3>
+                                         <form id="query-history-form">
+                                             <input type="hidden" id="query-history-id">
+                                             <textarea id="query-history-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
+                                         </form>
+                                    </div>
+                                    <div class="card p-6">
+                                         <h3 class="text-xl font-bold mb-4 dark:text-white">Case (MTTD) Query</h3>
+                                         <form id="query-case-form">
+                                             <input type="hidden" id="query-case-id">
+                                             <textarea id="query-case-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
+                                         </form>
+                                    </div>
+                                </div>
+                                <button id="save-queries-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Queries</button>
+                            </div>
                         </div>
-                    </div>
-                    <div id="query-config-forms" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4 dark:text-white">Case History Query</h3>
-                             <form id="query-history-form">
-                                 <input type="hidden" id="query-history-id">
-                                 <textarea id="query-history-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
-                                 <button type="submit" class="mt-2 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save History Query</button>
-                             </form>
-                        </div>
-                        <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4 dark:text-white">Case (MTTD) Query</h3>
-                             <form id="query-case-form">
-                                 <input type="hidden" id="query-case-id">
-                                 <textarea id="query-case-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
-                                 <button type="submit" class="mt-2 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Case Query</button>
-                             </form>
-                        </div>
-                    </div>
-                    <div id="threshold-config-forms" class="hidden mt-8">
-                        <div class="card p-6">
-                             <h3 class="text-xl font-bold mb-4 dark:text-white">Metric Threshold Configuration</h3>
-                             <p class="text-sm text-gray-600 mb-4 dark:text-gray-400">Set the thresholds for color-coding the average metrics on the results page. Values are evaluated in order: if a metric is less than or equal to the 'Good' value, it's good. If not, it's checked against the 'Ok' value.</p>
-                             <form id="threshold-config-form" class="space-y-6"></form>
-                             <button id="save-thresholds-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Thresholds</button>
+
+                        <h2 id="accordion-heading-3">
+                            <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:border-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" data-accordion-target="#accordion-body-3" aria-expanded="false" aria-controls="accordion-body-3">
+                                <span>3. Report Thresholds</span>
+                                <svg data-accordion-icon class="w-3 h-3 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
+                            </button>
+                        </h2>
+                        <div id="accordion-body-3" class="hidden" aria-labelledby="accordion-heading-3">
+                            <div class="p-5 border border-t-0 border-gray-200 dark:border-gray-700">
+                                <p class="text-sm text-gray-600 mb-4 dark:text-gray-400">Set the thresholds for color-coding the average metrics on the results page. Values are evaluated in order: if a metric is less than or equal to the 'Good' value, it's good. If not, it's checked against the 'Ok' value.</p>
+                                <div id="threshold-config-forms" class="overflow-x-auto"></div>
+                                <button id="save-thresholds-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Thresholds</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -278,7 +334,7 @@
 
             <!-- Ad-hoc Analysis Panel -->
             <div id="analysis-panel" class="main-tab-panel hidden">
-                <p class="mb-6 text-gray-600 dark:text-gray-400">Select a Tenant, specify a relative time range, and click Run Analysis to generate MTTx data. Once complete, click the Calculate MTTx Metrics button.</p>
+                <p class="mb-6 text-gray-600 dark:text-gray-400">Select a Tenant, specify a relative time range, and click Generate Report to view the MTTx metrics.</p>
                  <div class="card p-6 mb-8">
                     <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Analysis Parameters</h2>
                     <div class="space-y-4 max-w-2xl">
@@ -297,13 +353,8 @@
                                 </select>
                             </div>
                         </div>
-                        <button id="run-analysis-btn" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 transition">Run Analysis</button>
+                        <button id="run-analysis-btn" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 transition">Generate Report</button>
                     </div>
-                </div>
-                <div class="card p-6">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">Raw Query Results</h2>
-                    <pre id="raw-results-output" class="bg-gray-900 text-white p-4 rounded-md overflow-x-auto text-sm h-96">Run an analysis to see the raw query results here.</pre>
-                    <button id="calculate-metrics-btn" class="mt-4 w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-purple-700 transition hidden">Calculate MTTx Metrics</button>
                 </div>
             </div>
 
@@ -322,17 +373,17 @@
                              <div>
                                 <label for="environment-search" class="block font-semibold mb-1 dark:text-gray-300">Search Environments</label>
                                 <input type="text" id="environment-search" placeholder="Filter environments..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                 <div id="environment-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
+                                 <div id="environment-filter-options" class="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
                             </div>
                              <div>
                                 <label for="rule-search" class="block font-semibold mb-1 dark:text-gray-300">Search Detection Rules</label>
                                 <input type="text" id="rule-search" placeholder="Filter rules..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                <div id="rule-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
+                                <div id="rule-filter-options" class="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
                             </div>
                             <div>
                                 <label for="tag-search" class="block font-semibold mb-1 dark:text-gray-300">Search Tags</label>
                                 <input type="text" id="tag-search" placeholder="Filter tags..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                <div id="tag-filter-options" class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
+                                <div id="tag-filter-options" class="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
                                 <label for="filter-mode" class="block font-semibold mb-1 mt-4 dark:text-gray-300">Tag Filter Mode</label>
                                 <select id="filter-mode" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="exclude">Exclude cases with selected tags</option>
@@ -404,8 +455,8 @@
                 </div>
                 <!-- Modal footer -->
                 <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-                    <button id="modal-confirm-btn" data-modal-hide="default-modal" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">I accept</button>
-                    <button id="modal-decline-btn" data-modal-hide="default-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Decline</button>
+                    <button id="modal-confirm-btn" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Yes</button>
+                    <button id="modal-decline-btn" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">No</button>
                 </div>
             </div>
         </div>
@@ -477,67 +528,112 @@
                 const response = await fetch(`${API_BASE_URL}/tenants/${tenantId}/schedules`);
                 if (!response.ok) throw new Error('Failed to fetch schedules');
                 const schedules = await response.json();
-                renderSchedules(schedules, tenantId);
+                renderSchedulesTable(schedules, tenantId);
             } catch (error) {
                 schedulerContent.innerHTML = `<p class="text-red-500">Error loading schedules: ${error.message}</p>`;
             }
         };
 
-        const renderSchedules = (schedules, tenantId) => {
-            const schedulerContent = document.getElementById('scheduler-content');
-            schedulerContent.innerHTML = ''; // Clear previous content
+        const scheduleModal = new Modal(document.getElementById('schedule-modal'));
 
-            // Add "Create New Schedule" Form
-            const createScheduleCard = document.createElement('div');
-            createScheduleCard.className = 'card p-6 mb-8';
-            createScheduleCard.innerHTML = `
-                <h3 class="text-xl font-bold mb-4">Create New Schedule</h3>
-                <form id="create-schedule-form" class="space-y-4">
-                    <!-- Form fields for new schedule -->
-                </form>
+        const showScheduleModal = (schedule = null) => {
+            const tenantId = tenantSelectForScheduler.value;
+            if (!tenantId) {
+                alert('Please select a tenant first.');
+                return;
+            }
+            
+            const modalTitle = document.getElementById('schedule-modal-title');
+            const form = document.getElementById('schedule-form');
+            const destinationsContainer = document.getElementById('destinations-container');
+            
+            if (schedule) {
+                modalTitle.textContent = `Edit Schedule: ${schedule.id}`;
+                renderScheduleForm(form, schedule);
+                renderDestinations(destinationsContainer, schedule.id);
+            } else {
+                modalTitle.textContent = 'Create New Schedule';
+                renderScheduleForm(form, { tenant_id: tenantId });
+                destinationsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Save the schedule to add output destinations.</p>';
+            }
+            scheduleModal.show();
+        };
+
+        const renderSchedulesTable = (schedules, tenantId) => {
+            const container = document.getElementById('scheduler-content');
+            container.innerHTML = ''; // Clear previous content
+
+            if (schedules.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No schedules found for this tenant.</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'min-w-full divide-y divide-gray-200 dark:divide-gray-700';
+            table.innerHTML = `
+                <thead class="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Cron Schedule</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Report Range</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Outputs</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Enabled</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700"></tbody>
             `;
-            schedulerContent.appendChild(createScheduleCard);
-            renderScheduleForm(document.getElementById('create-schedule-form'), { tenant_id: tenantId });
-
+            const tbody = table.querySelector('tbody');
 
             schedules.forEach(schedule => {
-                const scheduleCard = document.createElement('div');
-                scheduleCard.className = 'card p-6 mb-6';
-                scheduleCard.innerHTML = `
-                    <div class="flex justify-between items-center border-b pb-2 mb-4">
-                        <h3 class="text-xl font-bold">Edit Schedule</h3>
-                        <div class="flex space-x-2">
-                            <button class="test-schedule-btn text-sm bg-yellow-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-yellow-600" data-schedule-id="${schedule.id}">Test Run</button>
-                            <button class="delete-schedule-btn text-sm bg-red-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-red-600" data-schedule-id="${schedule.id}">Delete Schedule</button>
-                        </div>
-                    </div>
-                    <form id="schedule-form-${schedule.id}" class="space-y-4"></form>
-                    <div class="border-t mt-6 pt-4">
-                        <h4 class="text-lg font-semibold mb-2">Output Destinations</h4>
-                        <div id="destinations-for-${schedule.id}"></div>
-                    </div>
+                const row = document.createElement('tr');
+                const outputs = [
+                    schedule.output_avg_metrics ? 'Metrics' : '',
+                    schedule.output_completion_rates ? 'Rates' : '',
+                    schedule.output_individual_cases ? 'Cases' : ''
+                ].filter(Boolean).join(', ');
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-gray-200">${schedule.cron_schedule}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${schedule.start_time_val} ${schedule.time_unit}(s)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${outputs}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <label class="inline-flex items-center cursor-pointer">
+                          <input type="checkbox" value="" class="sr-only peer" ${schedule.is_enabled ? 'checked' : ''}>
+                          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <button class="edit-schedule-btn text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">Edit</button>
+                        <button class="test-schedule-btn text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300">Test Run</button>
+                        <button class="delete-schedule-btn text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                    </td>
                 `;
-                schedulerContent.appendChild(scheduleCard);
-                renderScheduleForm(document.getElementById(`schedule-form-${schedule.id}`), schedule);
-                renderDestinations(schedule.id);
+                row.querySelector('.edit-schedule-btn').addEventListener('click', () => showScheduleModal(schedule));
+                // Add event listeners for test and delete
+                tbody.appendChild(row);
             });
+
+            container.appendChild(table);
         };
         
         const renderScheduleForm = (formElement, scheduleData) => {
             const isNew = !scheduleData.id;
+            const inputClasses = "w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white";
+            const selectClasses = "w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white";
+
             formElement.innerHTML = `
                 <input type="hidden" name="schedule_id" value="${scheduleData.id || ''}">
                 <input type="hidden" name="tenant_id" value="${scheduleData.tenant_id}">
                 <div>
-                    <label class="block font-semibold">Cron Schedule</label>
-                    <input type="text" name="cron_schedule" class="w-full p-2 border rounded-md mt-1" placeholder="e.g., 0 2 * * *" value="${scheduleData.cron_schedule || ''}" required>
-                    <p class="text-xs text-gray-500 mt-1">Use standard cron format (minute hour day(month) month day(week)).</p>
+                    <label class="block font-semibold dark:text-gray-300">Cron Schedule</label>
+                    <input type="text" name="cron_schedule" class="${inputClasses}" placeholder="e.g., 0 2 * * *" value="${scheduleData.cron_schedule || ''}" required>
+                    <p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Use standard cron format (minute hour day(month) month day(week)).</p>
                 </div>
                 <div>
-                    <label class="block font-semibold">Report Time Range</label>
+                    <label class="block font-semibold dark:text-gray-300">Report Time Range</label>
                     <div class="flex items-center space-x-2 mt-1">
-                        <input type="number" name="start_time_val" class="w-1/2 p-2 border rounded-md" value="${scheduleData.start_time_val || 7}">
-                        <select name="time_unit" class="w-full p-2 border rounded-md">
+                        <input type="number" name="start_time_val" class="w-1/2 ${inputClasses}" value="${scheduleData.start_time_val || 7}">
+                        <select name="time_unit" class="${selectClasses}">
                             <option value="DAY" ${scheduleData.time_unit === 'DAY' ? 'selected' : ''}>Days</option>
                             <option value="HOUR" ${scheduleData.time_unit === 'HOUR' ? 'selected' : ''}>Hours</option>
                             <option value="MINUTE" ${scheduleData.time_unit === 'MINUTE' ? 'selected' : ''}>Minutes</option>
@@ -545,15 +641,15 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block font-semibold">Metrics to Output</label>
+                    <label class="block font-semibold dark:text-gray-300">Metrics to Output</label>
                     <div class="mt-2 space-y-2">
-                        <label class="flex items-center"><input type="checkbox" name="output_avg_metrics" class="h-4 w-4 rounded border-gray-300" ${scheduleData.output_avg_metrics !== false ? 'checked' : ''}> <span class="ml-2">Average Metrics</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="output_completion_rates" class="h-4 w-4 rounded border-gray-300" ${scheduleData.output_completion_rates !== false ? 'checked' : ''}> <span class="ml-2">Completion Rates</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="output_individual_cases" class="h-4 w-4 rounded border-gray-300" ${scheduleData.output_individual_cases ? 'checked' : ''}> <span class="ml-2">Individual Cases</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="output_avg_metrics" class="h-4 w-4 rounded border-gray-300" ${scheduleData.output_avg_metrics !== false ? 'checked' : ''}> <span class="ml-2 dark:text-gray-300">Average Metrics</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="output_completion_rates" class="h-4 w-4 rounded border-gray-300" ${scheduleData.output_completion_rates !== false ? 'checked' : ''}> <span class="ml-2 dark:text-gray-300">Completion Rates</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="output_individual_cases" class="h-4 w-4 rounded border-gray-300" ${scheduleData.output_individual_cases ? 'checked' : ''}> <span class="ml-2 dark:text-gray-300">Individual Cases</span></label>
                     </div>
                 </div>
                  <div>
-                    <label class="flex items-center"><input type="checkbox" name="is_enabled" class="h-4 w-4 rounded border-gray-300" ${scheduleData.is_enabled !== false ? 'checked' : ''}> <span class="ml-2 font-semibold">Is Enabled</span></label>
+                    <label class="flex items-center"><input type="checkbox" name="is_enabled" class="h-4 w-4 rounded border-gray-300" ${scheduleData.is_enabled !== false ? 'checked' : ''}> <span class="ml-2 font-semibold dark:text-gray-300">Is Enabled</span></label>
                 </div>
                 <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">${isNew ? 'Create Schedule' : 'Update Schedule'}</button>
             `;
@@ -595,8 +691,7 @@
             }
         };
         
-        const renderDestinations = async (scheduleId) => {
-            const container = document.getElementById(`destinations-for-${scheduleId}`);
+        const renderDestinations = async (container, scheduleId) => {
             try {
                 const response = await fetch(`${API_BASE_URL}/schedules/${scheduleId}/destinations`);
                 const destinations = await response.json();
@@ -604,19 +699,19 @@
                 container.innerHTML = ''; // Clear
                 destinations.forEach(dest => {
                     const destForm = document.createElement('form');
-                    destForm.className = 'p-4 bg-gray-50 rounded-md mb-2';
+                    destForm.className = 'p-4 bg-gray-50 rounded-md mb-2 dark:bg-gray-800';
                     let pathOrNameInput = '';
                     if (dest.destination_type === 'CSV') {
                         pathOrNameInput = `
                         <div>
-                            <label class="block text-sm font-medium">File Path</label>
-                            <input type="text" name="path" class="w-full p-2 border rounded-md mt-1 text-sm" value="${dest.path || ''}" placeholder="/path/to/output.csv">
+                            <label class="block text-sm font-medium dark:text-gray-300">File Path</label>
+                            <input type="text" name="path" class="w-full p-2 border rounded-md mt-1 text-sm bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="${dest.path || ''}" placeholder="/path/to/output.csv">
                         </div>`;
                     } else if (dest.destination_type === 'DATA_TABLE') {
                         pathOrNameInput = `
                         <div>
-                            <label class="block text-sm font-medium">Data Table Name</label>
-                            <input type="text" name="data_table_name" class="w-full p-2 border rounded-md mt-1 text-sm" value="${dest.data_table_name || ''}" placeholder="e.g., MTTx_Results">
+                            <label class="block text-sm font-medium dark:text-gray-300">Data Table Name</label>
+                            <input type="text" name="data_table_name" class="w-full p-2 border rounded-md mt-1 text-sm bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="${dest.data_table_name || ''}" placeholder="e.g., MTTx_Results">
                         </div>`;
                     }
 
@@ -624,12 +719,12 @@
                         <input type="hidden" name="destination_id" value="${dest.id}">
                         <input type="hidden" name="destination_type" value="${dest.destination_type}">
                         <div class="flex justify-between items-center mb-2">
-                            <p class="font-semibold">Destination: ${dest.destination_type}</p>
-                            <button type="button" class="delete-destination-btn text-xs bg-red-100 text-red-700 font-semibold py-1 px-2 rounded-lg hover:bg-red-200" data-destination-id="${dest.id}">Delete</button>
+                            <p class="font-semibold dark:text-white">Destination: ${dest.destination_type}</p>
+                            <button type="button" class="delete-destination-btn text-xs bg-red-100 text-red-700 font-semibold py-1 px-2 rounded-lg hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800" data-destination-id="${dest.id}">Delete</button>
                         </div>
                         ${pathOrNameInput}
                         <div class="mt-2">
-                            <label class="flex items-center"><input type="checkbox" name="is_enabled" class="h-4 w-4 rounded" ${dest.is_enabled ? 'checked' : ''}> <span class="ml-2 text-sm">Enabled</span></label>
+                            <label class="flex items-center"><input type="checkbox" name="is_enabled" class="h-4 w-4 rounded" ${dest.is_enabled ? 'checked' : ''}> <span class="ml-2 text-sm dark:text-gray-300">Enabled</span></label>
                         </div>
                         <div class="flex space-x-2 mt-2">
                             <button type="submit" class="w-full bg-green-600 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-green-700">Update Destination</button>
@@ -641,24 +736,24 @@
 
                 // Add "New Destination" form
                 const newDestForm = document.createElement('form');
-                newDestForm.className = 'p-4 border-t';
+                newDestForm.className = 'p-4 border-t dark:border-gray-600';
                 newDestForm.innerHTML = `
-                    <h5 class="font-semibold mb-2">Add New Destination</h5>
+                    <h5 class="font-semibold mb-2 dark:text-white">Add New Destination</h5>
                     <input type="hidden" name="schedule_id" value="${scheduleId}">
                     <div>
-                        <label class="block text-sm font-medium">Destination Type</label>
-                        <select name="destination_type" class="w-full p-2 border rounded-md mt-1 text-sm">
+                        <label class="block text-sm font-medium dark:text-gray-300">Destination Type</label>
+                        <select name="destination_type" class="w-full p-2 border rounded-md mt-1 text-sm bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             <option value="CSV">CSV</option>
                             <option value="DATA_TABLE">Data Table</option>
                         </select>
                     </div>
                     <div class="mt-2" id="destination-path-container-${scheduleId}">
-                        <label class="block text-sm font-medium">File Path</label>
-                        <input type="text" name="path" class="w-full p-2 border rounded-md mt-1 text-sm" placeholder="/path/to/output.csv" required>
+                        <label class="block text-sm font-medium dark:text-gray-300">File Path</label>
+                        <input type="text" name="path" class="w-full p-2 border rounded-md mt-1 text-sm bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="/path/to/output.csv" required>
                     </div>
                     <div class="mt-2 hidden" id="destination-data-table-container-${scheduleId}">
-                        <label class="block text-sm font-medium">Data Table Name (Optional)</label>
-                        <input type="text" name="data_table_name" class="w-full p-2 border rounded-md mt-1 text-sm" placeholder="Default: mttx_schedule_${scheduleId}_<type>">
+                        <label class="block text-sm font-medium dark:text-gray-300">Data Table Name (Optional)</label>
+                        <input type="text" name="data_table_name" class="w-full p-2 border rounded-md mt-1 text-sm bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Default: mttx_schedule_${scheduleId}_<type>">
                     </div>
                     <button type="submit" class="mt-2 w-full bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-blue-600">Add Destination</button>
                 `;
@@ -942,15 +1037,11 @@
         
         const loadAndDisplayConfigs = async (tenantId) => {
              if (!tenantId || isNaN(tenantId)) {
-                mttxConfigForms.classList.add('hidden');
-                queryConfigForms.classList.add('hidden');
-                document.getElementById('threshold-config-forms').classList.add('hidden');
+                document.getElementById('config-accordion').classList.add('hidden');
                 return;
             }
             try {
-                mttxConfigForms.classList.remove('hidden');
-                queryConfigForms.classList.remove('hidden');
-                document.getElementById('threshold-config-forms').classList.remove('hidden');
+                document.getElementById('config-accordion').classList.remove('hidden');
 
                 const [statusesRes, configsRes, queriesRes, thresholdsRes] = await Promise.all([
                     fetch(`${API_BASE_URL}/case-statuses`),
@@ -1000,23 +1091,15 @@
 
             } catch (error) {
                 alert(`Error loading configurations: ${error.message}`);
-                mttxConfigForms.classList.add('hidden');
-                queryConfigForms.classList.add('hidden');
-                document.getElementById('threshold-config-forms').classList.add('hidden');
+                document.getElementById('config-accordion').classList.add('hidden');
             }
         };
 
         const renderThresholdsForm = (thresholds) => {
-            const form = document.getElementById('threshold-config-form');
-            form.innerHTML = '';
+            const container = document.getElementById('threshold-config-forms');
+            container.innerHTML = ''; // Clear previous content
 
-            const timeUnits = {
-                SECOND: 1,
-                MINUTE: 60,
-                HOUR: 3600,
-                DAY: 86400
-            };
-
+            const timeUnits = { SECOND: 1, MINUTE: 60, HOUR: 3600, DAY: 86400 };
             const getBestUnit = (seconds) => {
                 if (seconds >= 86400 && seconds % 86400 === 0) return 'DAY';
                 if (seconds >= 3600 && seconds % 3600 === 0) return 'HOUR';
@@ -1024,77 +1107,80 @@
                 return 'SECOND';
             };
 
+            const table = document.createElement('table');
+            table.className = 'min-w-full divide-y divide-gray-200 dark:divide-gray-700';
+            table.innerHTML = `
+                <thead class="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Metric</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Good (≤)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Ok (≤)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Good Color</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Ok Color</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Bad Color</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700"></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+
             thresholds.forEach(t => {
-                const fieldset = document.createElement('div');
-                fieldset.className = 'p-4 border rounded-lg bg-gray-50';
-                
+                const row = document.createElement('tr');
+                let valueInputs;
+
                 if (t.metric_name.includes('percent')) {
-                     fieldset.innerHTML = `
-                        <h4 class="font-bold text-lg mb-3">${t.metric_name.replace(/_/g, ' ').replace('percent', '(%)')} Thresholds</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block font-semibold mb-1">Good (≥ %)</label>
-                                <input type="number" data-metric="${t.metric_name}" name="good_value" class="w-full p-2 border rounded-md" value="${t.good_threshold}">
+                    valueInputs = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <input type="number" data-metric="${t.metric_name}" name="good_value" class="w-24 p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="${t.good_threshold}">
+                                <span class="ml-2 text-gray-500 dark:text-gray-400">%</span>
                             </div>
-                            <div>
-                                <label class="block font-semibold mb-1">Ok (≥ %)</label>
-                                <input type="number" data-metric="${t.metric_name}" name="ok_value" class="w-full p-2 border rounded-md" value="${t.ok_threshold}">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <input type="number" data-metric="${t.metric_name}" name="ok_value" class="w-24 p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="${t.ok_threshold}">
+                                <span class="ml-2 text-gray-500 dark:text-gray-400">%</span>
                             </div>
-                        </div>`;
+                        </td>`;
                 } else {
                     const goodUnit = getBestUnit(t.good_threshold);
                     const okUnit = getBestUnit(t.ok_threshold);
                     const goodValue = t.good_threshold / timeUnits[goodUnit];
                     const okValue = t.ok_threshold / timeUnits[okUnit];
-                    fieldset.innerHTML = `
-                        <h4 class="font-bold text-lg mb-3">${t.metric_name} Thresholds</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block font-semibold mb-1">Good (≤)</label>
-                                <div class="flex items-center space-x-2">
-                                    <input type="number" data-metric="${t.metric_name}" name="good_value" class="w-full p-2 border rounded-md" value="${goodValue}">
-                                    <select name="good_unit" class="w-full p-2 border rounded-md">
-                                        ${Object.keys(timeUnits).map(unit => `<option value="${unit}" ${unit === goodUnit ? 'selected' : ''}>${unit.charAt(0) + unit.slice(1).toLowerCase()}s</option>`).join('')}
-                                    </select>
-                                </div>
+                    const unitOptions = Object.keys(timeUnits).map(unit => `<option value="${unit}" ${unit === goodUnit ? 'selected' : ''}>${unit.charAt(0) + unit.slice(1).toLowerCase()}s</option>`).join('');
+                    
+                    valueInputs = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-2">
+                                <input type="number" data-metric="${t.metric_name}" name="good_value" class="w-24 p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="${goodValue}">
+                                <select name="good_unit" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white">${unitOptions}</select>
                             </div>
-                            <div>
-                                <label class="block font-semibold mb-1">Ok (≤)</label>
-                                <div class="flex items-center space-x-2">
-                                    <input type="number" data-metric="${t.metric_name}" name="ok_value" class="w-full p-2 border rounded-md" value="${okValue}">
-                                    <select name="ok_unit" class="w-full p-2 border rounded-md">
-                                        ${Object.keys(timeUnits).map(unit => `<option value="${unit}" ${unit === okUnit ? 'selected' : ''}>${unit.charAt(0) + unit.slice(1).toLowerCase()}s</option>`).join('')}
-                                    </select>
-                                </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-2">
+                                <input type="number" data-metric="${t.metric_name}" name="ok_value" class="w-24 p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="${okValue}">
+                                <select name="ok_unit" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white">${unitOptions.replace(`value="${goodUnit}" selected`, `value="${okUnit}"`)}</select>
                             </div>
-                        </div>`;
+                        </td>`;
                 }
-                
-                // Common color pickers
-                fieldset.innerHTML += `
-                    <div class="grid grid-cols-3 gap-4 mt-4">
-                        <div>
-                            <label class="block font-semibold mb-1">Good Color</label>
-                            <input type="color" data-metric="${t.metric_name}" name="good_color" class="w-full h-10 p-1 border rounded-md" value="${t.good_color}">
-                        </div>
-                        <div>
-                            <label class="block font-semibold mb-1">Ok Color</label>
-                            <input type="color" data-metric="${t.metric_name}" name="ok_color" class="w-full h-10 p-1 border rounded-md" value="${t.ok_color}">
-                        </div>
-                        <div>
-                            <label class="block font-semibold mb-1">Bad Color</label>
-                            <input type="color" data-metric="${t.metric_name}" name="bad_color" class="w-full h-10 p-1 border rounded-md" value="${t.bad_color}">
-                        </div>
-                    </div>`;
-                form.appendChild(fieldset);
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">${t.metric_name.replace(/_/g, ' ').replace('percent', '(%)')}</td>
+                    ${valueInputs}
+                    <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="good_color" class="w-full h-10 p-1 border rounded-md" value="${t.good_color}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="ok_color" class="w-full h-10 p-1 border rounded-md" value="${t.ok_color}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="bad_color" class="w-full h-10 p-1 border rounded-md" value="${t.bad_color}"></td>
+                `;
+                tbody.appendChild(row);
             });
+            container.appendChild(table);
         };
 
         const handleThresholdFormSubmit = async () => {
             const tenantId = tenantSelectForConfig.value;
             if (!tenantId) return;
 
-            const form = document.getElementById('threshold-config-form');
+            const table = document.getElementById('threshold-config-forms').querySelector('table');
             const metrics = [
                 'MTTD', 'MTTA', 'MTTC', 'MTTR',
                 'MTTD_completion_percent', 'MTTA_completion_percent', 
@@ -1105,8 +1191,8 @@
             const payload = { thresholds: [] };
 
             metrics.forEach(metric => {
-                const goodValueEl = form.querySelector(`[data-metric="${metric}"][name="good_value"]`);
-                const okValueEl = form.querySelector(`[data-metric="${metric}"][name="ok_value"]`);
+                const goodValueEl = table.querySelector(`[data-metric="${metric}"][name="good_value"]`);
+                const okValueEl = table.querySelector(`[data-metric="${metric}"][name="ok_value"]`);
                 
                 let goodThreshold, okThreshold;
 
@@ -1114,8 +1200,8 @@
                     goodThreshold = parseInt(goodValueEl.value);
                     okThreshold = parseInt(okValueEl.value);
                 } else {
-                    const goodUnit = form.querySelector(`[data-metric="${metric}"][name="good_unit"]`).value;
-                    const okUnit = form.querySelector(`[data-metric="${metric}"][name="ok_unit"]`).value;
+                    const goodUnit = table.querySelector(`[data-metric="${metric}"][name="good_unit"]`).value;
+                    const okUnit = table.querySelector(`[data-metric="${metric}"][name="ok_unit"]`).value;
                     goodThreshold = parseInt(goodValueEl.value) * timeUnits[goodUnit];
                     okThreshold = parseInt(okValueEl.value) * timeUnits[okUnit];
                 }
@@ -1124,9 +1210,9 @@
                     metric_name: metric,
                     good_threshold: goodThreshold,
                     ok_threshold: okThreshold,
-                    good_color: form.querySelector(`[data-metric="${metric}"][name="good_color"]`).value,
-                    ok_color: form.querySelector(`[data-metric="${metric}"][name="ok_color"]`).value,
-                    bad_color: form.querySelector(`[data-metric="${metric}"][name="bad_color"]`).value,
+                    good_color: table.querySelector(`[data-metric="${metric}"][name="good_color"]`).value,
+                    ok_color: table.querySelector(`[data-metric="${metric}"][name="ok_color"]`).value,
+                    bad_color: table.querySelector(`[data-metric="${metric}"][name="bad_color"]`).value,
                 });
             });
 
@@ -1143,53 +1229,88 @@
             }
         };
 
-        const handleConfigFormSubmit = async (event) => {
-            event.preventDefault();
-            const form = event.target;
-            const configId = form.querySelector('input[type=hidden]').value;
-            const keySelect = form.querySelector('select[id*=-config-key]');
-            const valueInput = form.querySelector('[id*=-config-value]');
-            
-            const configData = {
-                config_key: keySelect ? keySelect.value : "case_history_stage",
-                config_value: valueInput.value
+        const handleMetricsFormSubmit = async () => {
+            const mttcForm = document.getElementById('mttc-config-form');
+            const mttrForm = document.getElementById('mttr-config-form');
+
+            const mttcConfigId = mttcForm.querySelector('input[type=hidden]').value;
+            const mttcConfigData = {
+                config_key: "case_history_stage",
+                config_value: mttcForm.querySelector('#mttc-config-value').value
             };
-            
+
+            const mttrConfigId = mttrForm.querySelector('input[type=hidden]').value;
+            const mttrConfigData = {
+                config_key: mttrForm.querySelector('#mttr-config-key').value,
+                config_value: mttrForm.querySelector('#mttr-config-value').value
+            };
+
             try {
-                const response = await fetch(`${API_BASE_URL}/mttx-configs/${configId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(configData)
-                });
-                if (!response.ok) throw new Error('Failed to save configuration');
-                alert(`${form.dataset.metric} configuration saved successfully!`);
-            } catch (error) { alert(`Error: ${error.message}`); }
+                const responses = await Promise.all([
+                    fetch(`${API_BASE_URL}/mttx-configs/${mttcConfigId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(mttcConfigData)
+                    }),
+                    fetch(`${API_BASE_URL}/mttx-configs/${mttrConfigId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(mttrConfigData)
+                    })
+                ]);
+
+                for (const response of responses) {
+                    if (!response.ok) {
+                        throw new Error(`Failed to save one or more metric configurations. Status: ${response.status}`);
+                    }
+                }
+                alert('Metric definitions saved successfully!');
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
         };
 
-        const handleQueryFormSubmit = async (event) => {
-            event.preventDefault();
-            const form = event.target;
-            const queryId = form.querySelector('input[type=hidden]').value;
-            const queryText = form.querySelector('textarea').value;
+        const handleQueriesFormSubmit = async () => {
+            const historyForm = document.getElementById('query-history-form');
+            const caseForm = document.getElementById('query-case-form');
+
+            const historyQueryId = historyForm.querySelector('input[type=hidden]').value;
+            const historyQueryText = historyForm.querySelector('textarea').value;
+
+            const caseQueryId = caseForm.querySelector('input[type=hidden]').value;
+            const caseQueryText = caseForm.querySelector('textarea').value;
+
             try {
-                const response = await fetch(`${API_BASE_URL}/queries/${queryId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query_text: queryText })
-                });
-                if (!response.ok) throw new Error('Failed to save query');
-                alert(`Query saved successfully!`);
-            } catch (error) { alert(`Error saving query: ${error.message}`); }
+                const responses = await Promise.all([
+                    fetch(`${API_BASE_URL}/queries/${historyQueryId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query_text: historyQueryText })
+                    }),
+                    fetch(`${API_BASE_URL}/queries/${caseQueryId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query_text: caseQueryText })
+                    })
+                ]);
+
+                for (const response of responses) {
+                    if (!response.ok) {
+                        throw new Error(`Failed to save one or more queries. Status: ${response.status}`);
+                    }
+                }
+                alert('Queries saved successfully!');
+            } catch (error) {
+                alert(`Error saving queries: ${error.message}`);
+            }
         };
 
         // --- Analysis and Calculation Logic ---
         const handleRunAnalysis = async () => {
             const runBtn = document.getElementById('run-analysis-btn');
-            runBtn.textContent = 'Running...';
+            runBtn.textContent = 'Generating...';
             runBtn.disabled = true;
-            document.getElementById('calculate-metrics-btn').classList.add('hidden');
-            document.getElementById('raw-results-output').textContent = 'Querying SecOps...';
-            
+
             const analysisParams = {
                 tenant_id: parseInt(tenantSelectForAnalysis.value),
                 time_unit: document.getElementById('time-unit').value,
@@ -1197,24 +1318,40 @@
             };
 
             try {
-                const response = await fetch(`${API_BASE_URL}/analysis/run`, { 
+                // Step 1: Run Analysis (fetch raw data)
+                const analysisResponse = await fetch(`${API_BASE_URL}/analysis/run`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(analysisParams)
                 });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Analysis failed.');
-                
-                caseHistoryData = data.case_history_data;
-                caseMttdData = data.case_mttd_data;
+                const analysisData = await analysisResponse.json();
+                if (!analysisResponse.ok) throw new Error(analysisData.detail || 'Analysis failed.');
 
-                document.getElementById('raw-results-output').textContent = JSON.stringify(data, null, 2);
-                document.getElementById('calculate-metrics-btn').classList.remove('hidden');
+                // Prepare for Step 2: Calculate Metrics
+                const calculationPayload = {
+                    tenant_id: parseInt(tenantSelectForAnalysis.value),
+                    case_history_data: analysisData.case_history_data,
+                    case_mttd_data: analysisData.case_mttd_data
+                };
+
+                // Step 2: Calculate Metrics
+                const metricsResponse = await fetch(`${API_BASE_URL}/analysis/calculate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(calculationPayload)
+                });
+                if (!metricsResponse.ok) throw new Error((await metricsResponse.json()).detail || 'Calculation failed.');
+                
+                const metricsData = await metricsResponse.json();
+
+                // Step 3: Render results and switch tab
+                storeAndRenderInitialResults(metricsData);
+                switchMainTab('results-panel');
 
             } catch (error) {
-                document.getElementById('raw-results-output').textContent = `An error occurred:\n\n${error.message}`;
+                alert(`An error occurred:\n\n${error.message}`);
             } finally {
-                runBtn.textContent = 'Run Analysis';
+                runBtn.textContent = 'Generate Report';
                 runBtn.disabled = false;
             }
         };
@@ -1711,6 +1848,12 @@
             return filteredCases;
         }
 
+        const initAccordions = () => {
+            document.querySelectorAll('[data-accordion]').forEach(accordionEl => {
+                new Accordion(accordionEl);
+            });
+        };
+
 
         // --- Theme Toggler ---
         const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
@@ -1756,17 +1899,17 @@
         document.addEventListener('DOMContentLoaded', () => {
             switchMainTab('tenants-panel');
             fetchTenants();
+            initAccordions();
 
             tenantSelectForConfig.addEventListener('change', (e) => loadAndDisplayConfigs(e.target.value));
             tenantSelectForScheduler.addEventListener('change', (e) => loadAndDisplaySchedules(e.target.value));
             document.getElementById('mttr-config-key').addEventListener('change', updateMttrValueOptions);
-            document.getElementById('mttc-config-form').addEventListener('submit', handleConfigFormSubmit);
-            document.getElementById('mttr-config-form').addEventListener('submit', handleConfigFormSubmit);
-            document.getElementById('query-history-form').addEventListener('submit', handleQueryFormSubmit);
-            document.getElementById('query-case-form').addEventListener('submit', handleQueryFormSubmit);
             
+            document.getElementById('save-metrics-btn').addEventListener('click', handleMetricsFormSubmit);
+            document.getElementById('save-queries-btn').addEventListener('click', handleQueriesFormSubmit);
+            document.getElementById('save-thresholds-btn').addEventListener('click', handleThresholdFormSubmit);
+
             document.getElementById('run-analysis-btn').addEventListener('click', handleRunAnalysis);
-            document.getElementById('calculate-metrics-btn').addEventListener('click', handleCalculateMetrics);
             document.getElementById('apply-filters-btn').addEventListener('click', applyFiltersAndRedraw);
             document.getElementById('generate-chart-btn').addEventListener('click', generateQuadrantChart);
             
@@ -1793,6 +1936,7 @@
             });
 
             document.getElementById('add-tenant-btn').addEventListener('click', () => showTenantModal());
+            document.getElementById('create-schedule-btn').addEventListener('click', () => showScheduleModal());
 
             addTenantForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
