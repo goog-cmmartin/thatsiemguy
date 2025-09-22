@@ -845,7 +845,7 @@ $case_history_stage = case_history.stage
 $case_history_status = case_history.status
 match: $case_history_case_id, $case_history_case_activity, $case_history_case_event_time, $case_history_stage, $case_history_status
 order: $case_history_case_id desc
-limit: 10000
+limit: 5000
 """
         default_query_case = """
 $case_id = case.response_platform_info.response_platform_id
@@ -858,7 +858,7 @@ outcome:
     $environment = array_distinct(case.environment)
     $detection_rule_name = array_distinct(case.alerts.metadata.detection.rule_name)
 order: $case_id desc
-limit: 10000
+limit: 100
 """
         db_queries = [
             QueryConfig(name="query_history", query_text=default_query_history, tenant_id=tenant_id),
@@ -923,8 +923,8 @@ def perform_analysis(tenant_id: int, time_unit: str, start_time_val: int, db: Se
         return {
             "case_history_data": results_history,
             "case_mttd_data": results_mttd,
-            "history_limit_hit": history_results_count == 1000,
-            "mttd_limit_hit": mttd_results_count == 1000
+            "history_limit_hit": history_results_count == 5000,
+            "mttd_limit_hit": mttd_results_count == 100
         }
     except Exception as e:
         logging.error(f"Analysis query failed for tenant {tenant_id}: {e}", exc_info=True)
@@ -1055,8 +1055,6 @@ def create_secops_dashboard(destination_id: int, db: Session = Depends(get_db)):
         with open(dashboard_template_path, 'r') as f:
             # The JSON file is a list of dashboards; we want the first one.
             dashboard_template = json.load(f)['dashboards'][0]
-            with open(os.path.join(os.path.dirname(__file__), 'debug1.txt'), 'w') as debug_file:
-                debug_file.write(json.dumps(dashboard_template, indent=2))
 
         dashboard_str = json.dumps(dashboard_template)
         
@@ -1074,8 +1072,6 @@ def create_secops_dashboard(destination_id: int, db: Session = Depends(get_db)):
         
         # The SDK expects the dashboard to be wrapped in a source object
         payload = dashboard_to_import
-        with open(os.path.join(os.path.dirname(__file__), 'debug2.txt'), 'w') as debug_file:
-            debug_file.write(json.dumps(payload, indent=2))
         imported_dashboard_response = chronicle.import_dashboard(payload)
         logging.info(f"Dashboard import response: {imported_dashboard_response}")
         
