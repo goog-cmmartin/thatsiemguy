@@ -1,0 +1,193 @@
+{
+    "exportDestinations": [
+        {
+            "dateField": "publishDate",
+            "filePath": "",
+            "iconUrl": "https://www.gstatic.com/marketing-cms/assets/images/d5/dc/cfe9ce8b4425b410b49b7f2dd3f3/g.webp=s48-fcrop64=1,00000000ffffffff-rw",
+            "instances": [
+                "Google SecOps",
+                "Microsoft Sentinel"
+            ],
+            "name": "SDL Chat",
+            "reportDays": 1,
+            "runFrequency": 1,
+            "runFrequencyUnit": "hours",
+            "sendEmptyReports": false,
+            "type": "googleChatWebhook",
+            "url": "https://chat.googleapis.com/v1/spaces/abcdef/messages?key=<key>"
+        },
+        {
+            "dateField": "ingestedAt",
+            "iconUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/BBC_Logo_2021.svg/560px-BBC_Logo_2021.svg.png",
+            "instances": [
+                "News"
+            ],
+            "name": "News",
+            "reportDays": 7,
+            "runFrequency": 15,
+            "runFrequencyUnit": "minutes",
+            "sendEmptyReports": false,
+            "type": "googleChatWebhook",
+            "url": "https://chat.googleapis.com/v1/spaces/abcdef/messages?key=<key>"
+        },
+        {
+            "dateField": "ingestedAt",
+            "iconUrl": "https://www.gstatic.com/marketing-cms/assets/images/29/8c/e1f2c0994e87b8d7edf2886f9c02/google-cloud.webp=s48-fcrop64=1,00000000ffffffff-rw",
+            "instances": [
+                "GCSC Posts"
+            ],
+            "name": "Posts",
+            "reportDays": 7,
+            "runFrequency": 15,
+            "runFrequencyUnit": "minutes",
+            "sendEmptyReports": false,
+            "type": "googleChatWebhook",
+            "url": "https://chat.googleapis.com/v1/spaces/abcdef/messages?key=<key>"
+        },
+        {
+            "dateField": "publishDate",
+            "filePath": "/home/user/Documents/secops.json",
+            "iconUrl": "",
+            "instances": [
+                "Google SecOps"
+            ],
+            "name": "JSON SecOps Updates",
+            "reportDays": 7,
+            "runFrequency": 15,
+            "runFrequencyUnit": "minutes",
+            "sendEmptyReports": false,
+            "type": "jsonFile",
+            "url": ""
+        }
+    ],
+    "globalPollingIntervalMinutes": 15,
+    "instances": [
+        {
+            "isActive": true,
+            "sources": [
+                {
+                    "dateFieldKey": "pubDate",
+                    "filterRules": [
+                        {
+                            "condition": "contains",
+                            "key": "link",
+                            "value": "community-blog-42"
+                        },
+                        {
+                            "condition": "contains",
+                            "key": "link",
+                            "value": "webinars-podcasts-43"
+                        },
+                        {
+                            "condition": "contains",
+                            "key": "",
+                            "value": ""
+                        }
+                    ],
+                    "ignoreSourceDate": false,
+                    "title": "Google Cloud Security Community",
+                    "url": "https://security.googlecloudcommunity.com/feed/topics"
+                },
+                {
+                    "dateFieldKey": "updated",
+                    "filterRules": [
+                        {
+                            "condition": "does_not_contain",
+                            "key": "content",
+                            "value": "New parser documentation now available"
+                        }
+                    ],
+                    "title": "SecOps Release Notes",
+                    "url": "https://cloud.google.com/feeds/chronicle-release-notes.xml"
+                },
+                {
+                    "dateFieldKey": "pubDate",
+                    "filterRules": [
+                        {
+                            "condition": "contains",
+                            "key": "description",
+                            "value": "secops"
+                        }
+                    ],
+                    "title": "BindPlane Blog",
+                    "url": "https://bindplane.com/blog/rss.xml"
+                },
+                {
+                    "dateFieldKey": "",
+                    "filterRules": [],
+                    "ignoreSourceDate": true,
+                    "title": "Google Site Alert - New SecOps Documentation",
+                    "url": "https://www.google.com/alerts/feeds/16178135313720955095/73152780969350097"
+                },
+                {
+                    "dateFieldKey": "pubDate",
+                    "filterRules": [],
+                    "ignoreSourceDate": false,
+                    "title": "Medium  - ThatSIEMGuy",
+                    "url": "https://medium.com/feed/@thatsiemguy"
+                },
+                {
+                    "dateFieldKey": "updated",
+                    "filterRules": [],
+                    "ignoreSourceDate": false,
+                    "title": "SecOps SOAR Integrations",
+                    "url": "https://cloud.google.com/feeds/chronicle-soar-marketplace-release-notes.xml"
+                }
+            ],
+            "title": "Google SecOps"
+        },
+        {
+            "isActive": true,
+            "sources": [
+                {
+                    "dateFieldKey": "pubDate",
+                    "filterRules": [],
+                    "ignoreSourceDate": false,
+                    "title": "Microsoft Sentinel Blog",
+                    "url": "https://techcommunity.microsoft.com/t5/s/gxcuf89792/rss/board?board.id=MicrosoftSentinelBlog"
+                },
+                {
+                    "dateFieldKey": "pubDate",
+                    "filterRules": [],
+                    "ignoreSourceDate": false,
+                    "title": "MSRC Blog",
+                    "url": "https://msrc.microsoft.com/blog/feed"
+                }
+            ],
+            "title": "Microsoft Sentinel"
+        },
+        {
+            "isActive": true,
+            "sources": [
+                {
+                    "dateFieldKey": "pubDate",
+                    "filterRules": [],
+                    "ignoreSourceDate": false,
+                    "title": "BBC News",
+                    "url": "https://feeds.bbci.co.uk/news/rss.xml"
+                },
+                {
+                    "dateFieldKey": "pubDate",
+                    "filterRules": [],
+                    "ignoreSourceDate": false,
+                    "title": "NY Times",
+                    "url": "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+                }
+            ],
+            "title": "News"
+        },
+        {
+            "isActive": true,
+            "sources": [
+                {
+                    "dateFieldKey": "pubDate",
+                    "filterRules": [],
+                    "ignoreSourceDate": false,
+                    "title": "GCSC Posts",
+                    "url": "https://security.googlecloudcommunity.com/feed/topics"
+                }
+            ],
+            "title": "GCSC Posts"
+        }
+    ]
+}

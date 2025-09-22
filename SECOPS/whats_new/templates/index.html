@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What's New Aggregator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #111827; color: #d1d5db; }
+        .sidebar { width: 350px; }
+        .main-content { margin-left: 350px; }
+        .modal-bg { background-color: rgba(0,0,0,0.7); }
+        .summary-box, .xml-box { background-color: #1f2937; border-left: 4px solid #4f46e5; padding: 1rem; margin-top: 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; color: #d1d5db; }
+        .xml-box pre { white-space: pre-wrap; word-wrap: break-word; }
+        .tab-btn { background-color: #374151; }
+        .tab-btn.active { background-color: #4f46e5; }
+        .chip {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+        .chip-neutral { background-color: #4B5563; color: #E5E7EB; }
+        .chip-positive { background-color: #059669; color: #D1FAE5; }
+        .chip-negative { background-color: #DC2626; color: #FEE2E2; }
+    </style>
+</head>
+<body class="font-sans">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar bg-gray-900 flex flex-col fixed h-full">
+            <div class="p-6">
+                <h1 id="homeBtn" class="text-2xl font-bold text-white mb-4 cursor-pointer hover:text-indigo-400 transition-colors">What's New</h1>
+                <div class="flex border border-gray-700 rounded-md">
+                    <button id="sourcesTabBtn" class="tab-btn active flex-1 text-sm font-medium p-2 rounded-l-md">Sources</button>
+                    <button id="settingsTabBtn" class="tab-btn flex-1 text-sm font-medium p-2 rounded-r-md">Settings</button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Sources Configuration Panel -->
+            <div id="sourcesPanel" class="flex-1 overflow-y-auto px-6">
+                <p class="text-sm text-gray-400 mb-4">Instances & Sources</p>
+                <div id="config-tree"></div>
+                <div class="flex space-x-2 mt-4">
+                     <button id="addInstanceBtn" class="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-150 text-sm">Add Instance</button>
+                </div>
+                 <div class="flex space-x-2 mt-2">
+                    <button id="importBtn" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition duration-150 text-sm">Import</button>
+                    <input type="file" id="importFile" class="hidden" accept=".json">
+                    <button id="exportBtn" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition duration-150 text-sm">Export</button>
+                </div>
+            </div>
+
+            <!-- Tab 2: Global Settings Panel -->
+            <div id="settingsPanel" class="hidden flex-1 overflow-y-auto px-6">
+                 <!-- Polling Actions Card -->
+                <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                    <h2 class="text-lg font-bold text-white mb-3">Polling Actions</h2>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                             <label for="pollingInterval" class="block font-medium text-gray-300">Data Polling Interval (Minutes)</label>
+                             <input type="number" id="pollingInterval" value="60" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white">
+                        </div>
+                        <button id="togglePollingBtn" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-150">Start UI Polling</button>
+                         <div id="status-indicator" class="mt-2 text-center text-sm">
+                             <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                             UI Polling Inactive
+                         </div>
+                    </div>
+                </div>
+                <!-- Reporting Card -->
+                <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                    <h2 class="text-lg font-bold text-white mb-3">Interactive Reporting</h2>
+                     <div class="space-y-3 text-sm">
+                        <div>
+                            <label for="reportDays" class="block font-medium text-gray-300">Lookback Period (Days)</label>
+                            <input type="number" id="reportDays" value="7" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white">
+                        </div>
+                        <div>
+                            <label for="reportDateField" class="block font-medium text-gray-300">Filter By</label>
+                            <select id="reportDateField" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white">
+                                <option value="publishDate">Published Date</option>
+                                <option value="ingestedAt">Found Date</option>
+                            </select>
+                        </div>
+                        <button id="generateReportBtn" class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-150">Generate Report for Active</button>
+                    </div>
+                </div>
+                 <!-- Scheduled Exports Card -->
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <h2 class="text-lg font-bold text-white mb-3">Scheduled Exports</h2>
+                    <div id="destinations-list" class="space-y-2"></div>
+                    <button id="addDestinationBtn" class="mt-2 text-sm text-indigo-400 hover:text-indigo-300">+ Add Export Destination</button>
+                </div>
+            </div>
+            
+            <div class="p-6 mt-auto">
+                <button id="saveConfigBtn" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-150">Save Global Configuration</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-1 p-8 overflow-y-auto">
+            <div id="details-panel" class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <!-- Home page content will be rendered here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="fixed inset-0 z-50 items-center justify-center hidden">
+        <div class="modal-bg absolute inset-0"></div>
+        <div class="relative bg-gray-800 text-white w-full max-w-6xl max-h-[90vh] mx-auto my-8 rounded-lg shadow-lg flex flex-col">
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="reportModalTitle" class="text-2xl font-bold">What's New Report</h2>
+                    <button id="closeModalBtn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="reportSearch" placeholder="Search results..." class="md:col-span-2 bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-indigo-500">
+                    <select id="reportSentimentFilter" class="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-indigo-500">
+                        <option value="">Filter by Sentiment</option>
+                        <option value="Positive">Positive</option>
+                        <option value="Negative">Negative</option>
+                        <option value="Neutral">Neutral</option>
+                    </select>
+                    <select id="reportCategoryFilter" class="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-indigo-500">
+                        <option value="">Filter by Category</option>
+                        <!-- Categories will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="mt-4">
+                     <select id="reportSort" class="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 w-full md:w-auto">
+                        <option value="source">Sort by Source</option>
+                        <option value="date">Sort by Date (Newest First)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="reportContent" class="p-6 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="fixed inset-0 z-50 items-center justify-center hidden">
+        <div class="modal-bg absolute inset-0"></div>
+        <div class="relative bg-gray-800 text-white w-full max-w-md mx-auto my-8 rounded-lg shadow-lg flex flex-col">
+            <div class="p-6 border-b border-gray-700">
+                <h2 id="confirmationModalTitle" class="text-xl font-bold">Confirm Action</h2>
+            </div>
+            <div class="p-6">
+                <p id="confirmationModalMessage">Are you sure?</p>
+            </div>
+            <div class="p-4 bg-gray-900 border-t border-gray-700 flex justify-end space-x-2">
+                <button id="confirmCancelBtn" class="bg-gray-600 py-2 px-4 rounded-md hover:bg-gray-700">Cancel</button>
+                <button id="confirmActionBtn" class="bg-red-600 py-2 px-4 rounded-md hover:bg-red-700">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showMessage(message, isError = false) {
+            const el = document.createElement('div');
+            el.className = `fixed bottom-5 right-5 p-4 rounded-md text-white shadow-lg z-50 ${isError ? 'bg-red-600' : 'bg-green-600'}`;
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+        function showError(message) { showMessage(message, true); }
+        function utf8_to_b64(str) { return window.btoa(unescape(encodeURIComponent(str))); }
+        function b64_to_utf8(str) { return decodeURIComponent(escape(window.atob(str))); }
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return '';
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let appConfig = {};
+            let isPollingActive = false;
+            const API_BASE_URL = 'http://127.0.0.1:5000';
+            let currentReportData = {};
+
+            const homeBtn = document.getElementById('homeBtn');
+            const sourcesTabBtn = document.getElementById('sourcesTabBtn');
+            const settingsTabBtn = document.getElementById('settingsTabBtn');
+            const sourcesPanel = document.getElementById('sourcesPanel');
+            const settingsPanel = document.getElementById('settingsPanel');
+            
+            const configTree = document.getElementById('config-tree');
+            const detailsPanel = document.getElementById('details-panel');
+            const addInstanceBtn = document.getElementById('addInstanceBtn');
+            const saveConfigBtn = document.getElementById('saveConfigBtn');
+            const togglePollingBtn = document.getElementById('togglePollingBtn');
+            const generateReportBtn = document.getElementById('generateReportBtn');
+            const reportModal = document.getElementById('reportModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const reportContent = document.getElementById('reportContent');
+            const statusIndicator = document.getElementById('status-indicator');
+            const importBtn = document.getElementById('importBtn');
+            const importFile = document.getElementById('importFile');
+            const exportBtn = document.getElementById('exportBtn');
+            const reportModalTitle = document.getElementById('reportModalTitle');
+            const reportSearch = document.getElementById('reportSearch');
+            const reportSort = document.getElementById('reportSort');
+            const pollingIntervalInput = document.getElementById('pollingInterval');
+            const destinationsList = document.getElementById('destinations-list');
+            const addDestinationBtn = document.getElementById('addDestinationBtn');
+            const sentimentFilter = document.getElementById('reportSentimentFilter');
+            const categoryFilter = document.getElementById('reportCategoryFilter');
+
+
+            function renderHomePage() {
+                detailsPanel.innerHTML = `
+                    <h2 class="text-2xl font-bold text-white mb-4">About This Application</h2>
+                    <p class="text-gray-400 mb-6">
+                        The What's New Aggregator is a powerful tool designed to monitor multiple XML/RSS/Atom feeds, apply custom filters, and generate consolidated reports with AI-powered summaries. It helps you stay updated by tracking changes across various sources from a single, centralized dashboard.
+                    </p>
+                    <h3 class="text-xl font-bold text-white mb-3">Quick Start Tutorial</h3>
+                    <div class="space-y-4 text-gray-300">
+                        <div>
+                            <h4 class="font-semibold text-lg mb-1">1. Create an Instance</h4>
+                            <p>An 'Instance' is a container for a group of related sources (e.g., "Google Security News"). Click the <strong class="text-indigo-400">"+ Add Instance"</strong> button on the 'Sources' tab to get started.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg mb-1">2. Add a Source</h4>
+                            <p>Once you have an instance, click <strong class="text-indigo-400">"+ Add Source"</strong> beneath it. This will open the configuration panel where you can provide a URL for an XML, RSS, or Atom feed.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg mb-1">3. Configure and Filter</h4>
+                            <p>In the source configuration panel, you can set up powerful filter rules to include or exclude items based on keywords. You can also preview the raw XML to help you identify the correct keys for filtering and date parsing.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg mb-1">4. View Reports</h4>
+                            <p>Navigate to the 'Settings' tab. In the "Interactive Reporting" section, you can generate an on-demand report for any active instances. This report allows you to view raw XML and get AI-powered summaries for each item.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg mb-1">5. Automate with Scheduled Exports</h4>
+                            <p>In the "Scheduled Exports" section on the 'Settings' tab, you can configure the application to automatically send summarized reports to destinations like a Google Chat webhook or save them as a JSON file on a recurring schedule.</p>
+                        </div>
+                    </div>`;
+            }
+
+            function showConfirmationModal(title, message, onConfirm) {
+                const modal = document.getElementById('confirmationModal');
+                const titleEl = document.getElementById('confirmationModalTitle');
+                const messageEl = document.getElementById('confirmationModalMessage');
+                const confirmBtn = document.getElementById('confirmActionBtn');
+                const cancelBtn = document.getElementById('confirmCancelBtn');
+
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                
+                const newCancelBtn = cancelBtn.cloneNode(true);
+                cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+                const hideModal = () => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                };
+
+                newConfirmBtn.addEventListener('click', () => {
+                    onConfirm();
+                    hideModal();
+                });
+                newCancelBtn.addEventListener('click', hideModal);
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            async function fetchConfig() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/config`);
+                    appConfig = await response.json();
+                    pollingIntervalInput.value = appConfig.globalPollingIntervalMinutes || 60;
+                    renderConfigTree();
+                    renderDestinations();
+                } catch (error) { console.error("Error fetching config:", error); showError('Could not load configuration.'); }
+            }
+
+            async function saveConfig() {
+                updateConfigFromCheckboxes();
+                appConfig.globalPollingIntervalMinutes = parseInt(pollingIntervalInput.value, 10) || 60;
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/config`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(appConfig)
+                    });
+                    if (response.ok) showMessage('Configuration saved successfully!');
+                    else throw new Error('Failed to save');
+                } catch (error) { console.error("Error saving config:", error); showError('Error: Could not save configuration.'); }
+            }
+
+            async function startPolling() {
+                try {
+                    await fetch(`${API_BASE_URL}/api/polling/start`, { method: 'POST' });
+                    isPollingActive = true;
+                    updatePollingUI();
+                } catch (error) {
+                    console.error("Error starting polling:", error);
+                    showError("Failed to start polling on the server.");
+                }
+            }
+
+            async function stopPolling() {
+                try {
+                    await fetch(`${API_BASE_URL}/api/polling/stop`, { method: 'POST' });
+                    isPollingActive = false;
+                    updatePollingUI();
+                } catch (error) {
+                    console.error("Error stopping polling:", error);
+                    showError("Failed to stop polling on the server.");
+                }
+            }
+            
+            function updatePollingUI() {
+                if (isPollingActive) {
+                    togglePollingBtn.textContent = 'Stop UI Polling';
+                    togglePollingBtn.classList.replace('bg-blue-600', 'bg-red-600');
+                    togglePollingBtn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
+                    statusIndicator.innerHTML = `<span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-2 animate-pulse"></span> UI Polling Active`;
+                } else {
+                    togglePollingBtn.textContent = 'Start UI Polling';
+                    togglePollingBtn.classList.replace('bg-red-600', 'bg-blue-600');
+                    togglePollingBtn.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
+                    statusIndicator.innerHTML = `<span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span> UI Polling Inactive`;
+                }
+            }
+            
+            async function generateReport() {
+                updateConfigFromCheckboxes();
+                const activeInstances = appConfig.instances.filter(inst => inst.isActive).map(inst => inst.title);
+                if (activeInstances.length === 0) { showMessage("No active instances selected."); return; }
+                try {
+                    const reportDays = document.getElementById('reportDays').value || 7;
+                    const reportDateField = document.getElementById('reportDateField').value || 'publishDate';
+                    const response = await fetch(`${API_BASE_URL}/api/report`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ instances: activeInstances, days: parseInt(reportDays, 10), dateField: reportDateField })
+                    });
+                    currentReportData = await response.json();
+                    populateFilters(currentReportData);
+                    renderReport(currentReportData);
+                    reportModalTitle.textContent = `What's New Report: ${currentReportData.instanceTitles.join(', ')}`;
+                    reportModal.classList.remove('hidden');
+                    reportModal.classList.add('flex');
+                } catch (error) { console.error("Error generating report:", error); showError("Could not generate report."); }
+            }
+            
+            function populateFilters(data) {
+                const categories = new Set();
+                Object.values(data.resultsBySource || {}).flat().forEach(item => {
+                    if (item.category) categories.add(item.category);
+                });
+                
+                // Preserve the "Filter by Category" option
+                categoryFilter.innerHTML = '<option value="">Filter by Category</option>';
+                [...categories].sort().forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    categoryFilter.appendChild(option);
+                });
+            }
+
+            function renderConfigTree() {
+                configTree.innerHTML = '';
+                if (!appConfig.instances) return;
+                appConfig.instances.forEach((instance, instanceIndex) => {
+                    const instanceDiv = document.createElement('div');
+                    instanceDiv.className = 'mb-4';
+                    instanceDiv.innerHTML = `
+                        <div class="flex justify-between items-center bg-gray-800 p-2 rounded-md">
+                            <div class="flex items-center"><input type="checkbox" class="instance-checkbox mr-3 h-4 w-4" data-instance-index="${instanceIndex}" ${instance.isActive ? 'checked' : ''}><span class="font-bold text-white cursor-pointer" data-instance-index="${instanceIndex}">${instance.title}</span></div>
+                            <button class="text-xl text-red-400" data-delete-instance="${instanceIndex}">&times;</button>
+                        </div>
+                        <div class="ml-4 mt-2 space-y-1 pl-5 border-l-2 border-gray-700">
+                            ${(instance.sources || []).map((source, sourceIndex) => `<div class="flex justify-between items-center group"><span class="text-sm cursor-pointer" data-instance-index="${instanceIndex}" data-source-index="${sourceIndex}">${source.title}</span><button class="text-md text-red-400 opacity-0 group-hover:opacity-100" data-delete-source="${instanceIndex}-${sourceIndex}">&times;</button></div>`).join('')}
+                             <button class="text-xs text-indigo-400 mt-2" data-add-source data-instance-index="${instanceIndex}">+ Add Source</button>
+                        </div>`;
+                    configTree.appendChild(instanceDiv);
+                });
+            }
+
+            function renderDestinations() {
+                destinationsList.innerHTML = '';
+                (appConfig.exportDestinations || []).forEach((dest, index) => {
+                    const destDiv = document.createElement('div');
+                    destDiv.className = 'text-sm text-gray-300 cursor-pointer p-1 rounded hover:bg-gray-700';
+                    destDiv.textContent = dest.name;
+                    destDiv.dataset.destinationIndex = index;
+                    destinationsList.appendChild(destDiv);
+                });
+            }
+
+            function renderDestinationDetails(index) {
+                const destination = appConfig.exportDestinations[index];
+                const instanceOptions = (appConfig.instances || []).map(inst => 
+                    `<option value="${inst.title}" ${(destination.instances || []).includes(inst.title) ? 'selected' : ''}>${inst.title}</option>`
+                ).join('');
+
+                const isWebhook = destination.type === 'googleChatWebhook';
+
+                detailsPanel.innerHTML = `
+                    <h2 class="text-xl font-bold text-white mb-4">Export: ${destination.name}</h2>
+                    <div class="space-y-4 text-sm">
+                        <div><label class="block">Name</label><input type="text" id="destName" value="${destination.name}" class="mt-1 w-full bg-gray-700 p-2 rounded"></div>
+                        <div>
+                            <label class="block">Type</label>
+                            <select id="destType" class="mt-1 w-full bg-gray-700 p-2 rounded">
+                                <option value="googleChatWebhook" ${isWebhook ? 'selected':''}>Google Chat Webhook</option>
+                                <option value="jsonFile" ${!isWebhook ? 'selected':''}>JSON File</option>
+                            </select>
+                        </div>
+                        <div id="webhookFields" class="${isWebhook ? '' : 'hidden'} space-y-4">
+                            <div><label class="block">Webhook URL</label><input type="text" id="destUrl" value="${destination.url || ''}" class="mt-1 w-full bg-gray-700 p-2 rounded"></div>
+                            <div><label class="block">Icon URL (Optional)</label><input type="text" id="destIconUrl" value="${destination.iconUrl || ''}" class="mt-1 w-full bg-gray-700 p-2 rounded"></div>
+                        </div>
+                        <div id="jsonFileFields" class="${!isWebhook ? '' : 'hidden'}">
+                            <label class="block">File Path</label><input type="text" id="destFilePath" value="${destination.filePath || ''}" class="mt-1 w-full bg-gray-700 p-2 rounded" placeholder="/path/to/your/report.json">
+                        </div>
+                        <div>
+                            <label class="block">Run Frequency</label>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <input type="number" id="destFrequency" value="${destination.runFrequency || 1}" class="w-20 bg-gray-700 p-2 rounded">
+                                <select id="destFrequencyUnit" class="bg-gray-700 p-2 rounded">
+                                    <option value="minutes" ${destination.runFrequencyUnit === 'minutes' ? 'selected':''}>Minutes</option>
+                                    <option value="hours" ${destination.runFrequencyUnit === 'hours' ? 'selected':''}>Hours</option>
+                                    <option value="days" ${destination.runFrequencyUnit === 'days' ? 'selected':''}>Days</option>
+                                </select>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">This also sets the lookback period to prevent duplicates.</p>
+                        </div>
+                        <div><label class="block">Instances to Include</label><select id="destInstances" multiple class="mt-1 w-full bg-gray-700 p-2 rounded h-24">${instanceOptions}</select></div>
+                        <div><label class="block">Filter By Date Field</label><select id="destDateField" class="mt-1 w-full bg-gray-700 p-2 rounded"><option value="publishDate" ${destination.dateField === 'publishDate' ? 'selected':''}>Published Date</option><option value="ingestedAt" ${destination.dateField === 'ingestedAt' ? 'selected':''}>Found Date</option></select></div>
+                        <div><div class="flex items-center"><input type="checkbox" id="destSendEmpty" class="h-4 w-4" ${destination.sendEmptyReports ? 'checked' : ''}><label for="destSendEmpty" class="ml-2">Send notification if no new items are found</label></div></div>
+                        <div class="flex space-x-2"><button id="saveDest" class="bg-indigo-500 py-2 px-4 rounded">Save</button><button id="runNowDest" class="bg-blue-500 py-2 px-4 rounded">Run Now (uses frequency as lookback)</button><button id="deleteDest" class="bg-red-800 py-2 px-4 rounded">Delete</button></div>
+                    </div>`;
+                
+                const destTypeSelect = document.getElementById('destType');
+                const webhookFields = document.getElementById('webhookFields');
+                const jsonFileFields = document.getElementById('jsonFileFields');
+                destTypeSelect.addEventListener('change', () => {
+                    webhookFields.classList.toggle('hidden', destTypeSelect.value !== 'googleChatWebhook');
+                    jsonFileFields.classList.toggle('hidden', destTypeSelect.value !== 'jsonFile');
+                });
+
+                document.getElementById('saveDest').onclick = () => saveDestinationDetails(index);
+                document.getElementById('deleteDest').onclick = () => deleteDestination(index);
+                document.getElementById('runNowDest').onclick = () => runExportNow(index);
+            }
+
+            async function runExportNow(index) {
+                const destination = appConfig.exportDestinations[index];
+                if (!destination) { showError("Destination not found."); return; }
+                showMessage(`Running export for "${destination.name}"...`);
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/export/run`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(destination)
+                    });
+                    if (response.ok) {
+                        showMessage("Export task completed successfully!");
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to run export');
+                    }
+                } catch (error) {
+                    console.error("Error running export:", error);
+                    showError(`Error: ${error.message}`);
+                }
+            }
+
+            function saveDestinationDetails(index) {
+                const dest = appConfig.exportDestinations[index];
+                dest.name = document.getElementById('destName').value;
+                dest.type = document.getElementById('destType').value;
+                dest.url = document.getElementById('destUrl').value;
+                dest.iconUrl = document.getElementById('destIconUrl').value;
+                dest.filePath = document.getElementById('destFilePath').value;
+                dest.runFrequency = parseInt(document.getElementById('destFrequency').value, 10);
+                dest.runFrequencyUnit = document.getElementById('destFrequencyUnit').value;
+                dest.dateField = document.getElementById('destDateField').value;
+                dest.sendEmptyReports = document.getElementById('destSendEmpty').checked;
+                dest.instances = Array.from(document.getElementById('destInstances').selectedOptions).map(opt => opt.value);
+                renderDestinations();
+                showMessage('Export destination updated. Remember to save configuration and restart the scheduler.');
+            }
+
+            function deleteDestination(index) {
+                appConfig.exportDestinations.splice(index, 1);
+                renderDestinations();
+                detailsPanel.innerHTML = '<h2 class="text-xl font-bold text-white">Destination Deleted</h2>';
+            }
+            
+            function updateConfigFromCheckboxes() {
+                const checkboxes = document.querySelectorAll('.instance-checkbox');
+                checkboxes.forEach(cb => {
+                    const index = cb.dataset.instanceIndex;
+                    if (appConfig.instances[index]) {
+                        appConfig.instances[index].isActive = cb.checked;
+                    }
+                });
+            }
+
+            function renderInstanceDetails(instanceIndex) {
+                const instance = appConfig.instances[instanceIndex];
+                detailsPanel.innerHTML = `
+                    <h2 class="text-xl font-bold text-white mb-4">Instance: ${instance.title}</h2>
+                    <div>
+                        <label for="instanceTitle" class="block text-sm font-medium text-gray-300">Instance Title</label>
+                        <input type="text" id="instanceTitle" value="${instance.title}" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                    <button id="saveInstanceDetails" class="mt-4 bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600">Save Title</button>`;
+                document.getElementById('saveInstanceDetails').onclick = () => saveInstanceDetails(instanceIndex);
+            }
+
+            function renderSourceDetails(instanceIndex, sourceIndex) {
+                const source = appConfig.instances[instanceIndex].sources[sourceIndex];
+                detailsPanel.innerHTML = `
+                    <h2 class="text-xl font-bold text-white mb-4">Source: ${source.title}</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="sourceTitle" class="block text-sm font-medium text-gray-300">Source Title</label>
+                            <input type="text" id="sourceTitle" value="${source.title || ''}" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white">
+                        </div>
+                        <div>
+                            <label for="sourceUrl" class="block text-sm font-medium text-gray-300">URL</label>
+                            <input type="text" id="sourceUrl" value="${source.url || ''}" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white">
+                        </div>
+                        <div>
+                            <label for="sourceDateField" class="block text-sm font-medium text-gray-300">Optional Date Field Key</label>
+                            <input type="text" id="sourceDateField" placeholder="e.g., pubDate, updated" value="${source.dateFieldKey || ''}" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white">
+                            <p class="mt-1 text-xs text-gray-400">Specify the XML tag name for the publication date.</p>
+                        </div>
+                        <div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="ignoreSourceDate" class="h-4 w-4 bg-gray-700 border border-gray-600 text-indigo-600 rounded" ${source.ignoreSourceDate ? 'checked' : ''}>
+                                <label for="ignoreSourceDate" class="ml-2 block text-sm font-medium text-gray-300">Ignore source date (use ingest time)</label>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-400">Useful for feeds with missing or incorrect timestamps.</p>
+                        </div>
+                        <button id="previewXmlBtn" class="text-sm text-indigo-400 hover:text-indigo-300">Preview XML from URL</button>
+                        <pre id="xmlPreview" class="hidden w-full bg-gray-900 text-xs text-gray-300 p-2 rounded-md mt-2 max-h-60 overflow-auto"></pre>
+                    </div>
+                    <hr class="my-6 border-gray-700"/>
+                    <h3 class="text-lg font-bold text-white mb-2">Filter Rules</h3>
+                    <div id="filter-rules-container" class="space-y-2">
+                        ${(source.filterRules || []).map((rule, index) => renderRule(rule, index)).join('')}
+                    </div>
+                    <button id="addRuleBtn" class="mt-4 text-sm text-indigo-400 hover:text-indigo-300">+ Add Rule</button>
+                    <hr class="my-6 border-gray-700"/>
+                    <button id="saveSourceDetails" class="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600">Save Source Configuration</button>`;
+                document.getElementById('addRuleBtn').onclick = () => addRule(instanceIndex, sourceIndex);
+                document.getElementById('saveSourceDetails').onclick = () => saveSourceDetails(instanceIndex, sourceIndex);
+                document.getElementById('previewXmlBtn').onclick = () => previewXml();
+            }
+
+            function renderRule(rule, index) {
+                const conditions = ['contains', 'does_not_contain', 'equals', 'not_equals', 'starts_with', 'not_starts_with', 'ends_with', 'not_ends_with'];
+                return `
+                    <div class="flex items-center space-x-2 bg-gray-900 p-2 rounded-md" data-rule-index="${index}">
+                        <input type="text" placeholder="XML Key" class="rule-key flex-1 bg-gray-700 p-1 rounded-sm text-sm" value="${rule.key || ''}">
+                        <select class="rule-condition bg-gray-700 p-1 rounded-sm text-sm">
+                            ${conditions.map(c => `<option value="${c}" ${rule.condition === c ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                        <input type="text" placeholder="Value" class="rule-value flex-1 bg-gray-700 p-1 rounded-sm text-sm" value="${rule.value || ''}">
+                        <button class="text-red-400" onclick="this.parentElement.remove()">&times;</button>
+                    </div>`;
+            }
+
+            function renderReport(data) {
+                const resultsBySource = data.resultsBySource || {};
+                const sourceKeys = Object.keys(resultsBySource);
+                const sortBy = reportSort.value;
+                const searchTerm = reportSearch.value.toLowerCase();
+                const selectedSentiment = sentimentFilter.value;
+                const selectedCategory = categoryFilter.value;
+
+                let allItems = [];
+                sourceKeys.forEach(sourceTitle => {
+                    resultsBySource[sourceTitle].forEach(item => {
+                        const titleMatch = (item.title || '').toLowerCase().includes(searchTerm);
+                        const descMatch = (item.description || '').toLowerCase().includes(searchTerm);
+                        const summaryMatch = (item.summary || '').toLowerCase().includes(searchTerm);
+                        
+                        const sentimentMatch = !selectedSentiment || (item.sentiment === selectedSentiment);
+                        const categoryMatch = !selectedCategory || (item.category === selectedCategory);
+
+                        if ((searchTerm === '' || titleMatch || descMatch || summaryMatch) && sentimentMatch && categoryMatch) {
+                            allItems.push(item);
+                        }
+                    });
+                });
+                
+                if (sortBy === 'date') {
+                    allItems.sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
+                    renderReportItems(allItems);
+                } else {
+                    const groupedBySource = allItems.reduce((acc, item) => {
+                        if (!acc[item.sourceTitle]) acc[item.sourceTitle] = [];
+                        acc[item.sourceTitle].push(item);
+                        return acc;
+                    }, {});
+                    renderReportBySource(groupedBySource);
+                }
+            }
+
+            function renderReportBySource(groupedData) {
+                const sourceTitles = Object.keys(groupedData).sort();
+                if (sourceTitles.length === 0) {
+                    reportContent.innerHTML = `<p class="text-gray-400">No matching items found.</p>`;
+                    return;
+                }
+                reportContent.innerHTML = sourceTitles.map(sourceTitle => `
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-indigo-400 mb-3">${sourceTitle}</h3>
+                        <ul class="space-y-2 report-item-list">${groupedData[sourceTitle].map(item => renderReportItem(item)).join('')}</ul>
+                    </div>`).join('');
+            }
+
+            function renderReportItems(items) {
+                 if (items.length === 0) {
+                    reportContent.innerHTML = `<p class="text-gray-400">No matching items found.</p>`;
+                    return;
+                 }
+                 reportContent.innerHTML = `<ul class="space-y-2 report-item-list">${items.map(item => renderReportItem(item)).join('')}</ul>`;
+            }
+
+            function getSentimentChip(sentiment) {
+                if (sentiment === 'Positive') return '<span class="chip chip-positive">Positive</span>';
+                if (sentiment === 'Negative') return '<span class="chip chip-negative">Negative</span>';
+                if (sentiment === 'Neutral') return '<span class="chip chip-neutral">Neutral</span>';
+                return '';
+            }
+
+            function renderReportItem(item) {
+                const uniqueId = utf8_to_b64(item.link || '').replace(/=/g, '');
+                const summaryId = `summary-${uniqueId}`;
+                const xmlId = `xml-${uniqueId}`;
+                const cleanTitle = escapeHtml(item.title || 'No Title');
+                const cleanDescription = escapeHtml(item.description || '');
+                const encodedXml = utf8_to_b64(item.rawXml || ' ');
+
+                const categoryChip = item.category ? `<span class="chip chip-neutral">${escapeHtml(item.category)}</span>` : '';
+                const sentimentChip = getSentimentChip(item.sentiment);
+
+                // Check if summary already exists. If so, pre-populate the (hidden) container.
+                const preloadedSummaryHTML = item.summary 
+                    ? `<div class="summary-box">${escapeHtml(item.summary).replace(/\n/g, '<br>')}</div>` 
+                    : '';
+
+                return `
+                    <li class="bg-gray-900 p-3 rounded-md report-item" data-title="${cleanTitle}" data-description="${cleanDescription}" data-sentiment="${item.sentiment || ''}" data-category="${item.category || ''}">
+                        <div class="flex justify-between items-start">
+                             <div>
+                                 <a href="${item.link}" target="_blank" class="text-white hover:underline font-semibold">${cleanTitle}</a>
+                                 <p class="text-xs text-gray-400 mt-1">
+                                     Found: ${new Date(item.ingestedAt).toLocaleString()} | Published: ${new Date(item.publishDate).toLocaleString()}
+                                 </p>
+                                 <div class="mt-2 chip-container">
+                                    ${categoryChip}
+                                    ${sentimentChip}
+                                 </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="view-xml-btn p-1 rounded-full hover:bg-gray-700" title="View Raw XML" data-target="${xmlId}" data-xml="${encodedXml}">
+                                    &lt;/&gt;
+                                </button>
+                                <button class="summarize-btn p-1 rounded-full hover:bg-gray-700" title="Summarize with Gemini"
+                                    data-title="${cleanTitle}" data-link="${item.link}" data-description="${cleanDescription}" data-target="${summaryId}" data-db-link="${item.link}">
+                                    ✨
+                                </button>
+                            </div>
+                        </div>
+                        <div id="${summaryId}" class="summary-container hidden mt-2">${preloadedSummaryHTML}</div>
+                        <div id="${xmlId}" class="xml-container hidden mt-2"></div>
+                    </li>`;
+            }
+
+            function saveInstanceDetails(instanceIndex) {
+                const newTitle = document.getElementById('instanceTitle').value;
+                if(newTitle) {
+                    appConfig.instances[instanceIndex].title = newTitle;
+                    renderConfigTree();
+                    renderInstanceDetails(instanceIndex);
+                    showMessage('Instance title updated. Remember to save configuration.');
+                }
+            }
+            
+            function saveSourceDetails(instanceIndex, sourceIndex) {
+                const source = appConfig.instances[instanceIndex].sources[sourceIndex];
+                source.title = document.getElementById('sourceTitle').value;
+                source.url = document.getElementById('sourceUrl').value;
+                source.dateFieldKey = document.getElementById('sourceDateField').value;
+                source.ignoreSourceDate = document.getElementById('ignoreSourceDate').checked;
+                source.filterRules = [];
+                document.querySelectorAll('#filter-rules-container > div').forEach(ruleEl => {
+                    const key = ruleEl.querySelector('.rule-key').value;
+                    const condition = ruleEl.querySelector('.rule-condition').value;
+                    const value = ruleEl.querySelector('.rule-value').value;
+                    if (key && value) source.filterRules.push({ key, condition, value });
+                });
+                renderConfigTree();
+                renderSourceDetails(instanceIndex, sourceIndex);
+                showMessage('Source details updated. Remember to save configuration.');
+            }
+
+            function addRule(instanceIndex, sourceIndex) {
+                if (!appConfig.instances[instanceIndex].sources[sourceIndex].filterRules) {
+                    appConfig.instances[instanceIndex].sources[sourceIndex].filterRules = [];
+                }
+                appConfig.instances[instanceIndex].sources[sourceIndex].filterRules.push({ key: '', condition: 'contains', value: '' });
+                renderSourceDetails(instanceIndex, sourceIndex);
+            }
+
+            function addSource(instanceIndex) {
+                if (!appConfig.instances[instanceIndex].sources) appConfig.instances[instanceIndex].sources = [];
+                appConfig.instances[instanceIndex].sources.push({ title: 'New Source', url: '', filterRules: [] });
+                renderConfigTree();
+            }
+
+            async function deleteInstance(instanceIndex) {
+                const response = await fetch(`${API_BASE_URL}/api/instance/${instanceIndex}`, { method: 'DELETE' });
+                const data = await response.json();
+                appConfig = data.config;
+                renderConfigTree();
+                detailsPanel.innerHTML = `<h2 class="text-xl font-bold text-white">Instance Deleted</h2><p class="text-gray-400 mt-2">The instance and its data have been removed.</p>`;
+            }
+
+            async function deleteSource(instanceIndex, sourceIndex) {
+                const response = await fetch(`${API_BASE_URL}/api/instance/${instanceIndex}/source/${sourceIndex}`, { method: 'DELETE' });
+                const data = await response.json();
+                appConfig = data.config;
+                renderConfigTree();
+                detailsPanel.innerHTML = `<h2 class="text-xl font-bold text-white">Source Deleted</h2><p class="text-gray-400 mt-2">The source and its data have been removed.</p>`;
+            }
+            
+            async function previewXml() {
+                const url = document.getElementById('sourceUrl').value;
+                const previewEl = document.getElementById('xmlPreview');
+                if (!url) { showError("Please enter a URL to preview."); return; }
+                previewEl.textContent = "Fetching...";
+                previewEl.classList.remove('hidden');
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/preview/xml`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ url: url })
+                    });
+                    const data = await response.json();
+                    if(data.error) throw new Error(data.error);
+                    previewEl.textContent = data.preview;
+                } catch(e) {
+                    previewEl.textContent = `Error: ${e.message}`;
+                }
+            }
+
+            async function getSummary(button) {
+                const targetId = button.dataset.target;
+                const summaryContainer = document.getElementById(targetId);
+                if (!summaryContainer) return;
+
+                // If summary is already pre-loaded, just toggle visibility
+                if (summaryContainer.innerHTML !== '' && !summaryContainer.textContent.startsWith('Summarizing')) {
+                    summaryContainer.classList.toggle('hidden');
+                    return;
+                }
+                
+                // If container is empty (old item), fetch, save, and display
+                summaryContainer.classList.remove('hidden');
+                summaryContainer.innerHTML = `<div class="summary-box">Summarizing...</div>`;
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/summarize`, { // This endpoint now triggers a get-and-save
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            link: button.dataset.dbLink // Use the link to ID the item in the DB
+                        })
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json(); // This will return the analysis { summary, sentiment, category }
+                    
+                    // Display the newly fetched summary
+                    summaryContainer.innerHTML = `<div class="summary-box">${escapeHtml(data.summary).replace(/\n/g, '<br>')}</div>`;
+                    
+                    // Find the parent list item and its chip container to update chips
+                    const listItem = button.closest('li.report-item');
+                    if (listItem) {
+                        const chipContainer = listItem.querySelector('.chip-container');
+                        if (chipContainer) {
+                            const categoryChip = data.category ? `<span class="chip chip-neutral">${escapeHtml(data.category)}</span>` : '';
+                            const sentimentChip = getSentimentChip(data.sentiment);
+                            chipContainer.innerHTML = categoryChip + sentimentChip;
+                        }
+                        // Also update the filter data attributes on the LI
+                        listItem.dataset.sentiment = data.sentiment || '';
+                        listItem.dataset.category = data.category || '';
+                    }
+
+                } catch (error) {
+                    console.error("Error fetching summary:", error);
+                    summaryContainer.innerHTML = `<div class="summary-box text-red-400">Failed to get summary. ${error.message}</div>`;
+                }
+            }
+
+            function toggleXmlDisplay(button) {
+                const targetId = button.dataset.target;
+                const xmlContainer = document.getElementById(targetId);
+                if (!xmlContainer) return;
+
+                if (xmlContainer.innerHTML !== '') {
+                    xmlContainer.classList.toggle('hidden');
+                    return;
+                }
+
+                try {
+                    const encodedXml = button.dataset.xml;
+                    if (!encodedXml || encodedXml === 'undefined') {
+                        xmlContainer.innerHTML = `<div class="xml-box text-gray-400">No XML data available for this item.</div>`;
+                        xmlContainer.classList.remove('hidden');
+                        return;
+                    }
+
+                    const rawXml = b64_to_utf8(encodedXml);
+                    
+                    const pre = document.createElement('pre');
+                    pre.className = 'bg-gray-900 text-xs text-gray-300 p-2 rounded-md max-h-60 overflow-auto';
+                    const code = document.createElement('code');
+                    code.textContent = rawXml;
+                    pre.appendChild(code);
+                    
+                    const xmlBox = document.createElement('div');
+                    xmlBox.className = 'xml-box';
+                    xmlBox.appendChild(pre);
+                    
+                    xmlContainer.appendChild(xmlBox);
+                    xmlContainer.classList.remove('hidden');
+                } catch (e) {
+                    console.error("Error decoding or displaying XML:", e);
+                    xmlContainer.innerHTML = `<div class="xml-box text-red-400">Error displaying XML.</div>`;
+                }
+            }
+            
+            // --- Event Listeners ---
+            addDestinationBtn.addEventListener('click', () => {
+                if (!appConfig.exportDestinations) appConfig.exportDestinations = [];
+                const newIndex = appConfig.exportDestinations.length;
+                appConfig.exportDestinations.push({ name: 'New Destination', type: 'googleChatWebhook', instances: [], reportDays: 7, dateField: 'ingestedAt' });
+                renderDestinations();
+                renderDestinationDetails(newIndex);
+            });
+            
+            addInstanceBtn.addEventListener('click', () => {
+                appConfig.instances.push({ title: "New Instance", sources: [], isActive: true });
+                renderConfigTree();
+            });
+
+            destinationsList.addEventListener('click', e => {
+                if(e.target.dataset.destinationIndex) renderDestinationDetails(e.target.dataset.destinationIndex);
+            });
+
+            saveConfigBtn.addEventListener('click', saveConfig);
+            togglePollingBtn.addEventListener('click', () => isPollingActive ? stopPolling() : startPolling());
+            generateReportBtn.addEventListener('click', generateReport);
+             configTree.addEventListener('click', (e) => {
+                const { target } = e;
+                const deleteInstanceBtn = target.closest('[data-delete-instance]');
+                if (deleteInstanceBtn) {
+                    const instanceIndex = deleteInstanceBtn.dataset.deleteInstance;
+                    const instance = appConfig.instances[instanceIndex];
+                    if (instance) {
+                        showConfirmationModal(
+                            'Confirm Instance Deletion',
+                            `Are you sure you want to delete the instance "${instance.title}"? This will also delete all of its sources and their collected data.`,
+                            () => deleteInstance(instanceIndex)
+                        );
+                    }
+                    return;
+                }
+                const deleteSourceBtn = target.closest('[data-delete-source]');
+                if (deleteSourceBtn) {
+                    const [instIdx, srcIdx] = deleteSourceBtn.dataset.deleteSource.split('-');
+                    deleteSource(instIdx, srcIdx); return;
+                }
+                const addSourceBtn = target.closest('[data-add-source]');
+                if (addSourceBtn) {
+                    addSource(addSourceBtn.dataset.instanceIndex); return;
+                }
+                const sourceTarget = target.closest('[data-source-index]');
+                if (sourceTarget) {
+                    renderSourceDetails(sourceTarget.dataset.instanceIndex, sourceTarget.dataset.sourceIndex); return;
+                }
+                const instanceTarget = target.closest('[data-instance-index]');
+                if (instanceTarget && !target.matches('.instance-checkbox')) {
+                    renderInstanceDetails(instanceTarget.dataset.instanceIndex);
+                }
+            });
+            
+            closeModalBtn.addEventListener('click', () => {
+                reportModal.classList.add('hidden');
+                reportModal.classList.remove('flex');
+            });
+            
+            reportSearch.addEventListener('input', () => renderReport(currentReportData));
+            reportSort.addEventListener('change', () => renderReport(currentReportData));
+            sentimentFilter.addEventListener('change', () => renderReport(currentReportData));
+            categoryFilter.addEventListener('change', () => renderReport(currentReportData));
+
+
+            importBtn.addEventListener('click', () => importFile.click());
+            exportBtn.addEventListener('click', () => { window.location.href = `${API_BASE_URL}/api/config/export`; });
+
+            importFile.addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('file', file);
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/config/import`, { method: 'POST', body: formData });
+                    if(response.ok) {
+                        appConfig = await response.json();
+                        renderConfigTree();
+                        showMessage('Configuration imported successfully!');
+                    } else throw new Error('Import failed');
+                } catch (error) {
+                    console.error("Error importing config:", error);
+                    showError('Failed to import configuration.');
+                } finally {
+                    importFile.value = '';
+                }
+            });
+            
+            reportContent.addEventListener('click', (e) => {
+                const summaryBtn = e.target.closest('.summarize-btn');
+                if (summaryBtn) { getSummary(summaryBtn); return; }
+
+                const xmlBtn = e.target.closest('.view-xml-btn');
+                if (xmlBtn) { toggleXmlDisplay(xmlBtn); }
+            });
+
+            sourcesTabBtn.addEventListener('click', () => {
+                sourcesTabBtn.classList.add('active');
+                settingsTabBtn.classList.remove('active');
+                sourcesPanel.classList.remove('hidden');
+                settingsPanel.classList.add('hidden');
+                renderHomePage(); // Show welcome page when switching to sources
+            });
+
+            settingsTabBtn.addEventListener('click', () => {
+                settingsTabBtn.classList.add('active');
+                sourcesTabBtn.classList.remove('active');
+                settingsPanel.classList.remove('hidden');
+                sourcesPanel.classList.add('hidden');
+                // Show welcome page or first destination details if available
+                if (appConfig.exportDestinations && appConfig.exportDestinations.length > 0) {
+                    renderDestinationDetails(0);
+                } else {
+                    renderHomePage();
+                }
+            });
+            
+            homeBtn.addEventListener('click', renderHomePage);
+            
+            // Initial Load
+            fetchConfig();
+            renderHomePage();
+        });
+    </script>
+</body>
+</html>
+

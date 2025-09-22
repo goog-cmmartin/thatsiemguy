@@ -1,0 +1,5 @@
+requests
+Flask
+flask-cors
+apscheduler
+google-generativeai
