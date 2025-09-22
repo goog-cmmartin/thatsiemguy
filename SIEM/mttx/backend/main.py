@@ -16,7 +16,7 @@ from pydantic import BaseModel, field_validator
 from typing import List, Dict, Any, Optional
 
 # --- Version ---
-VERSION = "0.1.0"
+VERSION = "0.0.9"
 
 # --- Logging Setup ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -406,14 +406,20 @@ def run_scheduled_analysis(tenant_id: int, schedule_id: int):
                     
                     base_name = dest.data_table_name or f"mttx_schedule_{schedule.id}"
 
-                    def write_to_data_table(table_name, header_def, rows_data):
+                    def write_to_data_table(table_name, header_def, rows_data, column_options=None):
                         try:
                             chronicle.create_data_table_rows(table_name, rows_data)
                             logging.info(f"Successfully appended {len(rows_data)} rows to Data Table '{table_name}'.")
                         except Exception:
                             logging.warning(f"Failed to append rows to '{table_name}', attempting to create it.")
                             try:
-                                chronicle.create_data_table(name=table_name, description=f"MTTx metrics export for {tenant_name}", header=header_def, rows=rows_data)
+                                chronicle.create_data_table(
+                                    name=table_name, 
+                                    description=f"MTTx metrics export for {tenant_name}", 
+                                    header=header_def, 
+                                    rows=rows_data,
+                                    column_options=column_options
+                                )
                                 logging.info(f"Successfully created Data Table '{table_name}' with {len(rows_data)} rows.")
                             except Exception as create_e:
                                 logging.error(f"Failed to create Data Table '{table_name}': {create_e}", exc_info=True)
@@ -469,7 +475,8 @@ def run_scheduled_analysis(tenant_id: int, schedule_id: int):
                             ]
                             rows.append(row)
                         if rows:
-                            write_to_data_table(table_name, header, rows)
+                            column_options = {"case_id": {"keyColumn": True}}
+                            write_to_data_table(table_name, header, rows, column_options=column_options)
 
                 except Exception as e:
                     logging.error(f"Failed to process Data Table destination for schedule {schedule_id}: {e}", exc_info=True)
