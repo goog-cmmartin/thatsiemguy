@@ -779,10 +779,10 @@ def get_thresholds(tenant_id: int, db: Session = Depends(get_db)):
         
         # Time-based defaults
         time_defaults = [
-            {"tenant_id": tenant_id, "metric_name": "MTTD", "good_threshold": 600, "ok_threshold": 3600}, # Good <= 10 mins, Ok <= 1 hr
-            {"tenant_id": tenant_id, "metric_name": "MTTA", "good_threshold": 900, "ok_threshold": 3600}, # Good <= 15 mins, Ok <= 1 hr
-            {"tenant_id": tenant_id, "metric_name": "MTTC", "good_threshold": 3600, "ok_threshold": 21600}, # Good <= 1 hr, Ok <= 6 hrs
-            {"tenant_id": tenant_id, "metric_name": "MTTR", "good_threshold": 604800, "ok_threshold": 2592000}, # Good <= 7 days, Ok <= 30 days
+            {"tenant_id": tenant_id, "metric_name": "MTTD", "good_threshold": 3600, "ok_threshold": 86400}, # Good <= 1 Hour, Ok <= 24 Hours
+            {"tenant_id": tenant_id, "metric_name": "MTTA", "good_threshold": 600, "ok_threshold": 3600}, # Good <= 10 mins, Ok <= 60 Minutes
+            {"tenant_id": tenant_id, "metric_name": "MTTC", "good_threshold": 2700, "ok_threshold": 7200}, # Good <= 45 mins, Ok <= 2 Hours
+            {"tenant_id": tenant_id, "metric_name": "MTTR", "good_threshold": 28800, "ok_threshold": 172800}, # Good <= 8 Hours, Ok <= 48 Hours
         ]
         
         # Percentage-based defaults (Good >= 90, Ok >= 75)
@@ -821,6 +821,17 @@ def bulk_update_thresholds(tenant_id: int, payload: BulkThresholdUpdate, db: Ses
             updated_thresholds.append(db_threshold)
     db.commit()
     return updated_thresholds
+
+@api_router.post("/tenants/{tenant_id}/thresholds/revert", response_model=List[MetricThresholdResponse])
+def revert_thresholds_to_default(tenant_id: int, db: Session = Depends(get_db)):
+    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    db.query(MetricThreshold).filter(MetricThreshold.tenant_id == tenant_id).delete()
+    db.commit()
+
+    return get_thresholds(tenant_id=tenant_id, db=db)
 
 @api_router.get("/tenants/{tenant_id}/queries", response_model=List[QueryConfigResponse])
 def get_queries(tenant_id: int, db: Session = Depends(get_db)):

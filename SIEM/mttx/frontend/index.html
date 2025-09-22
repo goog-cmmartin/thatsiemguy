@@ -78,6 +78,9 @@
             border-radius: 0.375rem;
             margin: 0.125rem;
         }
+        .filter-options-list.collapsed > label:nth-child(n+11) {
+            display: none;
+        }        
     </style>
     <script>
         // On page load or when changing themes, best to add inline in `head` to avoid FOUC
@@ -104,12 +107,12 @@
         <!-- Main Tab Navigation -->
         <div class="border-b border-gray-200 dark:border-gray-700">
             <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                <button data-target="tenants-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Tenants</button>
-                <button data-target="configs-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Configurations</button>
-                <button data-target="analysis-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Ad-hoc Analysis</button>
-                <button data-target="results-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">MTTx Results</button>
-                <button data-target="scheduler-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Scheduler</button>
-                <button data-target="signal-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm">Signal to Noise</button>
+                <button data-target="tenants-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Tenants</button>
+                <button data-target="configs-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Configurations</button>
+                <button data-target="analysis-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Ad-hoc Analysis</button>
+                <button data-target="results-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">MTTx Results</button>
+                <button data-target="scheduler-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Scheduler</button>
+                <button data-target="signal-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Signal to Noise</button>
             </nav>
         </div>
 
@@ -161,7 +164,7 @@
 
             <!-- Tenants Panel -->
             <div id="tenants-panel" class="main-tab-panel">
-                <p class="mb-6 text-gray-600 dark:text-gray-400">Configure your instances of Google SecOps. You will require a chronicle.googleapis.com BYOP Service Account, and a SOAR API key.</p>
+                <p id="tenant-instructions" class="mb-6 text-gray-600 dark:text-gray-400">Start here by adding an instance of Google SecOps. This application GOOGLE_APPLICATION_CREDENTIALS and so the user running the `main.py` will require at a minimum `dashboardQueries.execute`, `dashboards.create`, and `dataTables.create` for SIEM integration, and a SOAR API key with Admin permissions.</p>
                 <div class="card p-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2 dark:border-gray-600">
                         <h2 class="text-2xl font-bold dark:text-white">Configured Tenants</h2>
@@ -241,91 +244,96 @@
                         </div>
                     </div>
 
-                    <div id="config-accordion" data-accordion="collapse" class="hidden">
-                        <h2 id="accordion-heading-1">
-                            <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" data-accordion-target="#accordion-body-1" aria-expanded="true" aria-controls="accordion-body-1">
-                                <span>1. MTTx Metric Definitions</span>
-                                <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
-                            </button>
-                        </h2>
-                        <div id="accordion-body-1" class="hidden" aria-labelledby="accordion-heading-1">
-                            <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div class="card p-6">
-                                         <h3 class="text-xl font-bold mb-4 dark:text-white">MTTC Configuration</h3>
-                                         <form id="mttc-config-form" class="space-y-4" data-metric="MTTC">
-                                             <input type="hidden" id="mttc-config-id">
-                                             <div>
-                                                 <label class="block font-semibold dark:text-gray-300">Key (Read-only)</label>
-                                                 <input type="text" class="w-full p-2 border rounded-md mt-1 bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-300" value="case_history_stage" readonly>
-                                             </div>
-                                             <div>
-                                                 <label class="block font-semibold dark:text-gray-300">Value (Select a Case Stage)</label>
-                                                 <select id="mttc-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
-                                             </div>
-                                         </form>
+                    <div class="card">
+                        <div id="config-accordion" data-accordion="collapse" class="hidden">
+                            <h2 id="accordion-heading-1">
+                                <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" data-accordion-target="#accordion-body-1" aria-expanded="true" aria-controls="accordion-body-1">
+                                    <span>1. MTTx Metric Definitions</span>
+                                    <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
+                                </button>
+                            </h2>
+                            <div id="accordion-body-1" class="hidden" aria-labelledby="accordion-heading-1">
+                                <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div class="card p-6">
+                                             <h3 class="text-xl font-bold mb-4 dark:text-white">MTTC Configuration</h3>
+                                             <form id="mttc-config-form" class="space-y-4" data-metric="MTTC">
+                                                 <input type="hidden" id="mttc-config-id">
+                                                 <div>
+                                                     <label class="block font-semibold dark:text-gray-300">Key (Read-only)</label>
+                                                     <input type="text" class="w-full p-2 border rounded-md mt-1 bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-300" value="case_history_stage" readonly>
+                                                 </div>
+                                                 <div>
+                                                     <label class="block font-semibold dark:text-gray-300">Value (Select a Case Stage)</label>
+                                                     <select id="mttc-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
+                                                 </div>
+                                             </form>
+                                        </div>
+                                        <div class="card p-6">
+                                             <h3 class="text-xl font-bold mb-4 dark:text-white">MTTR Configuration</h3>
+                                             <form id="mttr-config-form" class="space-y-4" data-metric="MTTR">
+                                                <input type="hidden" id="mttr-config-id">
+                                                <div>
+                                                     <label class="block font-semibold dark:text-gray-300">Key</label>
+                                                     <select id="mttr-config-key" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                                        <option value="case_history_stage">Case Stage</option>
+                                                        <option value="case_history_status">Case Status</option>
+                                                     </select>
+                                                 </div>
+                                                 <div>
+                                                     <label class="block font-semibold dark:text-gray-300">Value</label>
+                                                     <select id="mttr-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
+                                                 </div>
+                                             </form>
+                                        </div>
                                     </div>
-                                    <div class="card p-6">
-                                         <h3 class="text-xl font-bold mb-4 dark:text-white">MTTR Configuration</h3>
-                                         <form id="mttr-config-form" class="space-y-4" data-metric="MTTR">
-                                            <input type="hidden" id="mttr-config-id">
-                                            <div>
-                                                 <label class="block font-semibold dark:text-gray-300">Key</label>
-                                                 <select id="mttr-config-key" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                                    <option value="case_history_stage">Case Stage</option>
-                                                    <option value="case_history_status">Case Status</option>
-                                                 </select>
-                                             </div>
-                                             <div>
-                                                 <label class="block font-semibold dark:text-gray-300">Value</label>
-                                                 <select id="mttr-config-value" class="w-full p-2 border rounded-md mt-1 bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></select>
-                                             </div>
-                                         </form>
+                                    <button id="save-metrics-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Metric Definitions</button>
+                                </div>
+                            </div>
+
+                            <h2 id="accordion-heading-2">
+                                <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" data-accordion-target="#accordion-body-2" aria-expanded="false" aria-controls="accordion-body-2">
+                                    <span>2. Data Source Queries</span>
+                                    <svg data-accordion-icon class="w-3 h-3 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
+                                </button>
+                            </h2>
+                            <div id="accordion-body-2" class="hidden" aria-labelledby="accordion-heading-2">
+                                <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700">
+                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div class="card p-6">
+                                             <h3 class="text-xl font-bold mb-4 dark:text-white">Case History Query</h3>
+                                             <form id="query-history-form">
+                                                 <input type="hidden" id="query-history-id">
+                                                 <textarea id="query-history-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
+                                             </form>
+                                        </div>
+                                        <div class="card p-6">
+                                             <h3 class="text-xl font-bold mb-4 dark:text-white">Case (MTTD) Query</h3>
+                                             <form id="query-case-form">
+                                                 <input type="hidden" id="query-case-id">
+                                                 <textarea id="query-case-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
+                                             </form>
+                                        </div>
+                                    </div>
+                                    <button id="save-queries-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Queries</button>
+                                </div>
+                            </div>
+
+                            <h2 id="accordion-heading-3">
+                                <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:border-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" data-accordion-target="#accordion-body-3" aria-expanded="false" aria-controls="accordion-body-3">
+                                    <span>3. Report Thresholds</span>
+                                    <svg data-accordion-icon class="w-3 h-3 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
+                                </button>
+                            </h2>
+                            <div id="accordion-body-3" class="hidden" aria-labelledby="accordion-heading-3">
+                                <div class="p-5 border border-t-0 border-gray-200 dark:border-gray-700">
+                                    <p class="text-sm text-gray-600 mb-4 dark:text-gray-400">Set the thresholds for color-coding the average metrics on the results page. Values are evaluated in order: if a metric is less than or equal to the 'Good' value, it's good. If not, it's checked against the 'Ok' value.</p>
+                                    <div id="threshold-config-forms" class="overflow-x-auto"></div>
+                                    <div class="flex space-x-2 mt-4">
+                                        <button id="save-thresholds-btn" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Thresholds</button>
+                                        <button id="revert-thresholds-btn" class="w-full bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500">Revert to Defaults</button>
                                     </div>
                                 </div>
-                                <button id="save-metrics-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Metric Definitions</button>
-                            </div>
-                        </div>
-
-                        <h2 id="accordion-heading-2">
-                            <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" data-accordion-target="#accordion-body-2" aria-expanded="false" aria-controls="accordion-body-2">
-                                <span>2. Data Source Queries</span>
-                                <svg data-accordion-icon class="w-3 h-3 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
-                            </button>
-                        </h2>
-                        <div id="accordion-body-2" class="hidden" aria-labelledby="accordion-heading-2">
-                            <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700">
-                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div class="card p-6">
-                                         <h3 class="text-xl font-bold mb-4 dark:text-white">Case History Query</h3>
-                                         <form id="query-history-form">
-                                             <input type="hidden" id="query-history-id">
-                                             <textarea id="query-history-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
-                                         </form>
-                                    </div>
-                                    <div class="card p-6">
-                                         <h3 class="text-xl font-bold mb-4 dark:text-white">Case (MTTD) Query</h3>
-                                         <form id="query-case-form">
-                                             <input type="hidden" id="query-case-id">
-                                             <textarea id="query-case-text" class="w-full p-2 border rounded-md font-mono text-sm bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" rows="15"></textarea>
-                                         </form>
-                                    </div>
-                                </div>
-                                <button id="save-queries-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Queries</button>
-                            </div>
-                        </div>
-
-                        <h2 id="accordion-heading-3">
-                            <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:border-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" data-accordion-target="#accordion-body-3" aria-expanded="false" aria-controls="accordion-body-3">
-                                <span>3. Report Thresholds</span>
-                                <svg data-accordion-icon class="w-3 h-3 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
-                            </button>
-                        </h2>
-                        <div id="accordion-body-3" class="hidden" aria-labelledby="accordion-heading-3">
-                            <div class="p-5 border border-t-0 border-gray-200 dark:border-gray-700">
-                                <p class="text-sm text-gray-600 mb-4 dark:text-gray-400">Set the thresholds for color-coding the average metrics on the results page. Values are evaluated in order: if a metric is less than or equal to the 'Good' value, it's good. If not, it's checked against the 'Ok' value.</p>
-                                <div id="threshold-config-forms" class="overflow-x-auto"></div>
-                                <button id="save-thresholds-btn" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Save Thresholds</button>
                             </div>
                         </div>
                     </div>
@@ -345,7 +353,7 @@
                         <div>
                             <label class="block font-semibold dark:text-gray-300">Select Relative Time Range</label>
                             <div class="flex items-center space-x-2 mt-1">
-                                <input type="number" id="start-time-val" class="w-1/2 p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="7">
+                                <input type="number" id="start-time-val" class="w-1/2 p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="3">
                                 <select id="time-unit" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="DAY">Days</option>
                                     <option value="HOUR">Hours</option>
@@ -360,47 +368,86 @@
 
             <!-- MTTx Results Panel -->
             <div id="results-panel" class="main-tab-panel hidden">
-                <p class="mb-6 text-gray-600 dark:text-gray-400">Optionally, apply Filters to update your Average Metrics, Completion Rates, and the Show Details tickbox if you wish to see more granular Case data.</p>
-                <div id="filter-container" class="card p-6 mb-8 hidden">
-                    <div class="flex justify-between items-center border-b pb-2 mb-4 dark:border-gray-600">
-                        <h2 class="text-2xl font-bold dark:text-white">Filters</h2>
-                        <button id="toggle-filters-btn" title="Toggle Filters" class="text-gray-500 hover:text-gray-800 transition dark:text-gray-400 dark:hover:text-white">
-                            <svg class="w-6 h-6 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                    </div>
-                    <div id="filter-body" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                             <div>
-                                <label for="environment-search" class="block font-semibold mb-1 dark:text-gray-300">Search Environments</label>
-                                <input type="text" id="environment-search" placeholder="Filter environments..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                 <div id="environment-filter-options" class="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
-                            </div>
-                             <div>
-                                <label for="rule-search" class="block font-semibold mb-1 dark:text-gray-300">Search Detection Rules</label>
-                                <input type="text" id="rule-search" placeholder="Filter rules..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                <div id="rule-filter-options" class="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
-                            </div>
-                            <div>
-                                <label for="tag-search" class="block font-semibold mb-1 dark:text-gray-300">Search Tags</label>
-                                <input type="text" id="tag-search" placeholder="Filter tags..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                <div id="tag-filter-options" class="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600"></div>
-                                <label for="filter-mode" class="block font-semibold mb-1 mt-4 dark:text-gray-300">Tag Filter Mode</label>
-                                <select id="filter-mode" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                    <option value="exclude">Exclude cases with selected tags</option>
-                                    <option value="include">Include ONLY cases with selected tags</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button id="apply-filters-btn" class="w-full md:w-auto bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Apply Filters</button>
-                            <button id="clear-filters-btn" class="w-full md:w-auto bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500">Clear Filters</button>
-                        </div>
-                    </div>
+               
+                <!-- Show Filters Button -->
+                <div class="mb-4">
+                    <button id="show-filters-modal-btn" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" type="button">
+                        Filter Results
+                    </button>
                 </div>
+
+                <!-- Active Filter Pills -->
+                <div id="active-filters-pills" class="my-4 flex flex-wrap items-center gap-2"></div>
+
                 <div id="mttx-results-container">
                      <p class="text-gray-500 dark:text-gray-400">Calculate metrics to see results.</p>
                 </div>
             </div>
+
+            <!-- Filters Modal -->
+            <div id="filters-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                 <div class="relative p-4 w-full max-w-[90%] max-h-full">
+                     <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                         <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                             <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                                 Report Filters
+                             </h3>
+                             <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="filters-modal">
+                                 <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/></svg>
+                                 <span class="sr-only">Close modal</span>
+                             </button>
+                         </div>
+                         <div class="p-4 md:p-5">
+
+                            <button type="button" id="toggle-filter-lists-btn" class="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-4 block">
+                                Expand All Lists
+                            </button>
+
+                             <div id="filter-body" class="space-y-6">
+                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                     <div>
+                                         <label for="environment-search" class="block font-semibold mb-1 dark:text-gray-300">Search Environments</label>
+                                         <input type="text" id="environment-search" placeholder="Filter environments..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                          <div id="environment-filter-options" class="grid grid-cols-1 gap-2 p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600 filter-options-list collapsed">
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" value="Cymbal" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500">
+                                                <span class="text-sm text-gray-700 dark:text-gray-300">Cymbal</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" value="Default Environment" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500">
+                                                <span class="text-sm text-gray-700 dark:text-gray-300">Default Environment</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" value="LogStory" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500">
+                                                <span class="text-sm text-gray-700 dark:text-gray-300">LogStory</span>
+                                            </label>
+                                          </div>
+                                     </div>
+                                     <div>
+                                         <label for="rule-search" class="block font-semibold mb-1 dark:text-gray-300">Search Detection Rules</label>
+                                         <input type="text" id="rule-search" placeholder="Filter rules..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                         <div id="rule-filter-options" class="grid grid-cols-1 gap-2 p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600 filter-options-list collapsed"></div>
+                                     </div>
+                                     <div>
+                                         <label for="tag-search" class="block font-semibold mb-1 dark:text-gray-300">Search Tags</label>
+                                         <input type="text" id="tag-search" placeholder="Filter tags..." class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                         <div id="tag-filter-options" class="grid grid-cols-1 gap-2 p-2 mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600 filter-options-list collapsed"></div>
+                                         <label for="filter-mode" class="block font-semibold mb-1 mt-4 dark:text-gray-300">Tag Filter Mode</label>
+                                         <select id="filter-mode" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                             <option value="exclude">Exclude cases with selected tags</option>
+                                             <option value="include">Include ONLY cases with selected tags</option>
+                                         </select>
+                                     </div>
+                                 </div>
+                                 <div class="flex space-x-2">
+                                     <button id="apply-filters-btn" class="w-full md:w-auto bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Apply Filters</Vbutton>
+                                     <button id="clear-filters-btn" class="w-full md:w-auto bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500">Clear Filters</button>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
             
             <!-- Signal to Noise Panel -->
             <div id="signal-panel" class="main-tab-panel hidden">
@@ -429,6 +476,42 @@
             </div>
         </div>
     </main>
+
+    <div id="toast-success" class="fixed top-5 right-5 z-50 hidden flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
+        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+            </svg>
+            <span class="sr-only">Check icon</span>
+        </div>
+        <div id="toast-success-msg" class="ms-3 text-sm font-normal">Item moved successfully.</div>
+        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-success" aria-label="Close">
+            <span class="sr-only">Close</span>
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+        </button>
+    </div>
+
+    <div id="toast-danger" class="fixed top-5 right-5 z-50 hidden flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
+        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
+            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+            </svg>
+            <span class="sr-only">Error icon</span>
+        </div>
+        <div id="toast-danger-msg" class="ms-3 text-sm font-normal">Item has been deleted.</div>
+        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-danger" aria-label="Close">
+            <span class="sr-only">Close</span>
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+        </button>
+    </div>
+
+    <footer class="fixed bottom-0 right-0 p-4">
+        <span id="app-version" class="text-xs text-gray-500 dark:text-gray-400"></span>
+    </footer>
 
     <!-- Main modal -->
     <div id="default-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -474,6 +557,11 @@
         let signalChart = null;
         let sortColumn = 'case_id';
         let sortDirection = 'asc';
+        let filtersModal = null;
+        let confirmationModal = null;
+        let defaultModal = null;
+        let showDetailsState = true;
+        let selectedUnitState = 'MINUTES';
 
         // Element References
         const tenantList = document.getElementById('tenant-list');
@@ -487,6 +575,17 @@
         // Tab Switching Logic
         const mainTabs = document.querySelectorAll('.tab-btn');
         const mainTabPanels = document.querySelectorAll('.main-tab-panel');
+
+        const fetchVersion = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/version`);
+                if (!response.ok) return;
+                const data = await response.json();
+                document.getElementById('app-version').textContent = `v${data.version}`;
+            } catch (error) {
+                console.error("Could not fetch version:", error);
+            }
+        };
 
         const switchMainTab = (targetPanelId) => {
             mainTabPanels.forEach(p => p.classList.toggle('hidden', p.id !== targetPanelId));
@@ -539,7 +638,7 @@
         const showScheduleModal = (schedule = null) => {
             const tenantId = tenantSelectForScheduler.value;
             if (!tenantId) {
-                alert('Please select a tenant first.');
+                showToast('Please select a tenant first.', 'danger');
                 return;
             }
             
@@ -603,9 +702,9 @@
                         </label>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <button class="edit-schedule-btn text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">Edit</button>
-                        <button class="test-schedule-btn text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300">Test Run</button>
-                        <button class="delete-schedule-btn text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                        <button class="edit-schedule-btn text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" data-schedule-id="${schedule.id}">Edit</button>
+                        <button class="test-schedule-btn text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300" data-schedule-id="${schedule.id}">Test Run</button>
+                        <button class="delete-schedule-btn text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" data-schedule-id="${schedule.id}">Delete</button>
                     </td>
                 `;
                 row.querySelector('.edit-schedule-btn').addEventListener('click', () => showScheduleModal(schedule));
@@ -684,10 +783,10 @@
                     body: JSON.stringify(scheduleData)
                 });
                 if (!response.ok) throw new Error(await response.text());
-                alert(`Schedule ${isNew ? 'created' : 'updated'} successfully!`);
+                showToast(`Schedule ${isNew ? 'created' : 'updated'} successfully!`);
                 loadAndDisplaySchedules(tenantId);
             } catch (error) {
-                alert(`Error: ${error.message}`);
+                showToast(`Error: ${error.message}`, 'danger');
             }
         };
         
@@ -717,6 +816,7 @@
 
                     destForm.innerHTML = `
                         <input type="hidden" name="destination_id" value="${dest.id}">
+                        <input type="hidden" name="schedule_id" value="${scheduleId}">
                         <input type="hidden" name="destination_type" value="${dest.destination_type}">
                         <div class="flex justify-between items-center mb-2">
                             <p class="font-semibold dark:text-white">Destination: ${dest.destination_type}</p>
@@ -726,9 +826,9 @@
                         <div class="mt-2">
                             <label class="flex items-center"><input type="checkbox" name="is_enabled" class="h-4 w-4 rounded" ${dest.is_enabled ? 'checked' : ''}> <span class="ml-2 text-sm dark:text-gray-300">Enabled</span></label>
                         </div>
-                        <div class="flex space-x-2 mt-2">
-                            <button type="submit" class="w-full bg-green-600 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-green-700">Update Destination</button>
-                            ${dest.destination_type === 'DATA_TABLE' ? `<button type="button" class="create-dashboard-btn w-full bg-indigo-600 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-indigo-700" data-destination-id="${dest.id}">Create Dashboard</button>` : ''}
+                        <div class="flex space-x-2 mt-4">
+                            <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Update Destination</button>
+                            ${dest.destination_type === 'DATA_TABLE' ? `<button type="button" class="create-dashboard-btn w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition" data-destination-id="${dest.id}">Create Dashboard</button>` : ''}
                         </div>
                     `;
                     container.appendChild(destForm);
@@ -755,7 +855,7 @@
                         <label class="block text-sm font-medium dark:text-gray-300">Data Table Name (Optional)</label>
                         <input type="text" name="data_table_name" class="w-full p-2 border rounded-md mt-1 text-sm bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Default: mttx_schedule_${scheduleId}_<type>">
                     </div>
-                    <button type="submit" class="mt-2 w-full bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg hover:bg-blue-600">Add Destination</button>
+                    <button type="submit" class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Add Destination</button>
                 `;
                 container.appendChild(newDestForm);
                 
@@ -780,9 +880,42 @@
             }
         };
         
-        document.getElementById('scheduler-content').addEventListener('submit', async function(event) {
+        document.getElementById('scheduler-content').addEventListener('click', async function(event) {
+            if (event.target.classList.contains('test-schedule-btn')) {
+                const scheduleId = event.target.dataset.scheduleId;
+                event.target.textContent = 'Testing...';
+                event.target.disabled = true;
+                try {
+                    const response = await fetch(`${API_BASE_URL}/schedules/${scheduleId}/run`, { method: 'POST' });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.detail || 'Failed to start test run.');
+                    showToast(result.message);
+                } catch (error) {
+                    showToast(`Error: ${error.message}`, 'danger');
+                } finally {
+                    event.target.textContent = 'Test Run';
+                    event.target.disabled = false;
+                }
+            }
+            if (event.target.classList.contains('delete-schedule-btn')) {
+                const scheduleId = event.target.dataset.scheduleId;
+                const confirmed = await showModal('Are you sure you want to delete this entire schedule and its destinations?');
+                if (confirmed) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/schedules/${scheduleId}`, { method: 'DELETE' });
+                        if (!response.ok) throw new Error('Failed to delete schedule');
+                        showToast('Schedule deleted.');
+                        loadAndDisplaySchedules(tenantSelectForScheduler.value);
+                    } catch (error) { showToast(`Error: ${error.message}`, 'danger'); }
+                }
+            }
+        });
+
+        document.getElementById('schedule-modal').addEventListener('submit', async function(event) {
             const form = event.target;
-            if (form.querySelector('[name="destination_id"]') || form.querySelector('[name="destination_type"]')) { // It's a destination form
+            // This condition is now more general to catch both the <select> in the "new" form 
+            // and the <input> in the "update" forms.
+            if (form.querySelector('[name="destination_type"]')) {
                 event.preventDefault();
                 const destId = form.destination_id ? form.destination_id.value : null;
                 const scheduleId = form.schedule_id.value;
@@ -802,54 +935,27 @@
                 try {
                     const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
                     if (!response.ok) throw new Error(await response.text());
-                    alert(`Destination ${isNew ? 'added' : 'updated'}.`);
-                    renderDestinations(scheduleId);
+                    showToast(`Destination ${isNew ? 'added' : 'updated'}.`);
+                    renderDestinations(document.getElementById('destinations-container'), scheduleId);
                 } catch (error) {
-                    alert(`Error: ${error.message}`);
+                    showToast(`Error: ${error.message}`, 'danger');
                 }
             }
         });
 
-        document.getElementById('scheduler-content').addEventListener('click', async function(event) {
-            if (event.target.classList.contains('test-schedule-btn')) {
-                const scheduleId = event.target.dataset.scheduleId;
-                event.target.textContent = 'Testing...';
-                event.target.disabled = true;
-                try {
-                    const response = await fetch(`${API_BASE_URL}/schedules/${scheduleId}/run`, { method: 'POST' });
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.detail || 'Failed to start test run.');
-                    alert(result.message);
-                } catch (error) {
-                    alert(`Error: ${error.message}`);
-                } finally {
-                    event.target.textContent = 'Test Run';
-                    event.target.disabled = false;
-                }
-            }
-            if (event.target.classList.contains('delete-schedule-btn')) {
-                const scheduleId = event.target.dataset.scheduleId;
-                const confirmed = await showModal('Are you sure you want to delete this entire schedule and its destinations?');
-                if (confirmed) {
-                    try {
-                        const response = await fetch(`${API_BASE_URL}/schedules/${scheduleId}`, { method: 'DELETE' });
-                        if (!response.ok) throw new Error('Failed to delete schedule');
-                        alert('Schedule deleted.');
-                        loadAndDisplaySchedules(tenantSelectForScheduler.value);
-                    } catch (error) { alert(`Error: ${error.message}`); }
-                }
-            }
+        document.getElementById('schedule-modal').addEventListener('click', async function(event) {
             if (event.target.classList.contains('delete-destination-btn')) {
                 const destinationId = event.target.dataset.destinationId;
-                const scheduleId = event.target.closest('.card').querySelector('form input[name="schedule_id"]').value;
+                const form = event.target.closest('form');
+                const scheduleId = form.querySelector('input[name="schedule_id"]').value;
                 const confirmed = await showModal('Are you sure you want to delete this destination?');
                  if (confirmed) {
                     try {
                         const response = await fetch(`${API_BASE_URL}/destinations/${destinationId}`, { method: 'DELETE' });
                         if (!response.ok) throw new Error('Failed to delete destination');
-                        alert('Destination deleted.');
-                        renderDestinations(scheduleId);
-                    } catch (error) { alert(`Error: ${error.message}`); }
+                        showToast('Destination deleted.');
+                        renderDestinations(document.getElementById('destinations-container'), scheduleId);
+                    } catch (error) { showToast(`Error: ${error.message}`, 'danger'); }
                 }
             }
             if (event.target.classList.contains('create-dashboard-btn')) {
@@ -870,10 +976,10 @@
                 if (result.dashboard_url) {
                     successMessage += `\n\nYou can view it here: ${result.dashboard_url}`;
                 }
-                alert(successMessage);
+                showToast(successMessage);
 
             } catch (error) {
-                alert(`Error: ${error.message}`);
+                showToast(`Error: ${error.message}`, 'danger');
             } finally {
                 buttonElement.textContent = 'Create Dashboard';
                 buttonElement.disabled = false;
@@ -909,6 +1015,37 @@
             showTenantModal(tenant);
         };
 
+        const showToast = (message, type = 'success') => {
+            let toastId, msgId;
+            if (type === 'success') {
+                toastId = 'toast-success';
+                msgId = 'toast-success-msg';
+            } else {
+                toastId = 'toast-danger';
+                msgId = 'toast-danger-msg';
+            }
+
+            const $targetEl = document.getElementById(toastId);
+            if (!$targetEl) {
+                console.error('Toast HTML element not found:', toastId);
+                alert(message); // Fallback
+                return;
+            }
+
+            // Set the message
+            document.getElementById(msgId).textContent = message;
+
+            // Manually show the toast
+            $targetEl.classList.remove('hidden');
+            $targetEl.classList.add('flex');
+
+            // Manually hide it after 3 seconds
+            setTimeout(() => {
+                $targetEl.classList.add('hidden');
+                $targetEl.classList.remove('flex');
+            }, 3000);
+        };
+
         const handleTestTenant = async (tenantId, statusEl) => {
             statusEl.textContent = 'Testing...';
             statusEl.className = 'status-badge bg-yellow-100 text-yellow-800';
@@ -917,7 +1054,7 @@
                 const result = await response.json();
                 statusEl.textContent = result.status === 'success' ? 'Success' : 'Failed';
                 statusEl.className = `status-badge ${result.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
-                if(result.status !== 'success') alert(`Connection Test Failed: ${result.message || 'Unknown error'}`);
+                if(result.status !== 'success') showToast(`Connection Test Failed: ${result.message || 'Unknown error'}`, 'danger');
             } catch (error) {
                 statusEl.textContent = 'Failed';
                 statusEl.className = 'status-badge bg-red-100 text-red-800';
@@ -933,18 +1070,16 @@
                         const errorData = await response.json();
                         throw new Error(errorData.detail || 'Failed to delete tenant');
                     }
-                    alert('Tenant deleted successfully.');
-                    resetTenantForm();
+                    showToast('Tenant deleted successfully.');
                     fetchTenants();
                 } catch (error) {
-                    alert(`Error: ${error.message}`);
+                    showToast(`Error: ${error.message}`, 'danger');
                 }
             }
         };
 
         const showModal = (message, title = 'Confirmation') => {
             return new Promise((resolve) => {
-                const modal = new Modal(document.getElementById('default-modal'));
                 document.getElementById('modal-title').textContent = title;
                 document.getElementById('modal-body').textContent = message;
 
@@ -952,13 +1087,13 @@
                 const declineBtn = document.getElementById('modal-decline-btn');
 
                 const confirmClickHandler = () => {
-                    modal.hide();
+                    defaultModal.hide();
                     resolve(true);
                     cleanup();
                 };
 
                 const declineClickHandler = () => {
-                    modal.hide();
+                    defaultModal.hide();
                     resolve(false);
                     cleanup();
                 };
@@ -971,20 +1106,23 @@
                 confirmBtn.addEventListener('click', confirmClickHandler);
                 declineBtn.addEventListener('click', declineClickHandler);
 
-                modal.show();
+                defaultModal.show();
             });
         };
 
         const renderTenants = (tenants) => {
             const selects = [tenantSelectForAnalysis, tenantSelectForConfig, tenantSelectForScheduler];
+            const instructions = document.getElementById('tenant-instructions');
             tenantList.innerHTML = '';
             selects.forEach(s => s.innerHTML = '');
             if (tenants.length === 0) {
+                instructions.classList.remove('hidden');
                 const noTenantMsg = `<li class="p-2 text-gray-500 dark:text-gray-400">No tenants configured.</li>`;
                 const noTenantOption = `<option>Please add a tenant first</option>`;
                 tenantList.innerHTML = noTenantMsg;
                 selects.forEach(s => s.innerHTML = noTenantOption);
             } else {
+                instructions.classList.add('hidden');
                 tenants.forEach(tenant => {
                     const li = document.createElement('li');
                     li.className = 'p-3 bg-gray-50 rounded-md flex justify-between items-center dark:bg-gray-700';
@@ -1056,6 +1194,8 @@
                 const thresholds = await thresholdsRes.json();
                 
                 renderThresholdsForm(thresholds);
+                document.getElementById('save-thresholds-btn').addEventListener('click', handleThresholdFormSubmit);
+                document.getElementById('revert-thresholds-btn').addEventListener('click', handleRevertThresholds);
 
                 let stagesResponse = await fetch(`${API_BASE_URL}/tenants/${tenantId}/stages`);
                 allCaseStages = await stagesResponse.json();
@@ -1090,7 +1230,7 @@
                 }
 
             } catch (error) {
-                alert(`Error loading configurations: ${error.message}`);
+                showToast(`Error loading configurations: ${error.message}`, 'danger');
                 document.getElementById('config-accordion').classList.add('hidden');
             }
         };
@@ -1107,25 +1247,34 @@
                 return 'SECOND';
             };
 
-            const table = document.createElement('table');
-            table.className = 'min-w-full divide-y divide-gray-200 dark:divide-gray-700';
-            table.innerHTML = `
-                <thead class="bg-gray-50 dark:bg-gray-800">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Metric</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Good (≤)</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Ok (≤)</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Good Color</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Ok Color</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Bad Color</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700"></tbody>
-            `;
-            const tbody = table.querySelector('tbody');
+            const createTable = (title, operator) => {
+                const table = document.createElement('table');
+                table.className = 'min-w-full divide-y divide-gray-200 dark:divide-gray-700 mb-8';
+                table.innerHTML = `
+                    <caption class="text-lg font-semibold text-left text-gray-700 dark:text-gray-200 py-2">${title}</caption>
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Metric</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Good (${operator})</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Ok (${operator})</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Good Color</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Ok Color</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Bad Color</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700"></tbody>
+                `;
+                return table;
+            };
+
+            const timeTable = createTable('Time-Based Metrics (Lower is Better)', '≤');
+            const percentTable = createTable('Completion Metrics (Higher is Better)', '≥');
+            const timeTbody = timeTable.querySelector('tbody');
+            const percentTbody = percentTable.querySelector('tbody');
 
             thresholds.forEach(t => {
                 const row = document.createElement('tr');
+                row.dataset.metricName = t.metric_name;
                 let valueInputs;
 
                 if (t.metric_name.includes('percent')) {
@@ -1142,6 +1291,14 @@
                                 <span class="ml-2 text-gray-500 dark:text-gray-400">%</span>
                             </div>
                         </td>`;
+                     row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">${t.metric_name.replace(/_/g, ' ').replace('percent', '(%)')}</td>
+                        ${valueInputs}
+                        <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="good_color" class="w-full h-10 p-1 border rounded-md" value="${t.good_color}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="ok_color" class="w-full h-10 p-1 border rounded-md" value="${t.ok_color}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="bad_color" class="w-full h-10 p-1 border rounded-md" value="${t.bad_color}"></td>
+                    `;
+                    percentTbody.appendChild(row);
                 } else {
                     const goodUnit = getBestUnit(t.good_threshold);
                     const okUnit = getBestUnit(t.ok_threshold);
@@ -1159,60 +1316,64 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center space-x-2">
                                 <input type="number" data-metric="${t.metric_name}" name="ok_value" class="w-24 p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="${okValue}">
-                                <select name="ok_unit" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white">${unitOptions.replace(`value="${goodUnit}" selected`, `value="${okUnit}"`)}</select>
+                                <select name="ok_unit" class="w-full p-2 border rounded-md bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white">${unitOptions.replace(`value="${goodUnit}" selected`, `value="${goodUnit}"`).replace(`value="${okUnit}"`, `value="${okUnit}" selected`)}</select>
                             </div>
                         </td>`;
+                     row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">${t.metric_name.replace(/_/g, ' ').replace('percent', '(%)')}</td>
+                        ${valueInputs}
+                        <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="good_color" class="w-full h-10 p-1 border rounded-md" value="${t.good_color}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="ok_color" class="w-full h-10 p-1 border rounded-md" value="${t.ok_color}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="bad_color" class="w-full h-10 p-1 border rounded-md" value="${t.bad_color}"></td>
+                    `;
+                    timeTbody.appendChild(row);
                 }
-
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">${t.metric_name.replace(/_/g, ' ').replace('percent', '(%)')}</td>
-                    ${valueInputs}
-                    <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="good_color" class="w-full h-10 p-1 border rounded-md" value="${t.good_color}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="ok_color" class="w-full h-10 p-1 border rounded-md" value="${t.ok_color}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap"><input type="color" data-metric="${t.metric_name}" name="bad_color" class="w-full h-10 p-1 border rounded-md" value="${t.bad_color}"></td>
-                `;
-                tbody.appendChild(row);
             });
-            container.appendChild(table);
+            container.appendChild(timeTable);
+            container.appendChild(percentTable);
         };
 
         const handleThresholdFormSubmit = async () => {
             const tenantId = tenantSelectForConfig.value;
             if (!tenantId) return;
 
-            const table = document.getElementById('threshold-config-forms').querySelector('table');
-            const metrics = [
-                'MTTD', 'MTTA', 'MTTC', 'MTTR',
-                'MTTD_completion_percent', 'MTTA_completion_percent', 
-                'MTTC_completion_percent', 'MTTR_completion_percent'
-            ];
+            const container = document.getElementById('threshold-config-forms');
+            const tables = container.querySelectorAll('table');
             const timeUnits = { SECOND: 1, MINUTE: 60, HOUR: 3600, DAY: 86400 };
             
             const payload = { thresholds: [] };
 
-            metrics.forEach(metric => {
-                const goodValueEl = table.querySelector(`[data-metric="${metric}"][name="good_value"]`);
-                const okValueEl = table.querySelector(`[data-metric="${metric}"][name="ok_value"]`);
-                
-                let goodThreshold, okThreshold;
+            tables.forEach(table => {
+                const tbody = table.querySelector('tbody');
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const metricName = row.dataset.metricName;
+                    const goodValueEl = row.querySelector(`[data-metric="${metricName}"][name="good_value"]`);
+                    const okValueEl = row.querySelector(`[data-metric="${metricName}"][name="ok_value"]`);
+                    
+                    let goodThreshold, okThreshold;
 
-                if (metric.includes('percent')) {
-                    goodThreshold = parseInt(goodValueEl.value);
-                    okThreshold = parseInt(okValueEl.value);
-                } else {
-                    const goodUnit = table.querySelector(`[data-metric="${metric}"][name="good_unit"]`).value;
-                    const okUnit = table.querySelector(`[data-metric="${metric}"][name="ok_unit"]`).value;
-                    goodThreshold = parseInt(goodValueEl.value) * timeUnits[goodUnit];
-                    okThreshold = parseInt(okValueEl.value) * timeUnits[okUnit];
-                }
+                    const goodUnitEl = row.querySelector(`[data-metric="${metricName}"][name="good_unit"]`);
+                    const okUnitEl = row.querySelector(`[data-metric="${metricName}"][name="ok_unit"]`);
 
-                payload.thresholds.push({
-                    metric_name: metric,
-                    good_threshold: goodThreshold,
-                    ok_threshold: okThreshold,
-                    good_color: table.querySelector(`[data-metric="${metric}"][name="good_color"]`).value,
-                    ok_color: table.querySelector(`[data-metric="${metric}"][name="ok_color"]`).value,
-                    bad_color: table.querySelector(`[data-metric="${metric}"][name="bad_color"]`).value,
+                    if (goodUnitEl && okUnitEl) {
+                        const goodUnit = goodUnitEl.value;
+                        const okUnit = okUnitEl.value;
+                        goodThreshold = parseInt(goodValueEl.value) * timeUnits[goodUnit];
+                        okThreshold = parseInt(okValueEl.value) * timeUnits[okUnit];
+                    } else {
+                        goodThreshold = parseInt(goodValueEl.value);
+                        okThreshold = parseInt(okValueEl.value);
+                    }
+
+                    payload.thresholds.push({
+                        metric_name: metricName,
+                        good_threshold: goodThreshold,
+                        ok_threshold: okThreshold,
+                        good_color: row.querySelector(`[data-metric="${metricName}"][name="good_color"]`).value,
+                        ok_color: row.querySelector(`[data-metric="${metricName}"][name="ok_color"]`).value,
+                        bad_color: row.querySelector(`[data-metric="${metricName}"][name="bad_color"]`).value,
+                    });
                 });
             });
 
@@ -1223,9 +1384,35 @@
                     body: JSON.stringify(payload)
                 });
                 if (!response.ok) throw new Error('Failed to save thresholds');
-                alert('Thresholds saved successfully!');
+                showToast('Thresholds saved successfully!');
             } catch (error) {
-                alert(`Error: ${error.message}`);
+                showToast(`Error: ${error.message}`, 'danger');
+            }
+        };
+
+        const handleRevertThresholds = async () => {
+            const tenantId = tenantSelectForConfig.value;
+            if (!tenantId) {
+                showToast('Please select a tenant first.', 'danger');
+                return;
+            }
+
+            const confirmed = await showModal('Are you sure you want to revert all thresholds to their default values? Any custom changes will be lost.');
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/tenants/${tenantId}/thresholds/revert`, {
+                    method: 'POST',
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to revert thresholds');
+                }
+                const newThresholds = await response.json();
+                renderThresholdsForm(newThresholds); // Re-render the form with the new data
+                showToast('Thresholds have been reverted to the default values.', 'success');
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'danger');
             }
         };
 
@@ -1264,9 +1451,9 @@
                         throw new Error(`Failed to save one or more metric configurations. Status: ${response.status}`);
                     }
                 }
-                alert('Metric definitions saved successfully!');
+                showToast('Metric definitions saved successfully!', 'success');
             } catch (error) {
-                alert(`Error: ${error.message}`);
+                showToast(`Error: ${error.message}`, 'danger');
             }
         };
 
@@ -1299,13 +1486,33 @@
                         throw new Error(`Failed to save one or more queries. Status: ${response.status}`);
                     }
                 }
-                alert('Queries saved successfully!');
+                showToast('Queries saved successfully!', 'success');
             } catch (error) {
-                alert(`Error saving queries: ${error.message}`);
+                showToast(`Error saving queries: ${error.message}`, 'danger');
             }
         };
 
         // --- Analysis and Calculation Logic ---
+        const loadCachedResults = (tenantId) => {
+            const cachedData = localStorage.getItem(`mttx_last_run_${tenantId}`);
+            const resultsContainer = document.getElementById('mttx-results-container');
+            if (cachedData) {
+                try {
+                    const metricsData = JSON.parse(cachedData);
+                    storeAndRenderInitialResults(metricsData);
+                } catch (e) {
+                    console.error("Failed to parse cached MTTx data", e);
+                    localStorage.removeItem(`mttx_last_run_${tenantId}`);
+                    resultsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Could not load cached results. Please run analysis again.</p>';
+                    document.getElementById('show-filters-modal-btn').classList.add('hidden');
+                }
+            } else {
+                resultsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No cached results found for this tenant. Please run an analysis.</p>';
+                document.getElementById('show-filters-modal-btn').classList.add('hidden');
+                fullMetricsData = null; // Clear global state if no cache
+            }
+        };
+
         const handleRunAnalysis = async () => {
             const runBtn = document.getElementById('run-analysis-btn');
             runBtn.textContent = 'Generating...';
@@ -1331,7 +1538,9 @@
                 const calculationPayload = {
                     tenant_id: parseInt(tenantSelectForAnalysis.value),
                     case_history_data: analysisData.case_history_data,
-                    case_mttd_data: analysisData.case_mttd_data
+                    case_mttd_data: analysisData.case_mttd_data,
+                    history_limit_hit: analysisData.history_limit_hit,
+                    mttd_limit_hit: analysisData.mttd_limit_hit
                 };
 
                 // Step 2: Calculate Metrics
@@ -1344,12 +1553,15 @@
                 
                 const metricsData = await metricsResponse.json();
 
+                // Store the successful run in localStorage
+                localStorage.setItem(`mttx_last_run_${analysisParams.tenant_id}`, JSON.stringify(metricsData));
+
                 // Step 3: Render results and switch tab
                 storeAndRenderInitialResults(metricsData);
                 switchMainTab('results-panel');
 
             } catch (error) {
-                alert(`An error occurred:\n\n${error.message}`);
+                showToast(`An error occurred:\n\n${error.message}`, 'danger');
             } finally {
                 runBtn.textContent = 'Generate Report';
                 runBtn.disabled = false;
@@ -1393,7 +1605,9 @@
                     total_cases: totalCases
                 },
                 individual_cases: filteredCases,
-                thresholds: fullMetricsData.thresholds
+                thresholds: fullMetricsData.thresholds,
+                history_limit_hit: fullMetricsData.history_limit_hit,
+                mttd_limit_hit: fullMetricsData.mttd_limit_hit
             };
             
             renderMttxResults(metrics);
@@ -1401,16 +1615,25 @@
         
         const renderMttxResults = (metrics) => {
             const mttxResultsContainer = document.getElementById('mttx-results-container');
-            const showDetailsCheckbox = document.getElementById('show-details-checkbox');
-            const showDetails = showDetailsCheckbox ? showDetailsCheckbox.checked : false;
-            const timeUnitSelect = document.getElementById('time-unit-select');
-            const selectedUnit = timeUnitSelect ? timeUnitSelect.value : 'SECONDS';
+            const showDetails = showDetailsState;
+            const selectedUnit = selectedUnitState;
 
             mttxResultsContainer.innerHTML = '';
 
+            if (metrics.history_limit_hit || metrics.mttd_limit_hit) {
+                let warningMessage = '<strong>Warning:</strong> The query result limit (1000 rows) was reached for ';
+                const hit_limits = [];
+                if (metrics.history_limit_hit) hit_limits.push('Case History data');
+                if (metrics.mttd_limit_hit) hit_limits.push('Case MTTD data');
+                warningMessage += hit_limits.join(' and ') + '. The report may be incomplete. Please select a smaller time range for a complete analysis.';
+                const warningDiv = document.createElement('div');
+                warningDiv.innerHTML = `<div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300" role="alert">${warningMessage}</div>`;
+                mttxResultsContainer.appendChild(warningDiv);
+            }
+
             const getTimeThresholdColor = (metricName, valueInSeconds) => {
                 const threshold = metrics.thresholds.find(t => t.metric_name === metricName);
-                if (!threshold || typeof valueInSeconds !== 'number') return 'bg-gray-100';
+                if (!threshold || typeof valueInSeconds !== 'number') return 'transparent';
                 if (valueInSeconds <= threshold.good_threshold) return threshold.good_color;
                 if (valueInSeconds <= threshold.ok_threshold) return threshold.ok_color;
                 return threshold.bad_color;
@@ -1424,20 +1647,30 @@
                 return threshold.bad_color;
             };
 
-            const createMetricCard = (title, data) => {
+            const createMetricCard = (title, data, thresholds) => {
                 const card = document.createElement('div');
                 card.className = 'card p-6 mb-8';
-                let header = `<h2 class="text-2xl font-bold mb-4 border-b pb-2">${title}</h2>`;
+                let header = `<h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:text-white dark:border-gray-600">${title}</h2>`;
                 if(data.total_cases !== undefined) {
-                    header += `<p class="text-sm text-gray-600 mb-4">Based on a total of <strong>${data.total_cases}</strong> cases.</p>`;
+                    header += `<p class="text-sm text-gray-600 mb-4 dark:text-gray-400">Based on a total of <strong>${data.total_cases}</strong> cases.</p>`;
                 }
                 card.innerHTML = header;
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center';
                 data.items.forEach(item => {
-                    const colorClass = item.color ? '' : 'bg-gray-100';
-                    const style = item.color ? `style="background-color: ${item.color}"` : '';
-                    grid.innerHTML += `<div class="${colorClass} p-4 rounded-lg" ${style}><div class="text-sm text-gray-500">${item.label}</div><div class="text-2xl font-bold text-gray-900">${item.value}</div></div>`;
+                    const colorStyle = item.color ? `style="background-color: ${item.color}"` : '';
+                    
+                    const threshold = thresholds.find(t => t.metric_name === item.threshold_key);
+                    let thresholdText = '';
+                    if (threshold) {
+                        const goodOperator = item.is_percent ? '≥' : '≤';
+                        const okOperator = item.is_percent ? '≥' : '≤';
+                        const good = item.is_percent ? `${threshold.good_threshold}%` : formatSeconds(threshold.good_threshold);
+                        const ok = item.is_percent ? `${threshold.ok_threshold}%` : formatSeconds(threshold.ok_threshold);
+                        thresholdText = `<div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Good: ${goodOperator}${good} | Ok: ${okOperator}${ok}</div>`;
+                    }
+
+                    grid.innerHTML += `<div class="p-4 rounded-lg" ${colorStyle}><div class="text-sm text-gray-600">${item.label}</div><div class="text-2xl font-bold text-gray-900">${item.value}</div>${thresholdText}</div>`;
                 });
                 card.appendChild(grid);
                 return card;
@@ -1446,25 +1679,25 @@
             const avgMetrics = metrics.average_metrics;
             const avgData = {
                 items: [
-                    { label: 'Avg. MTTD', value: formatSeconds(avgMetrics.Average_MTTD_seconds), color: getTimeThresholdColor('MTTD', avgMetrics.Average_MTTD_seconds) },
-                    { label: 'Avg. MTTA', value: formatSeconds(avgMetrics.Average_MTTA_seconds), color: getTimeThresholdColor('MTTA', avgMetrics.Average_MTTA_seconds) },
-                    { label: 'Avg. MTTC', value: formatSeconds(avgMetrics.Average_MTTC_seconds), color: getTimeThresholdColor('MTTC', avgMetrics.Average_MTTC_seconds) },
-                    { label: 'Avg. MTTR', value: formatSeconds(avgMetrics.Average_MTTR_seconds), color: getTimeThresholdColor('MTTR', avgMetrics.Average_MTTR_seconds) }
+                    { label: 'Avg. MTTD', value: formatSeconds(avgMetrics.Average_MTTD_seconds), color: getTimeThresholdColor('MTTD', avgMetrics.Average_MTTD_seconds), threshold_key: 'MTTD' },
+                    { label: 'Avg. MTTA', value: formatSeconds(avgMetrics.Average_MTTA_seconds), color: getTimeThresholdColor('MTTA', avgMetrics.Average_MTTA_seconds), threshold_key: 'MTTA' },
+                    { label: 'Avg. MTTC', value: formatSeconds(avgMetrics.Average_MTTC_seconds), color: getTimeThresholdColor('MTTC', avgMetrics.Average_MTTC_seconds), threshold_key: 'MTTC' },
+                    { label: 'Avg. MTTR', value: formatSeconds(avgMetrics.Average_MTTR_seconds), color: getTimeThresholdColor('MTTR', avgMetrics.Average_MTTR_seconds), threshold_key: 'MTTR' }
                 ]
             };
-            mttxResultsContainer.appendChild(createMetricCard('Average Metrics (Efficiency)', avgData));
+            mttxResultsContainer.appendChild(createMetricCard('Average Metrics (Efficiency)', avgData, metrics.thresholds));
 
             const completionRates = metrics.completion_rates;
             const completionData = {
                 total_cases: completionRates.total_cases,
                 items: [
-                    { label: 'MTTD Completion', value: `${completionRates.MTTD_completion_percent}%`, color: getCompletionThresholdColor('MTTD_completion_percent', parseFloat(completionRates.MTTD_completion_percent)) },
-                    { label: 'MTTA Completion', value: `${completionRates.MTTA_completion_percent}%`, color: getCompletionThresholdColor('MTTA_completion_percent', parseFloat(completionRates.MTTA_completion_percent)) },
-                    { label: 'MTTC Completion', value: `${completionRates.MTTC_completion_percent}%`, color: getCompletionThresholdColor('MTTC_completion_percent', parseFloat(completionRates.MTTC_completion_percent)) },
-                    { label: 'MTTR Completion', value: `${completionRates.MTTR_completion_percent}%`, color: getCompletionThresholdColor('MTTR_completion_percent', parseFloat(completionRates.MTTR_completion_percent)) }
+                    { label: 'MTTD Completion', value: `${completionRates.MTTD_completion_percent}%`, color: getCompletionThresholdColor('MTTD_completion_percent', parseFloat(completionRates.MTTD_completion_percent)), threshold_key: 'MTTD_completion_percent', is_percent: true },
+                    { label: 'MTTA Completion', value: `${completionRates.MTTA_completion_percent}%`, color: getCompletionThresholdColor('MTTA_completion_percent', parseFloat(completionRates.MTTA_completion_percent)), threshold_key: 'MTTA_completion_percent', is_percent: true },
+                    { label: 'MTTC Completion', value: `${completionRates.MTTC_completion_percent}%`, color: getCompletionThresholdColor('MTTC_completion_percent', parseFloat(completionRates.MTTC_completion_percent)), threshold_key: 'MTTC_completion_percent', is_percent: true },
+                    { label: 'MTTR Completion', value: `${completionRates.MTTR_completion_percent}%`, color: getCompletionThresholdColor('MTTR_completion_percent', parseFloat(completionRates.MTTR_completion_percent)), threshold_key: 'MTTR_completion_percent', is_percent: true }
                 ]
             };
-            mttxResultsContainer.appendChild(createMetricCard('Completion Rates (Process Adherence)', completionData));
+            mttxResultsContainer.appendChild(createMetricCard('Completion Rates (Process Adherence)', completionData, metrics.thresholds));
 
             const individualCases = metrics.individual_cases;
             const casesCard = document.createElement('div');
@@ -1477,12 +1710,12 @@
             activeFiltersContainer.className = 'mb-4';
 
             casesCard.innerHTML = `
-                <div class="flex justify-between items-center border-b pb-2 mb-4">
-                     <h2 class="text-2xl font-bold">Individual Case Metrics <span class="text-lg font-normal text-gray-500">(${numCases} of ${totalNumCases} cases shown)</span></h2>
+                <div class="flex justify-between items-center border-b pb-2 mb-4 dark:border-gray-600">
+                     <h2 class="text-2xl font-bold dark:text-white">Individual Case Metrics <span class="text-lg font-normal text-gray-500 dark:text-gray-400">(${numCases} of ${totalNumCases} cases shown)</span></h2>
                      <div class="flex items-center space-x-4">
                         <div class="flex items-center">
-                            <label for="time-unit-select" class="text-sm font-medium text-gray-700 mr-2">Unit</label>
-                            <select id="time-unit-select" class="p-1 border rounded-md text-sm">
+                            <label for="time-unit-select" class="text-sm font-medium text-gray-700 mr-2 dark:text-gray-300">Unit</label>
+                            <select id="time-unit-select" class="p-1 border rounded-md text-sm bg-white text-gray-900 border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                 <option value="SECONDS">Seconds</option>
                                 <option value="MINUTES">Minutes</option>
                                 <option value="HOURS">Hours</option>
@@ -1490,17 +1723,17 @@
                             </select>
                         </div>
                         <label class="flex items-center space-x-2">
-                            <input type="checkbox" id="show-details-checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${showDetails ? 'checked' : ''}>
-                            <span class="text-sm font-medium text-gray-700">Show Details</span>
+                            <input type="checkbox" id="show-details-checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500" ${showDetails ? 'checked' : ''}>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Show Details</span>
                         </label>
                      </div>
                 </div>`;
             casesCard.appendChild(activeFiltersContainer);
             casesCard.innerHTML += `
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 table-fixed">
-                        <thead id="individual-cases-thead" class="bg-gray-50"></thead>
-                        <tbody id="individual-cases-tbody" class="bg-white divide-y divide-gray-200"></tbody>
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 table-fixed">
+                        <thead id="individual-cases-thead" class="bg-gray-50 dark:bg-gray-800"></thead>
+                        <tbody id="individual-cases-tbody" class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700"></tbody>
                     </table>
                 </div>`;
             mttxResultsContainer.appendChild(casesCard);
@@ -1512,7 +1745,7 @@
                 if (sortColumn === key) {
                     icon = sortDirection === 'asc' ? ' ▲' : ' ▼';
                 }
-                return `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer ${extraClasses}" data-sort="${key}">${label}${icon}</th>`;
+                return `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer dark:text-gray-300 ${extraClasses}" data-sort="${key}">${label}${icon}</th>`;
             };
 
             const unitLabel = {
@@ -1532,7 +1765,7 @@
                 headerHtml += `
                     ${sortableHeader('environment', 'Environment', 'w-1/6')}
                     ${sortableHeader('detection_rule_name', 'Detection Rule', 'w-1/4')}
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Tags</th>`;
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3 dark:text-gray-300">Tags</th>`;
             }
             headerHtml += `</tr>`;
             thead.innerHTML = headerHtml;
@@ -1552,7 +1785,7 @@
 
             const tbody = casesCard.querySelector('#individual-cases-tbody');
             if(Object.keys(individualCases).length === 0) {
-                 tbody.innerHTML = `<tr><td colspan="${showDetails ? 8 : 5}" class="px-6 py-4 text-center text-gray-500">No cases match the current filter.</td></tr>`;
+                 tbody.innerHTML = `<tr><td colspan="${showDetails ? 8 : 5}" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No cases match the current filter.</td></tr>`;
             } else {
                 tbody.innerHTML = '';
                 
@@ -1590,30 +1823,43 @@
 
                 for (const caseMetrics of sortedCases) {
                     const caseId = caseMetrics.case_id;
+                    const mttdColor = getTimeThresholdColor('MTTD', caseMetrics.MTTD);
+                    const mttaColor = getTimeThresholdColor('MTTA', caseMetrics.MTTA);
+                    const mttcColor = getTimeThresholdColor('MTTC', caseMetrics.MTTC);
+                    const mttrColor = getTimeThresholdColor('MTTR', caseMetrics.MTTR);
+
                     let rowHtml = `
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${caseMetrics.link ? `<a href="${caseMetrics.link}" target="_blank" class="text-blue-600 hover:underline">${caseId}</a>` : caseId}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${convertSeconds(caseMetrics.MTTD, selectedUnit)}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${convertSeconds(caseMetrics.MTTA, selectedUnit)}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${convertSeconds(caseMetrics.MTTC, selectedUnit)}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${convertSeconds(caseMetrics.MTTR, selectedUnit)}</td>`;
+                        <tr class="dark:bg-gray-800 dark:border-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${caseMetrics.link ? `<a href="${caseMetrics.link}" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">${caseId}</a>` : caseId}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style="background-color: ${mttdColor};">${convertSeconds(caseMetrics.MTTD, selectedUnit)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style="background-color: ${mttaColor};">${convertSeconds(caseMetrics.MTTA, selectedUnit)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style="background-color: ${mttcColor};">${convertSeconds(caseMetrics.MTTC, selectedUnit)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style="background-color: ${mttrColor};">${convertSeconds(caseMetrics.MTTR, selectedUnit)}</td>`;
                     if (showDetails) {
-                        const tagsHtml = (caseMetrics.tags || []).map(tag => `<span class="tag-chip bg-blue-100 text-blue-800">${tag}</span>`).join('');
-                        const envHtml = caseMetrics.environment ? `<span class="tag-chip bg-green-100 text-green-800">${caseMetrics.environment}</span>` : '-';
+                        const tagsHtml = (caseMetrics.tags || []).map(tag => `<span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-blue-400 border border-blue-400">${tag}</span>`).join('');
+                        const envHtml = caseMetrics.environment ? `<span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">${caseMetrics.environment}</span>` : '-';
+                        const rules = (caseMetrics.detection_rule_name && caseMetrics.detection_rule_name !== 'Unknown') ? caseMetrics.detection_rule_name.split(', ') : [];
+                        const rulesHtml = rules.map(rule => `<span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-400 border border-gray-500">${rule}</span>`).join(' ');
                         rowHtml += `
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${envHtml}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500 break-words">${caseMetrics.detection_rule_name || '-'}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500"><div class="flex flex-wrap gap-1">${tagsHtml || '-'}</div></td>`;
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${envHtml}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500 break-words dark:text-gray-300">${rulesHtml || '-'}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300"><div class="flex flex-wrap gap-1">${tagsHtml || '-'}</div></td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.innerHTML += rowHtml;
                 }
             }
-            document.getElementById('show-details-checkbox').addEventListener('change', applyFiltersAndRedraw);
+            document.getElementById('show-details-checkbox').addEventListener('change', (e) => {
+                showDetailsState = e.target.checked;
+                applyFiltersAndRedraw();
+            });
             const newTimeUnitSelect = document.getElementById('time-unit-select');
             if (newTimeUnitSelect) {
                 newTimeUnitSelect.value = selectedUnit;
-                newTimeUnitSelect.addEventListener('change', applyFiltersAndRedraw);
+                newTimeUnitSelect.addEventListener('change', (e) => {
+                    selectedUnitState = e.target.value;
+                    applyFiltersAndRedraw();
+                });
             }
         };
         
@@ -1622,6 +1868,23 @@
             const selectedTags = new Set([...document.querySelectorAll('#tag-filter-options input:checked')].map(el => el.value));
             const selectedEnvs = new Set([...document.querySelectorAll('#environment-filter-options input:checked')].map(el => el.value));
             const selectedRules = new Set([...document.querySelectorAll('#rule-filter-options input:checked')].map(el => el.value));
+
+            const pillsContainer = document.getElementById('active-filters-pills');
+            pillsContainer.innerHTML = ''; // Clear existing pills
+
+            const createPill = (type, value) => {
+                const pill = document.createElement('div');
+                pill.className = 'filter-pill';
+                pill.innerHTML = `<span><strong>${type}:</strong> ${value}</span>`;
+                pillsContainer.appendChild(pill);
+            };
+
+            selectedEnvs.forEach(env => createPill('Env', env));
+            selectedRules.forEach(rule => createPill('Rule', rule));
+            selectedTags.forEach(tag => createPill('Tag', tag));
+            if (selectedTags.size > 0) {
+                 createPill('Tag Mode', filterMode);
+            }
 
             const filteredCases = {};
             for (const caseId in fullMetricsData.individual_cases) {
@@ -1643,6 +1906,9 @@
                 }
             }
             recalculateAndRenderMetrics(filteredCases);
+            if (filtersModal) {
+                filtersModal.hide();
+            }
         };
         
         const filterCheckboxList = (inputId, containerId) => {
@@ -1658,6 +1924,7 @@
         };
 
         const storeAndRenderInitialResults = (metrics) => {
+            document.getElementById('show-filters-modal-btn').classList.remove('hidden');
             fullMetricsData = metrics; // Store the complete, unfiltered dataset
             const baseUrl = metrics.base_url;
 
@@ -1688,25 +1955,19 @@
                     items.forEach(item => {
                         container.innerHTML += `
                             <label class="flex items-center space-x-2">
-                                <input type="checkbox" value="${item}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span class="text-sm text-gray-700">${item}</span>
+                                <input type="checkbox" value="${item}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">${item}</span>
                             </label>
                         `;
                     });
                 } else {
-                    container.innerHTML = `<span class="text-sm text-gray-500">None found.</span>`;
+                    container.innerHTML = `<span class="text-sm text-gray-500 dark:text-gray-400">None found.</span>`;
                 }
             };
 
             createCheckboxes(tagOptionsContainer, allTags);
             createCheckboxes(envOptionsContainer, allEnvs);
             createCheckboxes(ruleOptionsContainer, allRules);
-
-            if (allTags.size > 0 || allEnvs.size > 0 || allRules.size > 0) {
-                document.getElementById('filter-container').classList.remove('hidden');
-            } else {
-                 document.getElementById('filter-container').classList.add('hidden');
-            }
 
             recalculateAndRenderMetrics(fullMetricsData.individual_cases);
         };
@@ -1733,7 +1994,7 @@
                 switchMainTab('results-panel');
             } catch (error) {
                 console.error("Calculation API Error:", error);
-                alert(`An error occurred during calculation:\n\n${error.message}`);
+                showToast(`An error occurred during calculation:\n\n${error.message}`, 'danger');
             } finally {
                 calcBtn.textContent = 'Calculate MTTx Metrics';
                 calcBtn.disabled = false;
@@ -1898,9 +2159,26 @@
         // --- Event Listeners & Init ---
         document.addEventListener('DOMContentLoaded', () => {
             switchMainTab('tenants-panel');
-            fetchTenants();
+            fetchVersion();
+            fetchTenants().then(() => {
+                const selectedTenantId = tenantSelectForAnalysis.value;
+                if (selectedTenantId) {
+                    loadCachedResults(selectedTenantId);
+                }
+            });
             initAccordions();
+            filtersModal = new Modal(document.getElementById('filters-modal'));
+            defaultModal = new Modal(document.getElementById('default-modal'));
 
+            document.getElementById('show-filters-modal-btn').addEventListener('click', () => {
+                if (fullMetricsData) {
+                    filtersModal.show();
+                } else {
+                    alert('Please run an analysis first to generate data for filtering.');
+                }
+            });
+
+            tenantSelectForAnalysis.addEventListener('change', e => loadCachedResults(e.target.value));
             tenantSelectForConfig.addEventListener('change', (e) => loadAndDisplayConfigs(e.target.value));
             tenantSelectForScheduler.addEventListener('change', (e) => loadAndDisplaySchedules(e.target.value));
             document.getElementById('mttr-config-key').addEventListener('change', updateMttrValueOptions);
@@ -1911,24 +2189,35 @@
 
             document.getElementById('run-analysis-btn').addEventListener('click', handleRunAnalysis);
             document.getElementById('apply-filters-btn').addEventListener('click', applyFiltersAndRedraw);
-            document.getElementById('generate-chart-btn').addEventListener('click', generateQuadrantChart);
+        document.getElementById('save-metrics-btn').addEventListener('click', handleMetricsFormSubmit);
+        document.getElementById('save-queries-btn').addEventListener('click', handleQueriesFormSubmit);
+        document.getElementById('run-analysis-btn').addEventListener('click', handleRunAnalysis);
+        document.getElementById('show-filters-modal-btn').addEventListener('click', () => filtersModal.show());
+        document.getElementById('apply-filters-btn').addEventListener('click', applyFiltersAndRedraw);
+        document.getElementById('clear-filters-btn').addEventListener('click', () => {
+            document.querySelectorAll('#filter-body input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('#filter-body input[type="text"]').forEach(input => input.value = '');
+            applyFiltersAndRedraw();
+        });
+        document.getElementById('generate-chart-btn').addEventListener('click', generateQuadrantChart);
+        document.getElementById('toggle-filter-lists-btn').addEventListener('click', (e) => {
+            const lists = document.querySelectorAll('.filter-options-list');
+            const isCollapsed = e.target.textContent.includes('Expand');
+            lists.forEach(list => list.classList.toggle('collapsed', !isCollapsed));
+            e.target.textContent = isCollapsed ? 'Collapse All Lists' : 'Expand All Lists';
+        });
+        document.getElementById('revert-thresholds-btn').addEventListener('click', handleRevertThresholds);
             
             filterCheckboxList('tag-search', 'tag-filter-options');
             filterCheckboxList('environment-search', 'environment-filter-options');
             filterCheckboxList('rule-search', 'rule-filter-options');
-
-            document.getElementById('toggle-filters-btn').addEventListener('click', () => {
-                const filterBody = document.getElementById('filter-body');
-                const icon = document.getElementById('toggle-filters-btn').querySelector('svg');
-                filterBody.classList.toggle('hidden');
-                icon.classList.toggle('rotate-180');
-            });
             
             document.getElementById('clear-filters-btn').addEventListener('click', () => {
                 document.querySelectorAll('#tag-filter-options input:checked, #environment-filter-options input:checked, #rule-filter-options input:checked').forEach(el => el.checked = false);
                 document.getElementById('tag-search').value = '';
                 document.getElementById('environment-search').value = '';
                 document.getElementById('rule-search').value = '';
+                document.getElementById('active-filters-pills').innerHTML = '';
                 filterCheckboxList('tag-search', 'tag-filter-options');
                 filterCheckboxList('environment-search', 'environment-filter-options');
                 filterCheckboxList('rule-search', 'rule-filter-options');
@@ -1961,6 +2250,23 @@
                     alert(`Failed to ${tenantId ? 'update' : 'add'} tenant: ${error.message}`);
                 }
             });
+
+            const toggleBtn = document.getElementById('toggle-filter-lists-btn');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    const lists = document.querySelectorAll('.filter-options-list');
+                    if (lists.length === 0) return;
+                    
+                    // Check the state of the first list
+                    const isCollapsed = lists[0].classList.contains('collapsed');
+                    
+                    // Toggle all lists based on the state of the first one
+                    lists.forEach(list => {
+                        list.classList.toggle('collapsed', !isCollapsed);
+                    });
+                    toggleBtn.textContent = isCollapsed ? 'Collapse All Lists' : 'Expand All Lists';
+                });
+            }            
         });
     </script>
 
