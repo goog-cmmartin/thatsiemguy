@@ -4,6 +4,8 @@ This application provides a comprehensive solution for calculating, visualizing,
 
 It connects to Google SecOps (SIEM) and a SOAR platform to fetch case and event data, processing it to provide deep insights into incident response efficiency, including Mean Time to Detect (MTTD), Acknowledge (MTTA), Contain (MTTC), and Remediate (MTTR).
 
+![SecOps SDK MTTx Report](secops_sdk_mttx_example.png)
+
 ## Core Features
 
 -   **Multi-Tenant Support**: Securely manages configurations for multiple Google SecOps tenants.
