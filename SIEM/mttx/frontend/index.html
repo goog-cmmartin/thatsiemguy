@@ -23,16 +23,6 @@
             background-color: #1f2937;
             border-color: #4b5563;
         }
-        .tab-btn {
-            cursor: pointer;
-            transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-        }
-        .tab-active { color: #2563eb; border-color: #2563eb; }
-        .dark .tab-active { color: #3b82f6; border-color: #3b82f6; }
-        .tab-inactive { color: #6b7280; border-color: transparent; }
-        .tab-inactive:hover { color: #111827; border-color: #d1d5db; }
-        .dark .tab-inactive { color: #9ca3af; }
-        .dark .tab-inactive:hover { color: #f9fafb; border-color: #4b5563; }
         .status-badge {
             display: inline-block;
             padding: 0.25em 0.6em;
@@ -104,17 +94,38 @@
     </header>
 
     <main class="container mx-auto px-6 py-8">
-        <!-- Main Tab Navigation -->
-        <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                <button data-target="tenants-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Tenants</button>
-                <button data-target="configs-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Configurations</button>
-                <button data-target="analysis-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Ad-hoc Analysis</button>
-                <button data-target="results-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">MTTx Results</button>
-                <button data-target="scheduler-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Scheduler</button>
-                <button data-target="signal-panel" class="tab-btn py-4 px-1 border-b-2 font-medium text-base">Signal to Noise</button>
-            </nav>
-        </div>
+        <!-- Main Stepper Navigation -->
+        <ol class="main-stepper flex items-center w-full p-3 space-x-2 text-sm font-medium text-center text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-400 sm:text-base dark:bg-gray-800 dark:border-gray-700 sm:p-4 sm:space-x-4 rtl:space-x-reverse">
+            <li data-target="tenants-panel" class="stepper-step flex items-center text-blue-600 dark:text-blue-500 cursor-pointer">
+                <span class="flex items-center justify-center w-5 h-5 me-2 text-xs border border-blue-600 rounded-full shrink-0 dark:border-blue-500">1</span>
+                Tenants
+                <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/></svg>
+            </li>
+            <li data-target="configs-panel" class="stepper-step flex items-center cursor-pointer">
+                <span class="flex items-center justify-center w-5 h-5 me-2 text-xs border border-gray-500 rounded-full shrink-0 dark:border-gray-400">2</span>
+                Configurations
+                <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/></svg>
+            </li>
+            <li data-target="analysis-panel" class="stepper-step flex items-center cursor-pointer">
+                <span class="flex items-center justify-center w-5 h-5 me-2 text-xs border border-gray-500 rounded-full shrink-0 dark:border-gray-400">3</span>
+                Ad-hoc Analysis
+                <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/></svg>
+            </li>
+            <li data-target="results-panel" class="stepper-step flex items-center cursor-pointer">
+                <span class="flex items-center justify-center w-5 h-5 me-2 text-xs border border-gray-500 rounded-full shrink-0 dark:border-gray-400">4</span>
+                MTTx Results
+                <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/></svg>
+            </li>
+            <li data-target="scheduler-panel" class="stepper-step flex items-center cursor-pointer">
+                <span class="flex items-center justify-center w-5 h-5 me-2 text-xs border border-gray-500 rounded-full shrink-0 dark:border-gray-400">5</span>
+                Scheduler
+                <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/></svg>
+            </li>
+            <li data-target="signal-panel" class="stepper-step flex items-center cursor-pointer">
+                <span class="flex items-center justify-center w-5 h-5 me-2 text-xs border border-gray-500 rounded-full shrink-0 dark:border-gray-400">6</span>
+                Signal to Noise
+            </li>
+        </ol>
 
         <div class="pt-8">
             <!-- Scheduler Panel -->
@@ -572,8 +583,8 @@
         const mttxConfigForms = document.getElementById('mttx-config-forms');
         const queryConfigForms = document.getElementById('query-config-forms');
         
-        // Tab Switching Logic
-        const mainTabs = document.querySelectorAll('.tab-btn');
+        // Stepper Switching Logic
+        const mainTabs = document.querySelectorAll('.stepper-step');
         const mainTabPanels = document.querySelectorAll('.main-tab-panel');
 
         const fetchVersion = async () => {
@@ -590,8 +601,23 @@
         const switchMainTab = (targetPanelId) => {
             mainTabPanels.forEach(p => p.classList.toggle('hidden', p.id !== targetPanelId));
             mainTabs.forEach(t => {
-                t.classList.toggle('tab-active', t.dataset.target === targetPanelId);
-                t.classList.toggle('tab-inactive', t.dataset.target !== targetPanelId);
+                const isTarget = t.dataset.target === targetPanelId;
+                const span = t.querySelector('span');
+                if (isTarget) {
+                    t.classList.add('text-blue-600', 'dark:text-blue-500');
+                    t.classList.remove('text-gray-500', 'dark:text-gray-400');
+                    if (span) {
+                        span.classList.add('border-blue-600', 'dark:border-blue-500');
+                        span.classList.remove('border-gray-500', 'dark:border-gray-400');
+                    }
+                } else {
+                    t.classList.remove('text-blue-600', 'dark:text-blue-500');
+                    t.classList.add('text-gray-500', 'dark:text-gray-400');
+                    if (span) {
+                        span.classList.remove('border-blue-600', 'dark:border-blue-500');
+                        span.classList.add('border-gray-500', 'dark:border-gray-400');
+                    }
+                }
             });
             if (targetPanelId === 'configs-panel') {
                 const selectedTenantId = tenantSelectForConfig.value;
