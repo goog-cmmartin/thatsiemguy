@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What's New Report - 9/28/2025</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; line-height: 1.6; color: #333; background-color: #ffffff; margin: 0; padding: 2em;">
+
+    <div style="max-width: 1000px; margin: auto; padding: 20px;">
+
+        <h1 style="font-size: 2.2em; color: #1a237e; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px;">
+            What's New Report - 9/28/2025
+        </h1>
+
+        <p style="font-size: 1.1em; color: #555; margin-bottom: 30px;">
+            This report summarizes key updates for Google Security Operations from late September 2025, highlighting new SOAR features, critical API deprecations, new documentation, and informative community posts.
+        </p>
+
+        <h2 style="font-size: 1.8em; color: #283593; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; margin-top: 40px; margin-bottom: 20px;">
+            Key Takeaways & Action Items
+        </h2>
+
+        <ul style="padding-left: 20px; margin-bottom: 40px;">
+            <li style="margin-bottom: 12px; font-size: 1.05em;">
+                <strong>Action Required:</strong> The CrowdStrike Detects API will be decommissioned on September 30, 2025. All users must migrate feeds to the new Alerts API to prevent service disruption.
+            </li>
+            <li style="margin-bottom: 12px; font-size: 1.05em;">
+                <strong>New SOAR Features:</strong> Chronicle SOAR now includes "Playbook Loops" and "Action Retries" to build more dynamic, resilient, and efficient automation playbooks.
+            </li>
+            <li style="margin-bottom: 12px; font-size: 1.05em;">
+                <strong>New Guides & Content:</strong> New community guides are available covering intelligent alert suppression, UEBA-focused detections, UDM parsing deep dives, and using Threat Profiles for proactive defense.
+            </li>
+            <li style="margin-bottom: 12px; font-size: 1.05em;">
+                <strong>Upcoming Events:</strong> Hands-on SecOps webinars are scheduled for October and November, covering topics like SOAR Python integrations and Infrastructure as Code.
+            </li>
+        </ul>
+
+        <h2 style="font-size: 1.8em; color: #283593; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; margin-top: 40px; margin-bottom: 20px;">
+            Detailed Updates
+        </h2>
+
+        <table style="width: 100%; border-collapse: collapse; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
+            <thead style="background-color: #3f51b5; color: #ffffff;">
+                <tr>
+                    <th style="padding: 12px 15px; text-align: left; border-bottom: 2px solid #303f9f;">Category</th>
+                    <th style="padding: 12px 15px; text-align: left; border-bottom: 2px solid #303f9f;">Title & Link</th>
+                    <th style="padding: 12px 15px; text-align: left; border-bottom: 2px solid #303f9f;">Published</th>
+                    <th style="padding: 12px 15px; text-align: left; border-bottom: 2px solid #303f9f;">Summary & Impact</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background-color: #f7f9fc;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/google-security-operations-66/taming-the-alert-tsunami-implementing-intelligent-alert-suppression-in-google-secops-5939" style="color: #1a237e; text-decoration: none; font-weight: bold;">Taming the Alert Tsunami: Implementing Intelligent Alert Suppression in Google SecOps</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/26/2025, 10:22:35 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">This article details a solution for implementing intelligent alert suppression in Google SecOps, leveraging SOAR playbooks and data tables to combat alert fatigue by automatically managing and closing non-critical security alerts.</td>
+                </tr>
+                <tr style="background-color: #ffffff;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/google-security-operations-66/secops-adoption-guide-writing-ueba-focused-detections-5938" style="color: #1a237e; text-decoration: none; font-weight: bold;">SecOps Adoption guide: Writing UEBA focused detections</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/26/2025, 10:11:27 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">This guide details User and Entity Behavior Analytics (UEBA) within Google SecOps, explaining how it uses statistical analysis and TTP-based detections to identify anomalous behavior, particularly for 'low and slow' insider threats, and provides steps for its adoption.</td>
+                </tr>
+                <tr style="background-color: #f7f9fc;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/google-threat-intelligence-67/adoption-guide-threat-profiles-for-automatic-focus-5937" style="color: #1a237e; text-decoration: none; font-weight: bold;">Adoption guide: Threat Profiles for Automatic Focus</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/26/2025, 9:48:56 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">This guide introduces Google Threat Intelligence's Threat Profiles, explaining how they provide a tailored, organization-specific view of relevant cyber threats and how to leverage this feature for proactive defense.</td>
+                </tr>
+                <tr style="background-color: #ffffff;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/google-security-operations-2/new-features-to-supercharge-your-secops-soar-playbooks-5936" style="color: #1a237e; text-decoration: none; font-weight: bold;">New Features to Supercharge Your SecOps SOAR Playbooks!</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/26/2025, 9:02:41 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">Google Cloud is releasing two powerful new features, Playbook Loops and Action Retries, for Chronicle SOAR to make security automation playbooks more dynamic, resilient, and efficient.</td>
+                </tr>
+                <tr style="background-color: #f7f9fc;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/google-security-operations-66/security-operations-deep-dive-into-udm-parsing-part-3-3-5933" style="color: #1a237e; text-decoration: none; font-weight: bold;">Security Operations: Deep Dive into UDM Parsing - Part 3.3</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/26/2025, 5:09:12 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">This article, part of a deep dive into UDM parsing, details how to create and manage parser extensions for GCP Cloud Audit logs within Google SecOps SIEM, and introduces JSON Schema Inference using Python's genson library to analyze and design parsers for complex, bulk JSON log structures.</td>
+                </tr>
+                <tr style="background-color: #ffffff;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/google-security-operations-66/security-operations-deep-dive-into-udm-parsing-part-3-2-5932" style="color: #1a237e; text-decoration: none; font-weight: bold;">Security Operations: Deep Dive into UDM Parsing - Part 3.2</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/26/2025, 4:41:20 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">This article, part of a series on UDM parsing in Google Security Operations, provides a deep dive into advanced techniques for mapping JSON data into UDM fields, generating multiple events, and customizing parsers via extensions.</td>
+                </tr>
+                <tr style="background-color: #f7f9fc;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/google-security-operations-2/crowdstrike-detects-api-deprecation-5926" style="color: #1a237e; text-decoration: none; font-weight: bold;">Crowdstrike Detects API deprecation</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/25/2025, 3:26:37 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">CrowdStrike API endpoints used for data integration with SOAR and SIEM are being deprecated, prompting concerns about potential impact and the need for new API clients.</td>
+                </tr>
+                <tr style="background-color: #ffffff;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/google-security-operations-2/attention-crowdstrike-detects-api-decommissioned-sep-30-2025-google-secops-5924" style="color: #1a237e; text-decoration: none; font-weight: bold;">Attention: Crowdstrike Detects API (decommissioned Sep 30, 2025) & Google SecOps</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/25/2025, 12:26:28 AM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">CrowdStrike's Detects API, decommissioned on October 1, 2024, will be formally decommissioned on September 30, 2025; users of the Google SecOps feed using this API are urged to transition to the new Alerts API.</td>
+                </tr>
+                <tr style="background-color: #f7f9fc;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/news-announcements-9/attention-crowdstrike-detects-api-google-secops-5923" style="color: #1a237e; text-decoration: none; font-weight: bold;">Attention: Crowdstrike Detects API & Google SecOps</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/25/2025, 12:22:09 AM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">CrowdStrike deprecated its Detects API, replaced by the Alerts API; Google SecOps users must update their feeds to use the new API before September 30, 2025, to avoid service disruption.</td>
+                </tr>
+                <tr style="background-color: #f7f9fc;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/google-security-operations-2/new-hands-on-secops-webinars-oct-nov-5918" style="color: #1a237e; text-decoration: none; font-weight: bold;">New Hands-on SecOps Webinars Oct - Nov!</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/24/2025, 3:40:04 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">Google Cloud is hosting several hands-on SecOps webinars in October and November covering topics such as SOAR Python integrations, OpenTelemetry collectors, and streamlining Google SecOps with IaC.</td>
+                </tr>
+                <tr style="background-color: #ffffff;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/webinars-podcasts-43/the-defender-s-advantage-podcast-how-vsphere-became-a-target-for-adversariesai-tools-and-sentiment-within-the-underground-cyber-crime-community-5904" style="color: #1a237e; text-decoration: none; font-weight: bold;">The Defender's Advantage Podcast - How vSphere Became a Target for AdversariesAI Tools and Sentiment Within the Underground Cyber Crime Community</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/22/2025, 4:37:44 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">The Defender's Advantage podcast discusses the increasing targeting of VMware vSphere by threat actors for extortion and data theft, highlighting vulnerabilities and defensive strategies.</td>
+                </tr>
+                <tr style="background-color: #f7f9fc;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">GCSC Posts</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://security.googlecloudcommunity.com/webinars-podcasts-43/ep244-the-future-of-soapa-jon-oltsik-on-platform-consolidation-vs-best-of-breed-in-the-age-of-agentic-ai-5903" style="color: #1a237e; text-decoration: none; font-weight: bold;">EP244 The Future of SOAPA: Jon Oltsik on Platform Consolidation vs. Best-of-Breed in the Age of Agentic AI</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/22/2025, 4:26:56 PM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">This podcast episode discusses the future of Security Operations and Analytics Platform Architecture (SOAPA), debating platform consolidation versus a best-of-breed approach in the context of agentic AI and its impact on Security Operations Centers (SOCs). The discussion covers key drivers for each strategy, integration challenges, and the realistic implications of AI in SOCs.</td>
+                </tr>
+                <tr style="background-color: #ffffff;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">Google SecOps</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://www.google.com/url?rct=j&sa=t&url=https://cloud.google.com/chronicle/docs/soar/working-with-remote-agents/create-agent-with-installer-on-debian&ct=ga&cd=CAIyGjM0ZTNiZTZjOGU4NTk3OGM6Y29tOmVuOlVT&usg=AOvVaw3Eux090z5VWWRCDnEUoJvu" style="color: #1a237e; text-decoration: none; font-weight: bold;">Create an agent with the installer for Debian | Google Security Operations</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/28/2025, 10:54:49 AM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">The article provides documentation on how to create and install an agent for Google Security Operations (likely Chronicle SOAR) on a Debian operating system.</td>
+                </tr>
+                <tr style="background-color: #f7f9fc;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">Google SecOps</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://www.google.com/url?rct=j&sa=t&url=https://cloud.google.com/chronicle/docs/reference/data-export-api-enhanced&ct=ga&cd=CAIyGjM0ZTNiZTZjOGU4NTk3OGM6Y29tOmVuOlVT&usg=AOvVaw1ya4b8Dz9DaYHPaBh6zpX0" style="color: #1a237e; text-decoration: none; font-weight: bold;">Data Export API (Enhanced) | Google Security Operations</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/28/2025, 10:54:47 AM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">Google Security Operations introduces an enhanced Data Export API, enabling asynchronous export jobs for specific time ranges of log data to Google Cloud Storage buckets.</td>
+                </tr>
+                <tr style="background-color: #ffffff;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">Google SecOps</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://www.google.com/url?rct=j&sa=t&url=https://cloud.google.com/chronicle/docs/ingestion/default-parsers/tanium-discover&ct=ga&cd=CAIyGjM0ZTNiZTZjOGU4NTk3OGM6Y29tOmVuOlVT&usg=AOvVaw2pXDZOde4_y_iGWuHdH9cJ" style="color: #1a237e; text-decoration: none; font-weight: bold;">Collect Tanium Discover logs | Google Security Operations</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/26/2025, 11:12:25 AM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">This article provides instructions on how to collect Tanium Discover logs and integrate them with Google Security Operations, detailing configuration steps for AWS S3 and Tanium Connect.</td>
+                </tr>
+                <tr style="background-color: #f7f9fc;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">Google SecOps</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://medium.com/@thatsiemguy/from-prd-to-app-building-secops-mttx-reports-with-gemini-and-the-secops-sdk-91cbb8fd3a1c?source=rss-fe2cff95a69a------2" style="color: #1a237e; text-decoration: none; font-weight: bold;">From PRD to App: Building SecOps MTTx Reports with Gemini and the SecOps SDK</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/23/2025, 10:14:32 AM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">This article details the creation of SecOps MTTx reports using Gemini and the SecOps SDK, covering the process from product requirements document to application.</td>
+                </tr>
+                <tr style="background-color: #ffffff;">
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">Google SecOps</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;"><a href="https://cloud.google.com/chronicle/docs/release-notes#September_23_2025" style="color: #1a237e; text-decoration: none; font-weight: bold;">September 23, 2025</a></td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top; white-space: nowrap;">9/23/2025, 9:00:00 AM</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; vertical-align: top;">Google SecOps is migrating the transport layer for third-party API feeds to improve performance and reliability; this phased migration, expected to conclude by October 2025, shouldn't affect existing or new feeds.</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</body>
+</html>
