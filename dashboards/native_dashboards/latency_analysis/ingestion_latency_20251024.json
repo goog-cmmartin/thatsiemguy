@@ -1,0 +1,394 @@
+{
+    "dashboards": [
+        {
+            "dashboard": {
+                "name": "dde1a6fc-0645-42f6-9b96-41b57ff529cb",
+                "displayName": "Ingest in Time ",
+                "description": "@cmmartin",
+                "definition": {
+                    "filters": [
+                        {
+                            "id": "GlobalTimeFilter",
+                            "dataSource": "GLOBAL",
+                            "filterOperatorAndFieldValues": [
+                                {
+                                    "filterOperator": "PAST",
+                                    "fieldValues": [
+                                        "1",
+                                        "DAY"
+                                    ]
+                                }
+                            ],
+                            "displayName": "Global Time Filter",
+                            "isStandardTimeRangeFilter": true,
+                            "isStandardTimeRangeFilterEnabled": false
+                        },
+                        {
+                            "id": "8e9be11a-a501-4deb-84f2-09ba8fd71040",
+                            "dataSource": "RULE_DETECTIONS",
+                            "fieldPath": "detection.detection.rule_name",
+                            "filterOperatorAndFieldValues": [
+                                {
+                                    "filterOperator": "IS_NOT_NULL"
+                                }
+                            ],
+                            "displayName": "detection.detection.rule_name ",
+                            "chartIds": [
+                                "40141f02-109a-4bbf-95d4-5b42009a6d19"
+                            ]
+                        }
+                    ],
+                    "charts": [
+                        {
+                            "dashboardChart": "b0580f1a-e88d-4830-96ee-5c8566c39bf9",
+                            "chartLayout": {
+                                "startX": 0,
+                                "spanX": 96,
+                                "startY": 12,
+                                "spanY": 28
+                            }
+                        },
+                        {
+                            "dashboardChart": "e9b1dae5-7be2-477e-9f3b-0d488f2c6f6f",
+                            "chartLayout": {
+                                "startX": 0,
+                                "spanX": 96,
+                                "startY": 0,
+                                "spanY": 12
+                            }
+                        },
+                        {
+                            "dashboardChart": "93be2e8f-67bd-4af2-be3c-d971d5fa7070",
+                            "chartLayout": {
+                                "startX": 0,
+                                "spanX": 96,
+                                "startY": 74,
+                                "spanY": 18
+                            }
+                        },
+                        {
+                            "dashboardChart": "40141f02-109a-4bbf-95d4-5b42009a6d19",
+                            "chartLayout": {
+                                "startX": 0,
+                                "spanX": 96,
+                                "startY": 92,
+                                "spanY": 29
+                            },
+                            "filtersIds": [
+                                "8e9be11a-a501-4deb-84f2-09ba8fd71040"
+                            ]
+                        },
+                        {
+                            "dashboardChart": "f20b8609-274c-48bd-bf63-c73ce1d48e5f",
+                            "chartLayout": {
+                                "startX": 0,
+                                "spanX": 96,
+                                "startY": 44,
+                                "spanY": 30
+                            }
+                        },
+                        {
+                            "dashboardChart": "ff62de70-4796-4506-baf8-79cda134d2f6",
+                            "chartLayout": {
+                                "startX": 0,
+                                "spanX": 96,
+                                "startY": 40,
+                                "spanY": 4
+                            }
+                        }
+                    ]
+                },
+                "type": "CUSTOM",
+                "etag": "6d7baf29c62aee6d7404a6455bb3b9aad796ea1fbd4d51580666f0734bd2c9a0",
+                "access": "DASHBOARD_PRIVATE"
+            },
+            "dashboardCharts": [
+                {
+                    "name": "ff62de70-4796-4506-baf8-79cda134d2f6",
+                    "displayName": "markdown",
+                    "visualization": {
+                        "markdown": {
+                            "content": "---\nThe following Widget is an alternate representation of Ingestion Latency data but summarized in percentage format.  The widget also utilizes logic to infer if a log type operates in a `realtime`, `near-realtime`, `variable`, or `batch` manner.  There is also logic to infer the latency_type, `streaming` or `batch`, and provide an estimate Service Level Objective you should expect from the available telemetry.",
+                            "properties": {
+                                "backgroundColor": "transparent"
+                            }
+                        }
+                    },
+                    "tileType": "TILE_TYPE_MARKDOWN",
+                    "etag": "f76b2f2495cfb6bf120b6978b51132d0ed8177f1eff55c381e53833b84acf73a"
+                },
+                {
+                    "name": "40141f02-109a-4bbf-95d4-5b42009a6d19",
+                    "displayName": "Detection Latency",
+                    "chartDatasource": {
+                        "dashboardQuery": "4f62cfdd-dc2e-46be-bea0-3b9b93eba462",
+                        "dataSources": [
+                            "RULE_DETECTIONS"
+                        ]
+                    },
+                    "visualization": {
+                        "xAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "yAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "legends": [
+                            {
+                                "legendOrient": "HORIZONTAL"
+                            }
+                        ],
+                        "columnDefs": [
+                            {
+                                "field": "id",
+                                "header": "id"
+                            },
+                            {
+                                "field": "ruleName",
+                                "header": "ruleName"
+                            },
+                            {
+                                "field": "ruleType",
+                                "header": "ruleType"
+                            },
+                            {
+                                "field": "matchWindow",
+                                "header": "matchWindow"
+                            },
+                            {
+                                "field": "dl_t_seconds",
+                                "header": "dl_t_seconds"
+                            },
+                            {
+                                "field": "dl_t_minutes",
+                                "header": "dl_t_minutes"
+                            },
+                            {
+                                "field": "dl_t_hour",
+                                "header": "dl_t_hour"
+                            },
+                            {
+                                "field": "eventtime_min",
+                                "header": "eventtime_min"
+                            },
+                            {
+                                "field": "ingesttime_min",
+                                "header": "ingesttime_min"
+                            },
+                            {
+                                "field": "detecttime_min",
+                                "header": "detecttime_min"
+                            }
+                        ],
+                        "groupingType": "Off",
+                        "tableConfig": {}
+                    },
+                    "tileType": "TILE_TYPE_VISUALIZATION",
+                    "etag": "feb32ac4788ed391b4c8986a9a424f9993f584c90bdf2b3f1956a0bc8ee3f515",
+                    "drillDownConfig": {}
+                },
+                {
+                    "name": "e9b1dae5-7be2-477e-9f3b-0d488f2c6f6f",
+                    "displayName": "markdown",
+                    "visualization": {
+                        "markdown": {
+                            "content": "# Ingestion Latency\n---\n&nbsp;\n&nbsp;\n\n\nThis widget measures ingestion latency—the time difference between when an event happens on a source system (event_timestamp) and when it's collected by Chronicle (ingested_timestamp).\n\n&nbsp;\n&nbsp;\n\nIt groups all incoming logs by their log_type (e.g., GCP_CLOUDAUDIT, VMWARE_CENTER) and calculates the average delay for each type. It also categorizes the latency for all logs into time-based \"buckets\" (e.g., 0-1 hour, 1-2 hours) to show you the distribution of delays.\n\n&nbsp;\n&nbsp;\n\nThis widget is essential for monitoring the health and timeliness of your log sources.\n\n&nbsp;\n&nbsp;\n\n1) *Identify Top Delays*: The table is sorted by average_difference_minutes from highest to lowest. Log types at the top are the potential problem areas you should be investigated first.\n\n2) *Check for Clock Skew*: Look at the cnt_lt_0_hours column. Any number greater than 0 here indicates a problem. It means logs are arriving with an event time that is in the future (ingest time < event time), which can point to a clock synchronization (NTP) issue on the source device.\n\n3) *Analyze Delay Buckets*: Look at the cnt_1_2_hours and cnt_gt_2_hours columns. High counts here show that a significant number of logs are arriving very late. This delay could be caused by network issues, collector problems, or a log source that sends data in large, infrequent batches.",
+                            "properties": {
+                                "backgroundColor": "transparent"
+                            }
+                        }
+                    },
+                    "tileType": "TILE_TYPE_MARKDOWN",
+                    "etag": "72e0c599bdf1e0fb459b4b109da2147b7c928d7b6bfd614d7f79a7093308b999"
+                },
+                {
+                    "name": "93be2e8f-67bd-4af2-be3c-d971d5fa7070",
+                    "displayName": "markdown",
+                    "visualization": {
+                        "markdown": {
+                            "content": "# Detection Latency\n---\nThis widget calculates the time difference between when the latest event related to a detection occurred and when the detection itself was created by the Rules Engine.\n\n&nbsp;\n&nbsp;\n\nUnlike ingestion latency (which just tracks log collection), this measures the performance of your detection rules. It answers the question: \"After the last piece of evidence shows up, how long does it take for a rule to fire and create an alert?\"\n\n&nbsp;\n&nbsp;\n\n\nThe widget lists each individual detection and its associated latency, sorting them to show the slowest detections at the top.\n\n&nbsp;\n&nbsp;\n\n* *Identify Slow Rules*: The list is sorted by dl_t_hour (detection latency in hours) from highest to lowest. The detections at the top are your biggest bottlenecks.\n\n* *Analyze Rule Names*: Look at the ruleName column for the high-latency detections. If you see the same rule name appearing repeatedly (like domain_prevalence and ip_target_prevalence), it suggests those specific rules are either very complex, resource-intensive, or are designed to look back over a long period (e.g., \"3-day prevalence\"), which naturally causes a delay.\n\n* *Assess Time-to-Detect*: Compare eventtime_min (when the first event happened) with detecttime_min (when the alert fired). This gap represents your total \"time-to-detect\" for that threat. A large gap means an adversary has a lot of time to act before your team is even aware of the threat.\n\n---\n`id`: The unique identifier for the detection.\n\n`ruleName`: The name of the detection rule that generated the alert (e.g., ip_target_prevalence).\n\n`ruleType`: The YL2 rule type, i.e., Single or Multi-event. Use in combination with matchWindow for troubleshooting\n\n`matchWindow`: The \"over\" match statement for a rule.  Factor into analysis, e.g., if a rule has a large match window higher latency may be expected.\n\n`dl_t_seconds`: The total detection latency (from the latest event's timestamp to the detection's creation time) in seconds.\n\n`dl_t_minutes`: The same detection latency converted to minutes.\n\n`dl_t_hour`: The same detection latency converted to hours.\n\n`eventtime_min`: The timestamp of the earliest event that is part of this detection.\n\n`ingesttime_min`: The timestamp of when that earliest event was ingested by the platform.\n\n`detecttime_min`: The timestamp of when the detection was officially created.",
+                            "properties": {
+                                "backgroundColor": "transparent"
+                            }
+                        }
+                    },
+                    "tileType": "TILE_TYPE_MARKDOWN",
+                    "etag": "dba47b24c17cbaaf4b67dfd19b7412e2b442e5f7925ec90d3ce12b1a67ae23a1"
+                },
+                {
+                    "name": "f20b8609-274c-48bd-bf63-c73ce1d48e5f",
+                    "displayName": "Ingestion Latency Percentages",
+                    "chartDatasource": {
+                        "dashboardQuery": "a2c02709-9cbc-47a5-b61c-486f12ed7d7d",
+                        "dataSources": [
+                            "UDM"
+                        ]
+                    },
+                    "visualization": {
+                        "xAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "yAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "legends": [
+                            {
+                                "legendOrient": "HORIZONTAL"
+                            }
+                        ],
+                        "columnDefs": [
+                            {
+                                "field": "log_type",
+                                "header": "log_type"
+                            },
+                            {
+                                "field": "perc_lt_0_hours",
+                                "header": "perc_lt_0_hours"
+                            },
+                            {
+                                "field": "perc_lt_1_minutes",
+                                "header": "perc_lt_1_minutes"
+                            },
+                            {
+                                "field": "perc_lt_15_minutes",
+                                "header": "perc_lt_15_minutes"
+                            },
+                            {
+                                "field": "perc_lt_60_minutes",
+                                "header": "perc_lt_60_minutes"
+                            },
+                            {
+                                "field": "perc_lt_2_hours",
+                                "header": "perc_lt_2_hours"
+                            },
+                            {
+                                "field": "perc_gt_2_hours",
+                                "header": "perc_gt_2_hours"
+                            },
+                            {
+                                "field": "latency_profile",
+                                "header": "latency_profile"
+                            },
+                            {
+                                "field": "latency_type",
+                                "header": "latency_type"
+                            },
+                            {
+                                "field": "latency_slo_minutes",
+                                "header": "latency_slo_minutes"
+                            }
+                        ],
+                        "groupingType": "Off",
+                        "tableConfig": {}
+                    },
+                    "tileType": "TILE_TYPE_VISUALIZATION",
+                    "etag": "78533d9a215d50b7aeccab4c2dfc9252c31cd03bb46ed0b96d45028abe017e89",
+                    "drillDownConfig": {}
+                },
+                {
+                    "name": "b0580f1a-e88d-4830-96ee-5c8566c39bf9",
+                    "displayName": "Latency Analysis",
+                    "chartDatasource": {
+                        "dashboardQuery": "c945fb3d-3627-4144-969d-803b9287c5da",
+                        "dataSources": [
+                            "UDM"
+                        ]
+                    },
+                    "visualization": {
+                        "xAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "yAxes": [
+                            {
+                                "axisType": "VALUE"
+                            }
+                        ],
+                        "legends": [
+                            {
+                                "legendOrient": "HORIZONTAL"
+                            }
+                        ],
+                        "columnDefs": [
+                            {
+                                "field": "log_type",
+                                "header": "log_type"
+                            },
+                            {
+                                "field": "total",
+                                "header": "total"
+                            },
+                            {
+                                "field": "average_difference_minutes",
+                                "header": "average_difference_minutes"
+                            },
+                            {
+                                "field": "cnt_lt_0_hours",
+                                "header": "cnt_lt_0_hours"
+                            },
+                            {
+                                "field": "cnt_0_1_hours",
+                                "header": "cnt_0_1_hours"
+                            },
+                            {
+                                "field": "cnt_1_2_hours",
+                                "header": "cnt_1_2_hours"
+                            },
+                            {
+                                "field": "cnt_gt_2_hours",
+                                "header": "cnt_gt_2_hours"
+                            }
+                        ],
+                        "groupingType": "Off"
+                    },
+                    "tileType": "TILE_TYPE_VISUALIZATION",
+                    "etag": "d5a6588590cb51c2c74b296994cc404c4f0b38007177a7f376f03f7a22e77f21"
+                }
+            ],
+            "dashboardQueries": [
+                {
+                    "name": "4f62cfdd-dc2e-46be-bea0-3b9b93eba462",
+                    "query": "// Store the unique identifier for the detection.\n$id = detection.id \n\n// Store the name of the rule that generated the detection.\n$ruleName = detection.detection.rule_name \n\n// Store the timestamp (in seconds) of the original event.\n$eventTime = detection.collection_elements.references.event.metadata.event_timestamp.seconds\n\n// Filter: Ensure the event timestamp is valid and not zero or null.\n$eventTime > 0\n\n$ruleType = detection.detection.rule_type\n\n// Store the detection creation time (in seconds).\n$detectionTime = detection.created_time.seconds\n \n// Filter: Ensure the log_type field is not empty.\ndetection.collection_elements.references.event.metadata.log_type != \"\"\n\n// Store the log type of the event.\n$logType = detection.collection_elements.references.event.metadata.log_type\n\n// ## Match Section ##\n// Groups detections together based on the values of the specified placeholders.\n// All detections with the same $id and $ruleName will be processed as a single group.\nmatch:\n  $id, $ruleName, $ruleType\n   \n// ## Outcome Section ##\n// Defines new variables that will be calculated for each matched group.\n// These are often used for aggregations or analysis.\noutcome:\n\n  // Calculate the \"over\" time window used in the Match statement \n  $matchWindow = sum(detection.time_window.end_time.seconds - detection.time_window.start_time.seconds) / 60\n\n  // Calculate the maximum detection latency (detection time - event time) in seconds.\n  $dl_t_seconds = (max(detection.created_time.seconds) - max(detection.collection_elements.references.event.metadata.event_timestamp.seconds))\n  \n  // Convert the latency from seconds to minutes.\n  //$dl_t_minutes = timestamp.diff($dl_t_seconds, 0, \"MINUTE\")\n  $dl_t_minutes = math.round($dl_t_seconds / 60)\n\n  // Convert the latency from seconds to hours.\n  //$dl_t_hour = timestamp.diff($dl_t_seconds, 0, \"HOUR\")\n  $dl_t_hour = math.round($dl_t_seconds / 3600)\n\n  // Find the earliest event timestamp in the group and format it as a human-readable timestamp.\n  $eventtime_min = timestamp.get_timestamp(min(detection.collection_elements.references.event.metadata.event_timestamp.seconds))\n  \n  // Find the earliest ingest timestamp in the group and format it.\n  $ingesttime_min = timestamp.get_timestamp(min(detection.collection_elements.references.event.metadata.ingested_timestamp.seconds))\n  \n  // Find the earliest detection creation time in the group and format it.\n  $detecttime_min = timestamp.get_timestamp(min(detection.created_time.seconds))\n \n// ## Order Section ##\n// Specifies how the final results (one row per matched group) should be sorted.\norder:\n  // Sort the results alphabetically by the rule name in ascending order (A-Z).\n  $dl_t_hour desc\n",
+                    "input": {
+                        "relativeTime": {
+                            "timeUnit": "DAY",
+                            "startTimeVal": "7"
+                        }
+                    },
+                    "etag": "9772f2e1ad71cd9c608b6c35ade8d5a88b32b53b6fd7aff2b594b0a2364122ca"
+                },
+                {
+                    "name": "a2c02709-9cbc-47a5-b61c-486f12ed7d7d",
+                    "query": "stage b {\n    $log_type = strings.to_upper(metadata.log_type)\n\n    match:\n        $log_type\n\n    outcome:\n        $total = count(metadata.id)\n        $average_difference_minutes = math.round(cast.as_int(avg(metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds)) / 60,2)\n        $cnt_lt_0_hours = sum(\n        if (\n            metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds < 0 \n            , 1, 0)\n        )\n\n        $cnt_0_1_minutes = sum(\n        if (\n            metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds >= 0 AND \n            metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds <= 60\n            , 1, 0)\n        )\n\n        $cnt_0_15_minutes = sum(\n        if (\n            metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds >= 0 AND \n            metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds <= 900\n            , 1, 0)\n        )\n\n        $cnt_0_1_hours = sum(\n        if (\n            metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds >= 0 AND \n            metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds <= 3600\n            , 1, 0)\n        )\n\n        $cnt_1_2_hours = sum(\n        if (\n            metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds > 3600 AND \n            metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds <= 7200\n            , 1, 0)\n        )\n\n        $cnt_gt_2_hours = sum(\n        if (\n        metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds > 7200\n        , 1, 0)\n        )\n}\nstage c {\n    $log_type = $b.log_type\n    match: \n        $log_type\n    outcome:\n        $perc_lt_0_hours = math.round(sum( $b.cnt_lt_0_hours / $b.total ) * 100,2)\n        $perc_lt_1_minutes = math.round(sum( $b.cnt_0_1_minutes / $b.total ) * 100,2)\n        $perc_lt_15_minutes = math.round(sum( $b.cnt_0_15_minutes / $b.total ) * 100,2)\n        $perc_lt_60_minutes = math.round(sum( $b.cnt_0_1_hours / $b.total ) * 100,2)\n        $perc_lt_2_hours = math.round(sum( $b.cnt_1_2_hours / $b.total ) * 100,2) \n        $perc_gt_2_hours = math.round(sum( $b.cnt_gt_2_hours / $b.total ) * 100,2)        \n}\n\n// Final Stage: Match on aggregated values and apply labeling logic\n$log_type = $c.log_type\n$perc_lt_0_hours = $c.perc_lt_0_hours\n$perc_lt_1_minutes = $c.perc_lt_1_minutes\n$perc_lt_15_minutes = $c.perc_lt_15_minutes\n$perc_lt_60_minutes = $c.perc_lt_60_minutes\n$perc_lt_2_hours = $c.perc_lt_2_hours\n$perc_gt_2_hours = $c.perc_gt_2_hours\n\nmatch: \n    $log_type,\n    $perc_lt_0_hours,\n    $perc_lt_1_minutes,\n    $perc_lt_15_minutes,\n    $perc_lt_60_minutes,\n    $perc_lt_2_hours,\n    $perc_gt_2_hours   \n\noutcome:\n    // Rule 1: Set latency_profile\n    // This is the nested if/elif/else logic from the Python script\n    $latency_profile = array_distinct(\n        if(\n            $perc_lt_1_minutes >= 99.0, \n            \"realtime\", // Rule 1: Realtime\n            if(\n                $perc_lt_15_minutes >= 99.0, \n                \"near_realtime\", // Rule 2: Near-Realtime\n                if(\n                    $perc_lt_15_minutes < 1.0 AND $perc_lt_60_minutes >= 99.0, \n                    \"batch\", // Rule 3: Batch\n                    \"variable\" // Rule 4: Variable (the final 'else')\n                )\n            )\n        )\n    )\n    \n    // Rule 2: Set latency_type\n    $latency_type = array_distinct(\n        if(\n            $perc_lt_1_minutes >= 99.0, \n            \"streaming\", // Realtime -> streaming\n            if(\n                $perc_lt_15_minutes >= 99.0, \n                \"streaming\", // Near-Realtime -> streaming\n                if(\n                    $perc_lt_15_minutes < 1.0 AND $perc_lt_60_minutes >= 99.0, \n                    \"batch\", // Batch -> batch\n                    \"streaming\" // Variable -> streaming\n                )\n           )\n        )\n    )\n    \n    // Rule 3: Set latency_slo_minutes\n   $latency_slo_minutes = array_distinct(\n        if(\n            $perc_lt_1_minutes >= 99.0, \n            1, // Realtime -> 1 min\n            if(\n                $perc_lt_15_minutes >= 99.0, \n                15, // Near-Realtime -> 15 min\n                if(\n                    $perc_lt_15_minutes < 1.0 AND $perc_lt_60_minutes >= 99.0, \n                    60, // Batch -> 60 min\n                    180 // Variable -> 180 min\n               )\n            )\n        )\n    )\n",
+                    "input": {
+                        "relativeTime": {
+                            "timeUnit": "DAY",
+                            "startTimeVal": "7"
+                        }
+                    },
+                    "etag": "1530439f5c7a568991b6fd8f9ceedb359dba9b9dfc841686e2f093b1ddf97455"
+                },
+                {
+                    "name": "c945fb3d-3627-4144-969d-803b9287c5da",
+                    "query": "$log_type = strings.to_upper(metadata.log_type)\n\nmatch:\n    $log_type\n\noutcome:\n    $total = count(metadata.id)\n    $average_difference_minutes = math.round(cast.as_int(avg(metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds)) / 60,2)\n    $cnt_lt_0_hours = sum(\n    if (\n        metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds < 0 \n        , 1, 0)\n    )\n\n    $cnt_0_1_hours = sum(\n    if (\n        metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds >= 0 AND \n        metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds <= 3600\n        , 1, 0)\n    )\n\n    $cnt_1_2_hours = sum(\n    if (\n        metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds > 3600 AND \n        metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds <= 7200\n        , 1, 0)\n    )\n\n    $cnt_gt_2_hours = sum(\n    if (\n    metadata.ingested_timestamp.seconds - metadata.event_timestamp.seconds > 7200\n    , 1, 0)\n    )\n\norder:\n    $average_difference_minutes desc",
+                    "input": {
+                        "relativeTime": {
+                            "timeUnit": "DAY",
+                            "startTimeVal": "1"
+                        }
+                    },
+                    "etag": "c0d09c756e0e7973fe436c81bf1e5b9732293525c880f0a119a0d37cdf2fed71"
+                }
+            ]
+        }
+    ]
+}
