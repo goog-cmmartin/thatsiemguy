@@ -9,7 +9,7 @@ Understanding latency is critical for any SIEM. This dashboard provides a high-l
   * Slow-running detection rules.
   * The cumulative impact of ingestion and enrichment delays on your alert timeliness.
 
-[ingestion_latency.png]
+![Ingestion Latency Dashboard](ingestion_latency.png)
 
 ## Dashboard Overview
 
