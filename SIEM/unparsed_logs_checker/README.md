@@ -39,6 +39,8 @@ gcloud auth application-default login
 
 ## Main Workflow
 
+![Workflow Diagram](workflow.png)
+
 The primary workflow involves three main scripts to identify unparsed logs, test them against parsers, and generate suggestions for failures.
 
 ### Step 1: Prepare Unparsed Logs
