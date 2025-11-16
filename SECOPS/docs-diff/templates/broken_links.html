@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broken Links Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; }
+        .main-container { max-width: 85%; margin: 2rem auto; }
+        .report-header { padding-bottom: 1rem; margin-bottom: 2rem; border-bottom: 1px solid #dee2e6; }
+        .table { background-color: #fff; }
+        .google-logo {
+            height: 32px; /* Adjust size as needed */
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-container">
+        <header class="report-header d-flex align-items-center">
+            <img src="/static/Google__G__logo.svg" alt="Google G Logo" class="google-logo">
+            <h1>Broken Links Report</h1>
+        </header>
+        <p class="text-muted">A log of all broken links (404s) found during the scraping process.</p>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date Found</th>
+                        <th>Broken Link (Target)</th>
+                        <th>Found On Page (Source)</th>
+                    </tr>
+                </thead>
+                <tbody id="broken-links-table-body">
+                    <!-- Data will be dynamically loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableBody = document.getElementById('broken-links-table-body');
+
+            // Utility function to get the ordinal suffix for a number
+            function getOrdinalSuffix(day) {
+                if (day > 3 && day < 21) return 'th';
+                switch (day % 10) {
+                    case 1: return 'st';
+                    case 2: return 'nd';
+                    case 3: return 'rd';
+                    default: return 'th';
+                }
+            }
+
+            // Function to format the date
+            function formatDate(dateString) {
+                const date = new Date(dateString + 'T00:00:00');
+                const day = date.getDate();
+                const month = date.toLocaleString('default', { month: 'long' });
+                const year = date.getFullYear();
+                return `${day}${getOrdinalSuffix(day)} ${month}, ${year}`;
+            }
+
+            async function fetchBrokenLinks() {
+                try {
+                    const response = await fetch('/api/broken_links');
+                    const links = await response.json();
+
+                    if (links.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="3" class="text-center">No broken links found.</td></tr>';
+                        return;
+                    }
+
+                    links.forEach(link => {
+                        const row = `
+                            <tr>
+                                <td>${formatDate(link.scrape_date)}</td>
+                                <td><a href="${link.target_url}" target="_blank">${link.target_url}</a></td>
+                                <td><a href="${link.source_url}" target="_blank">${link.source_url}</a></td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+                } catch (error) {
+                    console.error('Error fetching broken links:', error);
+                    tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Failed to load data.</td></tr>';
+                }
+            }
+
+            fetchBrokenLinks();
+        });
+    </script>
+</body>
+</html>
