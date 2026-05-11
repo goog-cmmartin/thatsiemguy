@@ -13,10 +13,30 @@
         tailwind.config = {
             theme: {
                 extend: {
+                borderRadius: {
+                  'md': 'var(--btn-rectangle-border-radius)',
+                  'round': 'var(--round-border-radius)',
+                },
                     colors: {
                         'background': 'var(--widget-bg-color)',
                         'foreground': 'var(--widget-foreground-color)',
                         'card': 'var(--widget-card-color)',
+                      'table-odd': 'var(--table-odd-background-color)',
+                      'table-even': 'var(--table-even-background-color)',
+                      'table-hover': 'var(--table-hover-background-color)',
+                      'btn-filled': 'var(--btn-filled-default-background-color)',
+                      'btn-filled-hover': 'var(--btn-filled-default-hover-background-color)',
+                      'btn-primary': 'var(--btn-filled-primary-background-color)',
+                      'btn-primary-hover': 'var(--btn-filled-primary-hover-background-color)',
+                      'btn-stroke': 'var(--btn-stroke-border-color)',
+                      'btn-stroke-hover': 'var(--btn-stroke-primary-hover-background-color)',
+                      'btn-stroke-text': 'var(--btn-stroke-primary-font-color)',
+                      'chip-bg': 'var(--chip-default-background-color)',
+                      'chip-text': 'var(--chip-default-foreground-color)',
+                      'chip-text-primary': 'var(--chip-default-foreground-color)',
+                      'btn-stroke-primary': 'var(--btn-stroke-primary-border-color)',
+                      'btn-stroke-hover-opacity': 'var(--btn-stroke-hover-background-color-opacity)',
+                      'btn-stroke-primary-hover-opacity': 'var(--btn-stroke-primary-hover-background-color-opacity)',
                         'card-foreground': 'var(--widget-card-foreground-color)',
                         'primary': 'var(--widget-primary-color)',
                         'primary-foreground': 'var(--widget-primary-foreground-color)',
@@ -40,59 +60,149 @@
     </script>
 
     <!-- 3. Define the default (Light Mode) values and apply base styles -->
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400|Source+Sans+Pro:300,400,500,600,700"
+      rel="stylesheet">
     <style type="text/tailwindcss">
         body {
+            font-family: 'Source Sans Pro', sans-serif;
+            letter-spacing: 0;
+            background-color: var(--widget-bg-color);
             /* Define Light Theme variables by default */
-            --widget-bg-color: #ffffff; /* white */
-            --widget-foreground-color: #020817; /* slate-950 */
+            --widget-bg-color: #f4f5f6; /* gray-50 */
+            --widget-foreground-color: #4a4a4a; /* stone-10 */
             --widget-card-color: #ffffff; /* white */
-            --widget-card-foreground-color: #020817; /* slate-950 */
+            --widget-card-foreground-color: #4a4a4a;
             --widget-primary-color: #020817; /* slate-950 */
             --widget-primary-foreground-color: #f8fafc; /* slate-50 */
-            --widget-secondary-color: #f1f5f9; /* slate-100 */
-            --widget-secondary-foreground-color: #0f172a; /* slate-900 */
-            --widget-muted-color: #f1f5f9; /* slate-100 */
-            --widget-muted-foreground-color: #64748b; /* slate-500 */
-            --widget-accent-color: #f1f5f9; /* slate-100 */
-            --widget-accent-foreground-color: #0f172a; /* slate-900 */
-            --widget-border-color: #e2e8f0; /* slate-200 */
-            --widget-input-color: #e2e8f0; /* slate-200 */
+            --widget-secondary-color: #ffffff; /* table header */
+            --widget-secondary-foreground-color: #4a4a4a;
+            --widget-muted-color: #f4f5f6;
+            --widget-muted-foreground-color: #64748b;
+            --widget-accent-color: #f4f5f6;
+            --widget-accent-foreground-color: #4a4a4a;
+            --widget-border-color: #e2e8f0;
+            --widget-input-color: #e2e8f0;
+            --btn-stroke-border-color: #818993; /* Updated value */
+            --dialog-background-color: #ffffff;
+            --btn-filled-default-background-color: #5f6368;
+            --btn-filled-default-hover-background-color: #3c4043;
+            --btn-filled-primary-background-color: #0c67df;
+            --btn-filled-primary-hover-background-color: #0c67df;
+            --btn-rectangle-border-radius: 4px;
+            --btn-stroke-primary-hover-background-color: #aecbfa;
+            --btn-stroke-primary-font-color: #8ab4f8;
+            --chip-default-background-color: #3a4a6c;
+            --chip-default-foreground-color: #a7b2cc;
+            --round-border-radius: 40px;
+            --uno-comp-indicative-chip--filled-other-label-text-color: #FFFFFF;
+            --uno-comp-indicative-chip--filled-other-container-color: #2F3D5C;
+            --btn-stroke-hover-background-color-opacity: #3c40430a;
+            --btn-stroke-primary-border-color: #5784cb;
+            --btn-stroke-primary-hover-background-color-opacity: #1a73e80a;
+
 
             /* Apply base styles using Tailwind utilities */
-            @apply bg-background text-foreground;
+            @apply text-foreground;
         }
-        .sortable:hover {
-            background-color: var(--widget-accent-color);
+
+        th {
+            text-transform: uppercase;
+            padding: var(--element-padding-small) var(--element-padding-medium);
+            background: var(--bg-weight-800);
+            min-width: 40px;
+            border-bottom: 1px solid transparent;
+            font: 600 12px "Source Sans Pro", "Noto Sans", sans-serif;
+            letter-spacing: 0 !important;
+        }
+        #logic-dropdown-button {
+            border-color: var(--btn-stroke-border-color);
+        }
+        uno-status-chip.status--other {
+            background-color: var(--uno-comp-indicative-chip--filled-other-container-color);
+            color: var(--uno-comp-indicative-chip--filled-other-label-text-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        /* Base styles for the checkbox */
+        input[type="checkbox"] {
+          appearance: none !important;
+          -webkit-appearance: none !important;
+          width: 14px !important;
+          height: 14px !important;
+          display: inline-block !important;
+          vertical-align: middle !important;
+          margin: 0 !important;
+          cursor: pointer !important;
+          position: relative !important;
+          background-color: transparent !important;
+          border: 1px solid #c3d2e8 !important;
+          border-radius: 2px !important;
+          transition: background 0.2s, border-color 0.2s, box-shadow 0.2s !important;
+        }
+        input[type="checkbox"]:checked {
+          background-color: #4088ef !important;
+          border-color: #4088ef !important;
+        }
+        input[type="checkbox"]:checked::after {
+          content: '' !important;
+          position: absolute !important;
+          left: 4px !important;
+          top: 1px !important;
+          width: 4px !important;
+          height: 8px !important;
+          border: solid white !important;
+          border-width: 0 2px 2px 0 !important;
+          transform: rotate(45deg) !important;
+        }
+        input[type="checkbox"]:not(:checked):hover {
+          border-color: #1a73e8 !important;
+        }
+        input[type="checkbox"]:checked:hover {
+          background-color: #1a73e8 !important;
+          border-color: #1a73e8 !important;
+        }
+        input[type="checkbox"]:focus-visible {
+          outline: 2px solid #4088ef !important;
+          outline-offset: 2px !important;
+        }
+        input[type="checkbox"]:disabled {
+          cursor: default !important;
+          opacity: 0.6 !important;
+          background-color: #f4f4f4 !important;
+          border-color: #d1d1d1 !important;
+        }
+        label {
+          cursor: pointer !important;
+          user-select: none !important;
+          vertical-align: middle !important;
         }
     </style>
 </head>
 <body class="font-sans antialiased">
   
-    <div class="w-[95%] mx-auto p-4">
+    <div class="mx-auto px-2 py-1">
 
-      <!-- Title Section -->
-      <div class="flex items-center gap-3 mb-4">
-          <h1 class="text-2xl font-bold text-card-foreground mb-4 flex items-center">
-                    <svg class="h-6 w-6 text-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-          </svg> 
-          UDM Entity Pivot</h1>
-      </div>
-  
-      
       <!-- Controls Section -->
       <div class="mb-4 flex flex-wrap justify-between items-center gap-4">
         
         <!-- Left Controls: Compound Search & Help -->
         <div class="flex items-center gap-3">
           <p class="text-sm text-foreground" title="Select multiple Entities to Run a compound UDM Search.">
-            Compound Operator:
+            Combine multiple with:
           </p>
           
           <!-- Custom Dropdown -->
           <div class="relative inline-block text-left">
             <div>
-              <button type="button" id="logic-dropdown-button" class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-card px-3 py-2 text-sm font-semibold text-card-foreground shadow-sm ring-1 ring-inset ring-input hover:bg-muted" aria-expanded="true" aria-haspopup="true">
+              <button type="button" id="logic-dropdown-button"
+                class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-card px-2.5 py-1 text-sm font-semibold text-card-foreground border hover:bg-muted"
+                aria-expanded="true" aria-haspopup="true">
                 AND
                 <svg class="-mr-1 h-5 w-5 text-muted-foreground" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
@@ -107,11 +217,12 @@
             </div>
           </div>
           
-          <button id="get-selected-rows" class="inline-flex items-center gap-2 rounded-md bg-success px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-success-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success disabled:opacity-50 disabled:cursor-not-allowed">
-            Run
+          <button id="get-selected-rows"
+            class="inline-flex items-center gap-2 rounded-md bg-btn-filled px-2.5 py-1 text-sm font-semibold text-white shadow-sm hover:bg-btn-filled-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success disabled:opacity-50 disabled:cursor-not-allowed">
+            Search Entities
             <svg class="h-4 w-4" width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M17.444 17.444H6.555V6.556H12V5H6.555C5.692 5 5 5.7 5 6.556v10.888C5 18.3 5.692 19 6.555 19h10.889c.855 0 1.555-.7 1.555-1.556V12h-1.555v5.444z"></path><path d="M13.556 5v1.556h2.792L8.703 14.2l1.096 1.097 7.646-7.646v2.792H19V5h-5.444z"></path></svg>
           </button>
-          <span id="selection-counter" class="text-sm text-muted-foreground"></span>
+          <span id="selection-counter" class="text-sm text-secondary-foreground"></span>
         </div>
         
         <!-- Right Controls -->
@@ -125,7 +236,7 @@
       </div>
 
       <!-- Table Container -->
-      <div class="overflow-x-auto rounded-lg border border-border shadow-md">
+      <div class="overflow-x-auto border border-border">
         <table class="min-w-full divide-y divide-border text-sm">
           <thead class="bg-secondary">
             <tr>
@@ -138,8 +249,10 @@
               <th scope="col" class="p-3 text-left font-semibold text-secondary-foreground tracking-wider cursor-pointer sortable" data-sort-by="EntityCards.Type" title="Click to sort by Type">
                  <div class="flex items-center gap-2">Type <span class="sort-icon"></span></div>
               </th>
-              <th scope="col" class="p-3 text-center font-semibold text-secondary-foreground tracking-wider" title="Run a UDM search for this entity">UDM</th>
-              <th scope="col" class="p-3 text-center font-semibold text-secondary-foreground tracking-wider" title="Run a Raw Log search for this entity">RLS</th>
+              <th scope="col" class="p-3 text-center font-semibold text-secondary-foreground tracking-wider"
+                title="Run a UDM search for this entity">UDM Search</th>
+              <th scope="col" class="p-3 text-center font-semibold text-secondary-foreground tracking-wider"
+                title="Run a Raw Log search for this entity">Raw Log Search</th>
               <th scope="col" class="p-3 text-left font-semibold text-secondary-foreground tracking-wider" title="Boolean attributes for this entity">Tags</th>
             </tr>
           </thead>
@@ -161,8 +274,10 @@
             <div class="space-y-4 text-sm">
                 <p>This widget displays entities associated with an alert and allows you to quickly pivot to UDM and Raw Log Searches.</p>
                 <ul class="list-disc list-inside space-y-2">
-                    <li><b>UDM / RLS Buttons:</b> Click the <span class="inline-flex items-center text-xs font-semibold px-2 py-1 bg-success text-white rounded">Run</span> or <span class="inline-flex items-center text-xs font-semibold px-2 py-1 bg-info text-white rounded">Run</span> buttons in each row to open a new search tab for that specific entity.</li>
-                    <li><b>Compound Search:</b> Select two or more entities using the checkboxes. Choose a logical operator (<span class="font-mono bg-muted px-1 rounded">AND</span> / <span class="font-mono bg-muted px-1 rounded">OR</span>) and click the main "Run" button to perform a combined UDM search.</li>
+                    <li><b>UDM / RLS Buttons:</b> Click the <button class="inline-flex items-center text-xs font-semibold px-2 py-1 bg-btn-filled text-white rounded-md">Run</button> or <button class="inline-flex items-center text-xs font-semibold px-2 py-1 border border-btn-stroke text-btn-stroke-text rounded-md">Run</button> buttons in each row to open a new search tab for that specific entity.</li>
+                    <li><b>Compound Search:</b> Select two or more entities using the checkboxes. Choose a logical operator (<span
+                        class="bg-muted px-1 rounded">AND</span> / <span class="bg-muted px-1 rounded">OR</span>) and click the main "Run"
+                      button to perform a combined UDM search.</li>
                     <li><b>Sorting:</b> Click on the "Identifier" or "Type" headers to sort the table.</li>
                     <li><b>Tags:</b> The tags indicate boolean attributes of an entity, such as whether it's suspicious, internal, etc.</li>
                 </ul>
@@ -176,18 +291,58 @@
       // --- THEME DEFINITIONS AND LOGIC ---
       const themes = {
           light: {
-              '--widget-bg-color': '#ffffff', '--widget-foreground-color': '#020817', '--widget-card-color': '#ffffff',
-              '--widget-card-foreground-color': '#020817', '--widget-primary-color': '#020817', '--widget-primary-foreground-color': '#f8fafc',
-              '--widget-secondary-color': '#f1f5f9', '--widget-secondary-foreground-color': '#0f172a', '--widget-muted-color': '#f1f5f9',
-              '--widget-muted-foreground-color': '#64748b', '--widget-accent-color': '#f1f5f9', '--widget-accent-foreground-color': '#0f172a',
+          '--widget-bg-color': '#f4f5f6', '--widget-foreground-color': '#4a4a4a', '--widget-card-color': '#ffffff',
+          '--widget-card-foreground-color': '#4a4a4a', '--widget-primary-color': '#020817', '--widget-primary-foreground-color': '#f8fafc',
+          '--widget-secondary-color': '#ffffff', '--widget-secondary-foreground-color': '#4a4a4a', '--widget-muted-color': '#f4f5f6',
+          '--widget-muted-foreground-color': '#64748b', '--widget-accent-color': '#f4f5f6', '--widget-accent-foreground-color': '#4a4a4a',
               '--widget-border-color': '#e2e8f0', '--widget-input-color': '#e2e8f0',
+          '--table-odd-background-color': '#ffffff', '--table-even-background-color': '#f4f5f6',
+          '--table-hover-background-color': '#e2e8f0',
+          '--btn-stroke-border-color': '#818993',
+          '--btn-filled-default-background-color': '#5f6368',
+          '--btn-filled-default-hover-background-color': '#3c4043',
+          '--dialog-background-color': '#ffffff',
+          '--btn-filled-primary-background-color': '#0c67df',
+          '--btn-filled-primary-hover-background-color': '#0c67df',
+          '--btn-rectangle-border-radius': '4px',
+          '--btn-stroke-primary-hover-background-color': '#aecbfa',
+          '--btn-stroke-primary-font-color': '#0c67df',
+          '--chip-default-background-color': '#3a4a6c',
+          '--chip-default-foreground-color': '#a7b2cc',
+          '--round-border-radius': '40px',
+          '--btn-stroke-hover-background-color-opacity': '#3c40430a',
+          '--btn-stroke-primary-border-color': '#5784cb',
+          '--btn-stroke-primary-hover-background-color-opacity': '#1a73e80a',
+          '--uno-comp-indicative-chip--filled-other-label-text-color': '#202124',
+          '--uno-comp-indicative-chip--filled-other-container-color': '#E8EAED',
+
           },
           dark: {
-              '--widget-bg-color': '#020817', '--widget-foreground-color': '#f8fafc', '--widget-card-color': '#020817',
+            '--widget-bg-color': '#161625', '--widget-foreground-color': '#f8fafc', '--widget-card-color': '#212c44',
               '--widget-card-foreground-color': '#f8fafc', '--widget-primary-color': '#f8fafc', '--widget-primary-foreground-color': '#020817',
-              '--widget-secondary-color': '#0f172a', '--widget-secondary-foreground-color': '#f8fafc', '--widget-muted-color': '#0f172a',
+            '--widget-secondary-color': '#212c44', '--widget-secondary-foreground-color': '#c3d2e8', '--widget-muted-color': '#0f172a',
               '--widget-muted-foreground-color': '#94a3b8', '--widget-accent-color': '#0f172a', '--widget-accent-foreground-color': '#f8fafc',
-              '--widget-border-color': '#1e293b', '--widget-input-color': '#1e293b',
+            '--widget-border-color': '#212c44', '--widget-input-color': '#212c44',
+            '--table-odd-background-color': '#161625', '--table-even-background-color': '#1b2134',
+            '--table-hover-background-color': '#212c44',
+            '--btn-stroke-border-color': '#6275a3',
+            '--btn-filled-default-background-color': '#6275a3',
+            '--btn-filled-default-hover-background-color': '#6275a3',
+            '--dialog-background-color': '#212c44',
+            '--btn-filled-primary-background-color': '#0c67df',
+            '--btn-filled-primary-hover-background-color': '#0c67df',
+            '--btn-rectangle-border-radius': '4px',
+            '--btn-stroke-primary-hover-background-color': '#aecbfa',
+            '--btn-stroke-primary-font-color': '#8ab4f8',
+            '--chip-default-background-color': '#3a4a6c',
+            '--chip-default-foreground-color': '#a7b2cc',
+            '--round-border-radius': '40px',
+            '--btn-stroke-hover-background-color-opacity': '#8ab4f81a',
+            '--btn-stroke-primary-border-color': '#6275a3',
+            '--btn-stroke-primary-hover-background-color-opacity': '#8ab4f81a',
+            '--uno-comp-indicative-chip--filled-other-label-text-color': '#FFFFFF',
+            '--uno-comp-indicative-chip--filled-other-container-color': '#2F3D5C',
+
           }
       };
 
@@ -371,15 +526,15 @@ function buildJsonObject(filter) {
           const { startTimeIso, endTimeIso } = convertTimestamps(CreationTime);
           let query, btnClass;
           if (type === 'udm') {
-            query = getQuery(Identifier, Type); btnClass = 'bg-success hover:bg-success-hover';
+            query = getQuery(Identifier, Type); btnClass = 'bg-btn-filled hover:bg-btn-filled-hover text-white';
           } else {
-            query = `raw = /${JSON.stringify(Identifier).slice(1, -1).replace(/\\/g, '\\\\')}/ nocase`; btnClass = 'bg-info hover:bg-info-hover';
+            query = `raw = /${JSON.stringify(Identifier).slice(1, -1).replace(/\\/g, '\\\\')}/ nocase`; btnClass = 'border border-btn-stroke-primary hover:bg-btn-stroke-primary-hover-opacity text-btn-stroke-text';
           }
           if (!query) return document.createTextNode('');
           const url = `${SourceSystemUrl}/search?query=${encodeURIComponent(query)}&startTime=${startTimeIso}&endTime=${endTimeIso}`;
           const link = document.createElement("a");
           link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
-          link.className = `inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${btnClass}`;
+          link.className = `inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${btnClass}`;
           link.innerHTML = `Run ${externalLinkIcon}`;
           return link;
         }
@@ -397,10 +552,10 @@ function buildJsonObject(filter) {
 
         function renderTable() {
           tableBody.innerHTML = "";
-          tableData.forEach(rowData => {
+          tableData.forEach((rowData, index) => {
 
             const tr = document.createElement("tr");
-            tr.className = "hover:bg-accent";
+            tr.className = `hover:bg-table-hover ${index % 2 === 0 ? 'bg-table-odd' : 'bg-table-even'}`;
             tr.dataset.rowData = JSON.stringify(rowData);
             
             const tags = [
@@ -412,11 +567,11 @@ function buildJsonObject(filter) {
 
             tr.innerHTML = `
               <td class="p-3"><input type="checkbox" class="row-checkbox h-4 w-4 rounded border-input text-primary focus:ring-primary/50"></td>
-              <td class="p-3 text-card-foreground font-mono">
+              <td class="p-3 text-card-foreground">
                 <div class="truncate max-w-xs" title="${rowData.EntityCards.Identifier}">${rowData.EntityCards.Identifier}</div>
               </td>
               <td class="p-3 text-muted-foreground">
-                  <span class="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
+                  <span class="inline-flex items-center text-xs font-medium text-accent-foreground">
                       ${rowData.EntityCards.Type}
                   </span>
               </td>
@@ -424,7 +579,7 @@ function buildJsonObject(filter) {
               <td class="p-3 text-center"></td>
               <td class="p-3">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  ${tags.map(tag => `<span class="text-xs font-medium me-2 px-2.5 py-0.5 rounded ${tag.class}">${tag.text}</span>`).join('')}
+                  ${tags.map(tag => `<uno-status-chip status="other" class="uppercase size--medium status--other">${tag.text}</uno-status-chip>`).join('')}
                 </div>
               </td>
             `;
